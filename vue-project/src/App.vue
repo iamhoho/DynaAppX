@@ -1,6 +1,13 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
 import HelloWorld from './components/HelloWorld.vue'
+import { ref, onMounted } from 'vue'
+import { hocrm } from './CRMHelper.js'
+
+onMounted(() => {
+  console.log(hocrm.getCrmUrl())
+})
+
 </script>
 
 <template>
