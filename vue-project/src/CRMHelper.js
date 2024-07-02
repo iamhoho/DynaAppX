@@ -10,7 +10,6 @@ export const hocrm = {
             }
             return url;
         }
-
     },
     isGuid: function (str) {
         const guidRegex = /^[{(]?[0-9A-Fa-f]{8}[-]?([0-9A-Fa-f]{4}[-]?){3}[0-9A-Fa-f]{12}[)}]?$/i;
@@ -50,7 +49,6 @@ export const hocrm = {
                 hocrm.entityDefinitions = [];
             }
         }
-
         return hocrm.entityDefinitions;
     },
     getFlowDefinitions: function () {
