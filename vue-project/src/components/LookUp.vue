@@ -22,7 +22,7 @@ const selectedName = ref("")
 const selectedItem = ref(props.modelValue)
 const entityDefinition = ref(null)
 
-watch(logicalName, (newValue, oldValue) => {
+watch(props.logicalName, (newValue, oldValue) => {
     if (newValue) {
         getEntityDefinition();
     }
@@ -30,7 +30,7 @@ watch(logicalName, (newValue, oldValue) => {
 
 watch(selectedItem, (newValue, oldValue) => {
     selectedName = newValue?.name;
-    $emit('update:modelValue', newValue);
+    this.$emit('update:modelValue', newValue);
 })
 
 watch(props.modelValue, (newValue, oldValue) => {
@@ -141,13 +141,13 @@ function getEntityDefinition() {
             </template>
             <template #default="{ item }">
                 <div><span>{{ item[entityDefinition.PrimaryNameAttribute] }} &nbsp;&nbsp;&nbsp; {{
-            item[entityDefinition.PrimaryIdAttribute] }}</span></div>
+                    item[entityDefinition.PrimaryIdAttribute] }}</span></div>
                 <div><span>createdon {{ item['createdon@OData.Community.Display.V1.FormattedValue'] }}
                         &nbsp;&nbsp;&nbsp; modifiedon {{ item['modifiedon@OData.Community.Display.V1.FormattedValue']
                         }}</span></div>
             </template>
         </el-autocomplete>
-        <el-icon size="2em" :color="required && selectedItem == null ? '#F56C6C' : '#67C23A' ">
+        <el-icon size="2em" :color="required && selectedItem == null ? '#F56C6C' : '#67C23A'">
             <SuccessFilled />
         </el-icon>
     </div>

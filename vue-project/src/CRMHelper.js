@@ -39,6 +39,7 @@ export const hocrm = {
             const xhr = new XMLHttpRequest;
             const path = '/api/data/v8.0/EntityDefinitions?$select=LogicalName,DisplayName,SchemaName,ObjectTypeCode'
             xhr.open("GET", encodeURI(hocrm.getCrmUrl() + path), false);
+            xhr.withCredentials = true;
             xhr.setRequestHeader("Content-Type", "application/json; charset=utf-8");
             xhr.setRequestHeader("OData-MaxVersion", "4.0");
             xhr.setRequestHeader("OData-Version", "4.0");

@@ -1,5 +1,5 @@
 <script setup>
-import { ref,watch } from 'vue'
+import { ref, watch } from 'vue'
 import { hocrm } from '../CRMHelper.js'
 
 const props = defineProps({
@@ -13,13 +13,13 @@ const props = defineProps({
     }
 })
 
-const selectedName = ref("")
-const selectedItem = ref(props.modelValue)
+var selectedName = ref("")
+var selectedItem = ref(props.modelValue)
 
 watch(selectedItem, (newValue, oldValue) => {
     selectedName = newValue?.DisplayName?.UserLocalizedLabel?.Label;
-    $emit('update:modelValue', newValue);
-    })
+    this.$emit('update:modelValue', newValue);
+})
 
 function onChange(item) {
     selectedItem = null;

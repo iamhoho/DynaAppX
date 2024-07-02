@@ -20,10 +20,10 @@ const selectedItem = ref(props.modelValue)
 
 watch(selectedItem, (newValue, oldValue) => {
     selectedName = newValue?.name;
-    $emit('update:modelValue', newValue);
+    this.$emit('update:modelValue', newValue);
 })
 
-watch(modelValue, (newValue, oldValue) => {
+watch(props.modelValue, (newValue, oldValue) => {
     selectedItem = newValue
 })
 

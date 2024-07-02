@@ -1,13 +1,9 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
 import HelloWorld from './components/HelloWorld.vue'
-import { ref, onMounted } from 'vue'
-import { hocrm } from './CRMHelper.js'
-import SelectEntity from './components/SelectEntity.vue'
-
+import { onMounted } from 'vue'
 
 onMounted(() => {
-  console.log(hocrm.getEntityDefinitions())
 })
 
 </script>
@@ -18,10 +14,11 @@ onMounted(() => {
 
     <div class="wrapper">
       <HelloWorld msg="You did it!" />
-      <SelectEntity></SelectEntity>
       <nav>
         <RouterLink to="/">Home</RouterLink>
         <RouterLink to="/about">About</RouterLink>
+        <RouterLink to="/accessChecK">AccessChecK</RouterLink>
+        <RouterLink to="/invokeFlow">InvokeFlow</RouterLink>
       </nav>
     </div>
   </header>

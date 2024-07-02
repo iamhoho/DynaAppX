@@ -14,7 +14,7 @@ const props = defineProps({
 }
 )
 
-const value = ref(null)
+var value = ref(null)
 const options = ref([
     {
         value: true,
@@ -28,19 +28,19 @@ const options = ref([
 
 watch(value, (newValue, oldValue) => {
     if (newValue === '') {
-        $emit('update:modelValue', null);
+        this.$emit('update:modelValue', null);
     }
     else {
-        $emit('update:modelValue', newValue);
+        this.$emit('update:modelValue', newValue);
     }
 })
 
 onMounted(() => {
-    if (modelValue == null || modelValue == undefined) {
+    if (props.modelValue == null || props.modelValue == undefined) {
         value = null
     }
-    else if (modelValue) {
-        value = modelValue;
+    else if (props.modelValue) {
+        value = props.modelValue;
     }
 })
 </script>

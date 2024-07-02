@@ -13,10 +13,10 @@ const props = defineProps({
 }
 )
 
-const value = ref(null)
+var value = ref(null)
 
 watch(value, (newValue, oldValue) => {
-    $emit('update:modelValue', newValue);
+    this.$emit('update:modelValue', newValue);
 })
 
 onMounted(() => {

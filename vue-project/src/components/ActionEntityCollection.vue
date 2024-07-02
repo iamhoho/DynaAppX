@@ -13,8 +13,8 @@ const props = defineProps({
 }
 )
 
-const value = ref(modelValue)
-const isJson = ref(false)
+const value = ref(props.modelValue)
+var isJson = ref(false)
 const tip = ref(`
       <pre>
 Please use standard JSON format and follow the specifications for the EntityCollection type input.
@@ -38,7 +38,7 @@ Here is an example:
 
 watch(value, (newValue, oldValue) => {
     checkValue(newValue);
-    $emit('update:modelValue', newValue);
+    this.$emit('update:modelValue', newValue);
 })
 
 onMounted(() => {

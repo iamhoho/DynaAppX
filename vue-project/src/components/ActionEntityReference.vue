@@ -13,8 +13,8 @@ const props = defineProps({
 }
 )
 
-const value = ref(modelValue)
-const isJson = ref(false)
+const value = ref(props.modelValue)
+var isJson = ref(false)
 const tip = ref(`
 <pre>
 Please use standard JSON format and follow the specifications for the EntityReference type input.
@@ -27,25 +27,25 @@ Here is an example:
 `)
 
 watch(value, (newValue, oldValue) => {
-    this.checkValue(newValue);
+    checkValue(newValue);
     this.$emit('update:modelValue', newValue);
 })
 
 onMounted(() => {
-    this.checkValue(this.value);
+    checkValue(value);
 })
 
 function checkValue(value) {
     try {
         let Jvalue = JSON.parse(value);
         if (typeof Jvalue == 'object') {
-            this.isJson = !Array.isArray(Jvalue);
+            isJson = !Array.isArray(Jvalue);
         }
         else {
-            this.isJson = false;
+            isJson = false;
         }
     } catch (error) {
-        this.isJson = false;
+        isJson = false;
     }
     this.$emit('update:modelValue', value);
 }
