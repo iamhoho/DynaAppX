@@ -23,18 +23,13 @@ const router = createRouter({
     {
       path: '/accessChecK',
       name: 'accessChecK',
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
+
       component: AccessChecKView
     }
     ,
     {
       path: '/invokeFlow',
       name: 'invokeFlow',
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
       component: InvokeFlowView
     }
   ]
