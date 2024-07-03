@@ -1,6 +1,7 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, defineEmits } from 'vue'
 import { hocrm } from '../CRMHelper.js'
+import { ElMessage } from 'element-plus'
 
 const props = defineProps({
     required: {
@@ -18,41 +19,44 @@ const props = defineProps({
 }
 )
 
-const selectedName = ref("")
-const selectedItem = ref(props.modelValue)
-const entityDefinition = ref(null)
+var selectedName = ref("")
+var selectedItem = ref(props.modelValue)
+var entityDefinition = ref(null)
 
 watch(props.logicalName, (newValue, oldValue) => {
+    debugger
     if (newValue) {
         getEntityDefinition();
     }
 })
 
+const emit = defineEmits(['update:modelValue'])
+
 watch(selectedItem, (newValue, oldValue) => {
-    selectedName = newValue?.name;
-    this.$emit('update:modelValue', newValue);
+    selectedName.value = newValue?.name;
+    emit('update:modelValue', newValue);
 })
 
-watch(props.modelValue, (newValue, oldValue) => {
-    selectedItem = newValue
-
+watch(props.logicalName, (newValue, oldValue) => {
+    debugger
+    selectedItem.value = null;
 })
 
 function onChange(item) {
-    selectedItem = null;
+    selectedItem.value = null;
 }
 function handleSelect(item) {
     if (item) {
-        selectedItem =
+        selectedItem.value =
         {
-            logicalName: entityDefinition.LogicalName,
-            id: item[entityDefinition.PrimaryIdAttribute],
-            name: item[entityDefinition.PrimaryNameAttribute],
-            entitySetName: entityDefinition.EntitySetName,
+            logicalName: entityDefinition.value.LogicalName,
+            id: item[entityDefinition.value.PrimaryIdAttribute],
+            name: item[entityDefinition.value.PrimaryNameAttribute],
+            entitySetName: entityDefinition.value.EntitySetName,
         };
     }
     else {
-        selectedItem = null
+        selectedItem.value = null
     }
 }
 function querySearch(queryString, cb) {
@@ -60,30 +64,30 @@ function querySearch(queryString, cb) {
     cb(results);
 }
 function loadData(queryString) {
-    if (!entityDefinition) {
+    if (!entityDefinition.value) {
         getEntityDefinition();
     }
-    if (!entityDefinition) {
-        $message.error(`"entityDefinition" is missing!`);
+    if (!entityDefinition.value) {
+        ElMessage.error(`"entityDefinition" is missing!`);
         return [];
     }
     return queryEntityDataAuto(queryString);
 }
 function queryEntityDataAuto(queryString) {
-    const queryAttributes = entityDefinition.Attributes.filter(getQueryAttributesFilter());
-    let attributeXml = `<attribute name='${entityDefinition.PrimaryNameAttribute}'/>
+    const queryAttributes = entityDefinition.value.Attributes.filter(getQueryAttributesFilter());
+    let attributeXml = `<attribute name='${entityDefinition.value.PrimaryNameAttribute}'/>
                           <attribute name='createdon'/>
                           <attribute name='modifiedon'/>`;
     let conditionXml = "";
     if (hocrm.isGuid(queryString)) {
-        conditionXml = `<condition attribute='${entityDefinition.PrimaryIdAttribute}' operator='eq' value='{${queryString.replace("{", "").replace("}", "")}}' />`;
+        conditionXml = `<condition attribute='${entityDefinition.value.PrimaryIdAttribute}' operator='eq' value='{${queryString.replace("{", "").replace("}", "")}}' />`;
     } else if (queryString) {
         queryAttributes.forEach(attribute => {
             conditionXml += `<condition attribute='${attribute.LogicalName}' operator='like' value='%${queryString}%' /> `;
         });
     }
     let fetchXml = `<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' top='30'>
-                      <entity name='${entityDefinition.LogicalName}'>
+                      <entity name='${entityDefinition.value.LogicalName}'>
                            ${attributeXml}
                         <order attribute='modifiedon' descending='true' />
                         <filter type='or'>
@@ -92,7 +96,7 @@ function queryEntityDataAuto(queryString) {
                       </entity>
                     </fetch>`;
 
-    return hocrm.fetch(entityDefinition.EntitySetName, fetchXml, true).value;
+    return hocrm.fetch(entityDefinition.value.EntitySetName, fetchXml, true).value;
 }
 function getQueryAttributesFilter() {
     return (attribute) => {
@@ -108,7 +112,7 @@ function getQueryAttributesFilter() {
 function getEntityDefinition() {
     let metadataId = hocrm.getEntityDefinitions().filter((item) => {
         return (
-            item.LogicalName == logicalName
+            item.LogicalName == props.logicalName
         )
     })[0].MetadataId;
     metadataId = metadataId.replace("{", "").replace("}", "");
@@ -121,9 +125,9 @@ function getEntityDefinition() {
     xhr.onreadystatechange = (event) => {
         if (event.target.readyState == 4) {
             if (event.target.status == 200) {
-                entityDefinition = JSON.parse(xhr.responseText);
+                entityDefinition.value = JSON.parse(xhr.responseText);
             } else {
-                $message.error(`${xhr.responseURL} ${xhr.status} ${xhr.statusText}`);
+                ElMessage.error(`${xhr.responseURL} ${xhr.status} ${xhr.statusText}`);
             }
         }
     };
