@@ -15,8 +15,10 @@ const props = defineProps({
 
 const value = ref(props.modelValue)
 
+const emit = defineEmits(['update:modelValue']);
+
 watch(value, (newValue, oldValue) => {
-    this.$emit('update:modelValue', newValue);
+    emit('update:modelValue', newValue);
 })
 
 onMounted(() => {

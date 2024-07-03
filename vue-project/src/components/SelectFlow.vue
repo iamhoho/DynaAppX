@@ -18,21 +18,23 @@ const props = defineProps({
 const selectedName = ref("")
 const selectedItem = ref(props.modelValue)
 
-watch(selectedItem, (newValue, oldValue) => {
+const emit = defineEmits(['update:modelValue']);
+
+watch(() => selectedItem.value, (newValue, oldValue) => {
     selectedName = newValue?.name;
-    this.$emit('update:modelValue', newValue);
+    emit('update:modelValue', newValue);
 })
 
-watch(props.modelValue, (newValue, oldValue) => {
-    selectedItem = newValue
+watch(() => props.modelValue, (newValue, oldValue) => {
+    selectedItem.value = newValue
 })
 
 function onChange(item) {
-    selectedItem = null;
+    selectedItem.value = null;
 }
 function handleSelect(item) {
     if (item) {
-        selectedItem =
+        selectedItem.value =
         {
             name: item.name,
             uniquename: item.sdkmessagelink_x002e_name,
@@ -45,7 +47,7 @@ function handleSelect(item) {
         };
     }
     else {
-        selectedItem = null
+        selectedItem.value = null
     }
 }
 function querySearch(queryString, cb) {

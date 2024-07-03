@@ -36,9 +36,11 @@ Here is an example:
 </pre>
 `)
 
+const emit = defineEmits(['update:modelValue']);
+
 watch(value, (newValue, oldValue) => {
     checkValue(newValue);
-    this.$emit('update:modelValue', newValue);
+    emit('update:modelValue', newValue);
 })
 
 onMounted(() => {

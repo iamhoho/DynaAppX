@@ -25,13 +25,14 @@ const options = ref([
         label: 'False',
     },
 ])
+const emit = defineEmits(['update:modelValue']);
 
 watch(value, (newValue, oldValue) => {
     if (newValue === '') {
-        this.$emit('update:modelValue', null);
+        emit('update:modelValue', null);
     }
     else {
-        this.$emit('update:modelValue', newValue);
+        emit('update:modelValue', newValue);
     }
 })
 

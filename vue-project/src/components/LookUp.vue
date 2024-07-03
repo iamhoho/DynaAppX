@@ -22,9 +22,8 @@ const props = defineProps({
 var selectedName = ref("")
 var selectedItem = ref(props.modelValue)
 var entityDefinition = ref(null)
-
-watch(props.logicalName, (newValue, oldValue) => {
-    debugger
+watch(() => props.logicalName, (newValue, oldValue) => {
+    selectedItem.value = null;
     if (newValue) {
         getEntityDefinition();
     }
@@ -35,11 +34,6 @@ const emit = defineEmits(['update:modelValue'])
 watch(selectedItem, (newValue, oldValue) => {
     selectedName.value = newValue?.name;
     emit('update:modelValue', newValue);
-})
-
-watch(props.logicalName, (newValue, oldValue) => {
-    debugger
-    selectedItem.value = null;
 })
 
 function onChange(item) {

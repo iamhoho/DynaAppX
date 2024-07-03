@@ -28,9 +28,11 @@ Here is an example:
       </pre>
 `)
 
+const emit = defineEmits(['update:modelValue']);
+
 watch(value, (newValue, oldValue) => {
     checkValue(newValue);
-    this.$emit('update:modelValue', newValue);
+    emit('update:modelValue', newValue);
 })
 
 onMounted(() => {
@@ -49,7 +51,7 @@ function checkValue(value) {
     } catch (error) {
         isJson = false;
     }
-    this.$emit('update:modelValue', value);
+    emit('update:modelValue', value);
 }
 </script>
 <template>

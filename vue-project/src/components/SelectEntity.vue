@@ -13,7 +13,7 @@ const props = defineProps({
     }
 })
 
-var selectedName = ref("")
+const selectedName = ref("")
 var selectedItem = ref(props.modelValue)
 const emit = defineEmits(['update:modelValue']);
 watch(selectedItem, (newValue, oldValue) => {
@@ -21,11 +21,11 @@ watch(selectedItem, (newValue, oldValue) => {
     emit('update:modelValue', newValue);
 })
 
-function onChange(item) {
+function onChange(item, aa) {
     selectedItem.value = null;
 }
 
-function handleSelect(item) {
+function handleSelect(item, aa) {
     selectedItem.value = item;
 }
 
@@ -52,7 +52,7 @@ function createFilter(queryString) {
             popper-class="my-autocomplete" placeholder="Select an entity" @select="handleSelect" @change="onChange"
             style="--el-input-border-color: red;">
             <template #suffix>
-                <el-icon class="el-input__icon">element-plus --save
+                <el-icon class="el-input__icon">
                     <Search />
                 </el-icon>
             </template>
