@@ -1,4 +1,4 @@
-export const hocrm = {
+export const daxHelper = {
     getCrmUrl: function () {
         if (import.meta.env.VITE_DEVURL) {
             return import.meta.env.VITE_DEVURL;
@@ -16,7 +16,7 @@ export const hocrm = {
         return guidRegex.test(str);
     },
     fetch: function (entitySetName, fetchXml, useFormattedValue) {
-        let fetchStr = `${hocrm.getCrmUrl()}/api/data/v8.0/${entitySetName}?fetchXml=${fetchXml}`;
+        let fetchStr = `${daxHelper.getCrmUrl()}/api/data/v8.0/${entitySetName}?fetchXml=${fetchXml}`;
         const xhr = new XMLHttpRequest;
         xhr.open("GET", encodeURI(fetchStr), false);
         xhr.setRequestHeader("Accept", "application/json");
@@ -35,25 +35,25 @@ export const hocrm = {
         }
     },
     getEntityDefinitions: function () {
-        if (!hocrm.entityDefinitions) {
+        if (!daxHelper.entityDefinitions) {
             const xhr = new XMLHttpRequest;
             const path = '/api/data/v8.0/EntityDefinitions?$select=LogicalName,DisplayName,SchemaName,ObjectTypeCode'
-            xhr.open("GET", encodeURI(hocrm.getCrmUrl() + path), false);
+            xhr.open("GET", encodeURI(daxHelper.getCrmUrl() + path), false);
             xhr.withCredentials = true;
             xhr.setRequestHeader("Content-Type", "application/json; charset=utf-8");
             xhr.setRequestHeader("OData-MaxVersion", "4.0");
             xhr.setRequestHeader("OData-Version", "4.0");
             xhr.send();
             if (xhr.status === 200) {
-                hocrm.entityDefinitions = JSON.parse(xhr.responseText).value;
+                daxHelper.entityDefinitions = JSON.parse(xhr.responseText).value;
             } else {
-                hocrm.entityDefinitions = [];
+                daxHelper.entityDefinitions = [];
             }
         }
-        return hocrm.entityDefinitions;
+        return daxHelper.entityDefinitions;
     },
     getFlowDefinitions: function () {
-        if (!hocrm.flowDefinitions) {
+        if (!daxHelper.flowDefinitions) {
             let fetchStr = `<fetch version="1.0" output-format="xml-platform" mapping="logical" distinct="false">
                             <entity name="workflow">
                                 <order attribute="name" descending="false" />
@@ -70,13 +70,13 @@ export const hocrm = {
                                 </filter>
                             </entity>
                             </fetch>`;
-            hocrm.flowDefinitions = hocrm.fetch("workflows", fetchStr, true);
+            daxHelper.flowDefinitions = daxHelper.fetch("workflows", fetchStr, true);
         }
 
-        return hocrm.flowDefinitions;
+        return daxHelper.flowDefinitions;
     },
     getUesrTimezoneBias: function () {
-        if (!hocrm.uesrTimezoneBias) {
+        if (!daxHelper.uesrTimezoneBias) {
             let fetchStr = `<fetch version="1.0" output-format="xml-platform" mapping="logical" distinct="false">
                             <entity name="usersettings">
                             <attribute name="timezonebias"/>
@@ -85,8 +85,8 @@ export const hocrm = {
                                 </filter>
                             </entity>
                             </fetch>`;
-            hocrm.uesrTimezoneBias = hocrm.fetch("usersettingscollection", fetchStr, true).value[0]['timezonebias'];
+            daxHelper.uesrTimezoneBias = daxHelper.fetch("usersettingscollection", fetchStr, true).value[0]['timezonebias'];
         }
-        return hocrm.uesrTimezoneBias;
+        return daxHelper.uesrTimezoneBias;
     }
 };

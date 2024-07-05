@@ -1,6 +1,5 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue'
-import { hocrm } from '../CRMHelper.js'
 
 const props = defineProps({
     required: {
@@ -13,20 +12,20 @@ const props = defineProps({
 }
 )
 
-var value = ref(null)
+const value = ref(null)
 
 const emit = defineEmits(['update:modelValue']);
 
-watch(value, (newValue, oldValue) => {
+watch(() => value.value, (newValue, oldValue) => {
     emit('update:modelValue', newValue);
 })
 
 onMounted(() => {
     if (props.modelValue == null || props.modelValue == undefined) {
-        value = null
+        value.value = null
     }
     else if (props.modelValue) {
-        value = props.modelValue;
+        value.value = props.modelValue;
     }
 })
 </script>

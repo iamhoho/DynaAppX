@@ -1,6 +1,5 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue'
-import { hocrm } from '../CRMHelper.js'
 
 const props = defineProps({
     required: {
@@ -14,40 +13,42 @@ const props = defineProps({
 )
 
 const value = ref(props.modelValue)
-var isJson = ref(false)
+const isJson = ref(false)
 const tip = ref(`
-<pre>
-Please use standard JSON format and follow the specifications for the EntityReference type input.
+      <pre>
+Please use standard JSON format and follow the specifications for the Entity type input.
 Here is an example:
 {
   "@odata.type": "Microsoft.Dynamics.CRM.account",
-  "accountid": "CD67D78E-16BB-E611-9999-C4346BDC3C23"
+  "accountid": "CD67D78E-16BB-E611-9999-C4346BDC3C22",
+  "name": "hoho",
+  "accountnumber": "123456"
 }
-</pre>
+      </pre>
 `)
 
 const emit = defineEmits(['update:modelValue']);
 
-watch(value, (newValue, oldValue) => {
+watch(() => value.value, (newValue, oldValue) => {
     checkValue(newValue);
     emit('update:modelValue', newValue);
 })
 
 onMounted(() => {
-    checkValue(value);
+    checkValue(value.value);
 })
 
 function checkValue(value) {
     try {
         let Jvalue = JSON.parse(value);
         if (typeof Jvalue == 'object') {
-            isJson = !Array.isArray(Jvalue);
+            isJson.value = !Array.isArray(Jvalue);
         }
         else {
-            isJson = false;
+            isJson.value = false;
         }
     } catch (error) {
-        isJson = false;
+        isJson.value = false;
     }
     emit('update:modelValue', value);
 }

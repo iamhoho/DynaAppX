@@ -1,6 +1,6 @@
 <script setup>
 import { ref, watch } from 'vue'
-import { hocrm } from '../CRMHelper.js'
+import { daxHelper } from '../../daxHelper.js'
 
 const props = defineProps({
     required: {
@@ -21,7 +21,7 @@ const selectedItem = ref(props.modelValue)
 const emit = defineEmits(['update:modelValue']);
 
 watch(() => selectedItem.value, (newValue, oldValue) => {
-    selectedName = newValue?.name;
+    selectedName.value = newValue?.name;
     emit('update:modelValue', newValue);
 })
 
@@ -64,7 +64,7 @@ function loadData(queryString) {
                           <attribute name='primaryentity'/>
                           <attribute name='modifiedon'/>`;
     let conditionXml = "";
-    if (hocrm.isGuid(queryString)) {
+    if (daxHelper.isGuid(queryString)) {
         conditionXml = `<condition attribute='workflowid' operator='eq' value='{${queryString.replace("{", "").replace("}", "")}}' />`;
     } else if (queryString) {
         conditionXml = `<condition attribute='uniquename' operator='like' value='%${queryString}%' /> <condition attribute='name' operator='like' value='%${queryString}%' />`;
@@ -93,7 +93,7 @@ function loadData(queryString) {
                       </entity>
                     </fetch>`;
 
-    return hocrm.fetch("workflows", fetchXml, true).value;
+    return daxHelper.fetch("workflows", fetchXml, true).value;
 }
 </script>
 <template>

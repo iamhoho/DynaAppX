@@ -1,6 +1,6 @@
 <script setup>
-import { ref, watch, defineEmits } from 'vue'
-import { hocrm } from '../CRMHelper.js'
+import { ref, watch } from 'vue'
+import { daxHelper } from '../../daxHelper.js'
 
 const props = defineProps({
     required: {
@@ -14,9 +14,11 @@ const props = defineProps({
 })
 
 const selectedName = ref("")
-var selectedItem = ref(props.modelValue)
+const selectedItem = ref(props.modelValue)
+
 const emit = defineEmits(['update:modelValue']);
-watch(selectedItem, (newValue, oldValue) => {
+
+watch(() => selectedItem.value, (newValue, oldValue) => {
     selectedName.value = newValue?.DisplayName?.UserLocalizedLabel?.Label;
     emit('update:modelValue', newValue);
 })
@@ -31,8 +33,8 @@ function handleSelect(item, aa) {
 
 function querySearch(queryString, cb) {
     const results = queryString
-        ? hocrm.getEntityDefinitions().filter(createFilter(queryString))
-        : hocrm.getEntityDefinitions();
+        ? daxHelper.getEntityDefinitions().filter(createFilter(queryString))
+        : daxHelper.getEntityDefinitions();
     cb(results);
 }
 

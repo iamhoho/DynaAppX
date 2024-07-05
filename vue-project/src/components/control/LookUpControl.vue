@@ -1,6 +1,6 @@
 <script setup>
-import { ref, watch, defineEmits } from 'vue'
-import { hocrm } from '../CRMHelper.js'
+import { ref, watch } from 'vue'
+import { daxHelper } from '../../daxHelper.js'
 import { ElMessage } from 'element-plus'
 
 const props = defineProps({
@@ -19,9 +19,9 @@ const props = defineProps({
 }
 )
 
-var selectedName = ref("")
-var selectedItem = ref(props.modelValue)
-var entityDefinition = ref(null)
+const selectedName = ref("")
+const selectedItem = ref(props.modelValue)
+const entityDefinition = ref(null)
 watch(() => props.logicalName, (newValue, oldValue) => {
     selectedItem.value = null;
     if (newValue) {
@@ -31,7 +31,7 @@ watch(() => props.logicalName, (newValue, oldValue) => {
 
 const emit = defineEmits(['update:modelValue'])
 
-watch(selectedItem, (newValue, oldValue) => {
+watch(() => selectedItem.value, (newValue, oldValue) => {
     selectedName.value = newValue?.name;
     emit('update:modelValue', newValue);
 })
@@ -73,7 +73,7 @@ function queryEntityDataAuto(queryString) {
                           <attribute name='createdon'/>
                           <attribute name='modifiedon'/>`;
     let conditionXml = "";
-    if (hocrm.isGuid(queryString)) {
+    if (daxHelper.isGuid(queryString)) {
         conditionXml = `<condition attribute='${entityDefinition.value.PrimaryIdAttribute}' operator='eq' value='{${queryString.replace("{", "").replace("}", "")}}' />`;
     } else if (queryString) {
         queryAttributes.forEach(attribute => {
@@ -90,7 +90,7 @@ function queryEntityDataAuto(queryString) {
                       </entity>
                     </fetch>`;
 
-    return hocrm.fetch(entityDefinition.value.EntitySetName, fetchXml, true).value;
+    return daxHelper.fetch(entityDefinition.value.EntitySetName, fetchXml, true).value;
 }
 function getQueryAttributesFilter() {
     return (attribute) => {
@@ -104,7 +104,7 @@ function getQueryAttributesFilter() {
     }
 }
 function getEntityDefinition() {
-    let metadataId = hocrm.getEntityDefinitions().filter((item) => {
+    let metadataId = daxHelper.getEntityDefinitions().filter((item) => {
         return (
             item.LogicalName == props.logicalName
         )
@@ -112,7 +112,7 @@ function getEntityDefinition() {
     metadataId = metadataId.replace("{", "").replace("}", "");
     const xhr = new XMLHttpRequest;
     const path = `/api/data/v8.0/EntityDefinitions(${metadataId})?$expand=Attributes`;
-    xhr.open("GET", encodeURI(hocrm.getCrmUrl() + path), false);
+    xhr.open("GET", encodeURI(daxHelper.getCrmUrl() + path), false);
     xhr.setRequestHeader("Content-Type", "application/json; charset=utf-8");
     xhr.setRequestHeader("OData-MaxVersion", "4.0");
     xhr.setRequestHeader("OData-Version", "4.0");

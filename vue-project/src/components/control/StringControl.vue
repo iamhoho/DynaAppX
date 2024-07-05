@@ -1,6 +1,5 @@
 <script setup>
 import { ref, watch } from 'vue'
-import { hocrm } from '../CRMHelper.js'
 
 const props = defineProps({
     required: {
@@ -17,7 +16,7 @@ const value = ref(props.modelValue)
 
 const emit = defineEmits(['update:modelValue']);
 
-watch(value, (newValue, oldValue) => {
+watch(() => value.value, (newValue, oldValue) => {
     emit('update:modelValue', newValue);
 })
 
