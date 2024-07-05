@@ -9,7 +9,6 @@ import EntityCollectionControl from '../components/control/EntityCollectionContr
 import ActionEntityControl from '../components/control/ActionEntityControl.vue';
 import EntityReferenceControl from '../components/control/EntityReferenceControl.vue';
 import { ref, watch } from 'vue';
-import { AUTO_ALIGNMENT } from 'element-plus/es/components/virtual-list/src/defaults';
 
 const selectedFlow = ref(null);
 const selectedRecord = ref(null);

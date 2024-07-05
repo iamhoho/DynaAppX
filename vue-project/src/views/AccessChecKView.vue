@@ -9,6 +9,12 @@ const selectedEntity = ref(null);
 const selectedRecord = ref(null);
 const selectedUser = ref(null);
 const accessRights = ref(null);
+const userRoles = ref([]);
+
+function loadData(userLookUp, recordLookUp) {
+    getuserRoles(userLookUp);
+    accessCheck(userLookUp, recordLookUp);
+}
 
 function accessCheck(userLookUp, recordLookUp) {
     if (userLookUp == null || recordLookUp == null) {
@@ -29,27 +35,42 @@ function accessCheck(userLookUp, recordLookUp) {
         ElMessage.error(`${xhr.responseURL} ${xhr.status} ${xhr.statusText}`);
     }
 }
+
+function getuserRoles(userLookUp) {
+    if (userLookUp == null) {
+        userRoles.value = [];
+        return;
+    }
+    let fetchStr = "<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='true'><entity name='role'><attribute name='name' /><link-entity name='systemuserroles' from='roleid' to='roleid' visible='false' intersect='true'><link-entity name='systemuser' from='systemuserid' to='systemuserid' alias='ac'><filter type='and'><condition attribute='systemuserid' operator='eq-userid' /></filter> </link-entity></link-entity></entity></fetch>";
+    userRoles.value = daxHelper.fetch("roles", fetchStr, true).value;
+}
+
 watch(() => selectedEntity.value, (newValue, oldValue) => {
     selectedRecord.value = null;
 })
 watch(() => selectedRecord.value, (newValue, oldValue) => {
-    accessCheck(selectedUser.value, selectedRecord.value);
+    loadData(selectedUser.value, selectedRecord.value);
 
 })
 watch(() => selectedUser.value, (newValue, oldValue) => {
-    accessCheck(selectedUser.value, selectedRecord.value);
+    loadData(selectedUser.value, selectedRecord.value);
 
 })
 </script>
 
 <template>
     <div style="display: flex;flex-direction: row;justify-content: center;">
+        <LookUp logicalName="systemuser" :required="true" :disabled="false" v-model="selectedUser"></LookUp>
         <EntityControl :required="true" ref="selectEntity" :disabled="false" v-model="selectedEntity">
         </EntityControl>
-        <look-up :logicalName="selectedEntity?.LogicalName" :required="true" :disabled="selectedEntity == null"
-            v-model="selectedRecord"></look-up>
-        <look-up logicalName="systemuser" :required="true" :disabled="false" v-model="selectedUser"></look-up>
+        <LookUp :logicalName="selectedEntity?.LogicalName" :required="true" :disabled="selectedEntity == null"
+            v-model="selectedRecord"></LookUp>
     </div>
+
+    <div v-if="selectedUser != null" v-for=" userRole in userRoles">
+        <el-tag type="success">{{ userRole.name }}</el-tag>
+    </div>
+
     <div style="display: flex;flex-direction: row;justify-content: center;"
         v-if="selectedUser != null && selectedRecord != null">
         <el-button :type="accessRights?.indexOf('ReadAccess') > -1 ? 'success' : 'danger'">ReadAccess</el-button>
