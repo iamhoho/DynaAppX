@@ -41,7 +41,7 @@ function getuserRoles(userLookUp) {
         userRoles.value = [];
         return;
     }
-    let fetchStr = "<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='true'><entity name='role'><attribute name='name' /><link-entity name='systemuserroles' from='roleid' to='roleid' visible='false' intersect='true'><link-entity name='systemuser' from='systemuserid' to='systemuserid' alias='ac'><filter type='and'><condition attribute='systemuserid' operator='eq-userid' /></filter> </link-entity></link-entity></entity></fetch>";
+    let fetchStr = "<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='true'><entity name='role'><attribute name='name' /><link-entity name='systemuserroles' from='roleid' to='roleid' visible='false' intersect='true'><link-entity name='systemuser' from='systemuserid' to='systemuserid' alias='ac'><filter type='and'><condition attribute='systemuserid' operator='eq' value = '" + userLookUp.id + "' /></filter> </link-entity></link-entity></entity></fetch>";
     userRoles.value = daxHelper.fetch("roles", fetchStr, true).value;
 }
 
@@ -60,18 +60,20 @@ watch(() => selectedUser.value, (newValue, oldValue) => {
 
 <template>
     <div style="display: flex;flex-direction: row;justify-content: center;">
-        <LookUp logicalName="systemuser" :required="true" :disabled="false" v-model="selectedUser"></LookUp>
-        <EntityControl :required="true" ref="selectEntity" :disabled="false" v-model="selectedEntity">
+        <LookUp attName="User" logicalName="systemuser" :required="true" :disabled="false" v-model="selectedUser"></LookUp>
+        <EntityControl attName="Entity" :required="true" ref="selectEntity" :disabled="false" v-model="selectedEntity">
         </EntityControl>
-        <LookUp :logicalName="selectedEntity?.LogicalName" :required="true" :disabled="selectedEntity == null"
-            v-model="selectedRecord"></LookUp>
+        <LookUp attName="Record" :logicalName="selectedEntity?.LogicalName" :required="true"
+            :disabled="selectedEntity == null" v-model="selectedRecord"></LookUp>
+    </div>
+    <div style="display: flex;flex-wrap: wrap;flex-direction: row;justify-content: center;">
+        <div v-if="selectedUser != null" v-for=" userRole in userRoles">
+            <el-tag type="success">{{ userRole.name }}</el-tag>
+        </div>
     </div>
 
-    <div v-if="selectedUser != null" v-for=" userRole in userRoles">
-        <el-tag type="success">{{ userRole.name }}</el-tag>
-    </div>
 
-    <div style="display: flex;flex-direction: row;justify-content: center;"
+    <div style="display: flex;flex-wrap: wrap;flex-direction: row;justify-content: center;"
         v-if="selectedUser != null && selectedRecord != null">
         <el-button :type="accessRights?.indexOf('ReadAccess') > -1 ? 'success' : 'danger'">ReadAccess</el-button>
         <el-button :type="accessRights?.indexOf('WriteAccess') > -1 ? 'success' : 'danger'">WriteAccess</el-button>
@@ -80,7 +82,6 @@ watch(() => selectedUser.value, (newValue, oldValue) => {
         <el-button :type="accessRights?.indexOf('ShareAccess') > -1 ? 'success' : 'danger'">ShareAccess</el-button>
         <el-button :type="accessRights?.indexOf('AssignAccess') > -1 ? 'success' : 'danger'">AssignAccess</el-button>
         <el-button :type="accessRights?.indexOf('AppendAccess') > -1 ? 'success' : 'danger'">AppendAccess</el-button>
-        <el-button
-            :type="accessRights?.indexOf('AppendToAccess') > -1 ? 'success' : 'danger'">AppendToAccess</el-button>
+        <el-button :type="accessRights?.indexOf('AppendToAccess') > -1 ? 'success' : 'danger'">AppendToAccess</el-button>
     </div>
 </template>

@@ -88,5 +88,20 @@ export const daxHelper = {
             daxHelper.uesrTimezoneBias = daxHelper.fetch("usersettingscollection", fetchStr, true).value[0]['timezonebias'];
         }
         return daxHelper.uesrTimezoneBias;
+    },
+    stringToBool: function (str) {
+        if (str === "true" || str === "1" || str.toLowerCase() === "true") {
+            return true;
+        } else if (str === "false" || str === "0" || str.toLowerCase() === "false") {
+            return false;
+        }
+        return null;
+    },
+    decodeUnicode: function (str) {
+        return str.replace(/\\u[\dA-Fa-f]{4}/g,
+            function (match) {
+                return String.fromCharCode(parseInt(match.replace(/\\u/g, ''), 16));
+            }
+        );
     }
 };

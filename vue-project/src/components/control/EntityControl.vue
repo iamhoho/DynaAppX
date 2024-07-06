@@ -10,6 +10,8 @@ const props = defineProps({
         required: true
     },
     modelValue: {
+    },
+    attName: {
     }
 })
 
@@ -50,6 +52,7 @@ function createFilter(queryString) {
 </script>
 <template>
     <div style="display: flex; flex-wrap: nowrap; flex-direction: row; margin: 1em;">
+        <p>{{ attName }}</p>
         <el-autocomplete :disabled=disabled v-model="selectedName" :fetch-suggestions="querySearch"
             popper-class="my-autocomplete" placeholder="Select an entity" @select="handleSelect" @change="onChange"
             style="--el-input-border-color: red;">

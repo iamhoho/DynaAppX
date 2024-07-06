@@ -5,38 +5,67 @@ import StringControl from '../components/control/StringControl.vue';
 import BoolControl from '../components/control/BoolControl.vue';
 import NumberControl from '../components/control/NumberControl.vue';
 import DateControl from '../components/control/DateControl.vue';
-import EntityCollectionControl from '../components/control/EntityCollectionControl.vue';
+import ActionEntityCollectionControl from '../components/control/ActionEntityCollectionControl.vue';
 import ActionEntityControl from '../components/control/ActionEntityControl.vue';
-import EntityReferenceControl from '../components/control/EntityReferenceControl.vue';
+import ActionEntityReferenceControl from '../components/control/ActionEntityReferenceControl.vue';
+import { daxHelper } from '../daxHelper.js'
 import { ref, watch } from 'vue';
+import xmljs from 'xml-js'
 
 const selectedFlow = ref(null);
 const selectedRecord = ref(null);
 const response = ref(null);
-const actionString = ref('123');
-const actionBool = ref(true);
-const actionNumber = ref(123.456);
-const actionDatetime = ref(new Date());
-const actionEntityCollection = ref('[]');
-const actionEntity = ref('{}');
-const actionEntityReference = ref('{}');
+const actionInputFields = ref([]);
+const actionInputData = ref({});
+const invokeHistory = ref([]);
+const loading = ref(false);
+const isRawdModel = ref(false);
+const rawdModelData = ref("");
 
 watch(() => selectedFlow.value, (newValue) => {
+    getactionInputFields(newValue);
+    actionInputData.value = {};
     selectedRecord.value = null;
 })
 
-function invoke() {
-    if (selectedFlow.value.category == 0) {
-        invokeWorkFlow();
+function getactionInputFields(newValue) {
+    actionInputFields.value = [];
+    if (!newValue) { return; }
+    if (newValue.xaml) {
+        JSON.parse(xmljs.xml2json(newValue.xaml)).elements[0].elements.filter((item) => {
+            return item.name == 'x:Members';
+        })[0].elements.forEach((item) => {
+            let name = item.attributes.Name;
+            let type = item.attributes.Type;
+            if (name != 'InputEntities' && name != 'CreatedEntities' && name != 'Target' && type.indexOf('InArgument') >= 0) {
+                let required = item.elements[0].elements.filter((x) => {
+                    return x.name == "mxsw:ArgumentRequiredAttribute";
+                })[0].attributes.Value
+                actionInputFields.value.push({ name: name, type: type, required: daxHelper.stringToBool(required) })
+            }
+        })
     }
-    else if (selectedFlow.value.category == 3) {
-        invokeAction();
-    }
+}
 
+function invoke() {
+    if (!selectedFlow.value) {
+        return;
+    }
+    try {
+        loading.value = true
+        if (selectedFlow.value.category == 0) {
+            invokeWorkFlow();
+        }
+        else if (selectedFlow.value.category == 3) {
+            invokeAction();
+        }
+    } catch (error) {
+    }
+    loading.value = false;
 }
 function invokeWorkFlow() {
-    let that = this;
     const path = `/api/data/v9.0/workflows(${selectedFlow.value.id})/Microsoft.Dynamics.CRM.ExecuteWorkflow`;
+    let reqBody = JSON.stringify({ "EntityId": selectedRecord.value.id });
     let req = new XMLHttpRequest();
     req.open("POST", daxHelper.getCrmUrl() + path, true);
     req.setRequestHeader("OData-MaxVersion", "4.0");
@@ -46,19 +75,12 @@ function invokeWorkFlow() {
     req.onreadystatechange = function () {
         if (this.readyState === 4) {
             req.onreadystatechange = null;
-            that.response = JSON.stringify({
-                status: req.status,
-                responseText: req.responseText
-            });
+            invokeHistory.value.unshift({ name: selectedFlow.value.name, url: req.responseURL, requestBody: reqBody, statusCode: req.status, response: daxHelper.decodeUnicode(req.responseText), invokeDate: new Date() });
         }
     };
-    let body = {
-        "EntityId": selectedRecord.value.id
-    };
-    req.send(JSON.stringify(body));
+    req.send(reqBody);
 }
 function invokeAction() {
-    let that = this;
     let path = "";
     if (selectedFlow.value.primaryentity && selectedFlow.value.primaryentity != "none") {
         path = `/api/data/v9.0/${selectedRecord.value.entitySetName}(${selectedRecord.value.id})/Microsoft.Dynamics.CRM.${selectedFlow.value.uniquename}`;
@@ -66,6 +88,13 @@ function invokeAction() {
     else {
         path = `/api/data/v9.0/${selectedFlow.value.uniquename}`;
     }
+    let reqBody = null;
+    if (isRawdModel.value) {
+        reqBody = rawdModelData.value;
+    } else {
+        reqBody = JSON.stringify(actionInputData.value);
+    }
+
     let req = new XMLHttpRequest();
     req.open("POST", daxHelper.getCrmUrl() + path, true);
     req.setRequestHeader("OData-MaxVersion", "4.0");
@@ -75,72 +104,87 @@ function invokeAction() {
     req.onreadystatechange = function () {
         if (this.readyState === 4) {
             req.onreadystatechange = null;
-            that.response = JSON.stringify({
-                status: req.status,
-                responseText: req.responseText
-            });
+            invokeHistory.value.unshift({ name: selectedFlow.value.name, url: req.responseURL, requestBody: reqBody, statusCode: req.status, response: daxHelper.decodeUnicode(req.responseText), invokeDate: new Date() });
         }
     };
-    let body = {
-        String: "hoho",
-        Bool: true,
-        Float: 1.23456,
-        Dateime: "2021-10-01T14:30:00.0000000+08:00",
-        Decimal: 7.89101,
-        Int: 777,
-        Options: 666,
-        Money: 13,
-        EntityCollection:
-            [
-                {
-                    "@odata.type": "Microsoft.Dynamics.CRM.account",
-                    "accountid": "C4CA0B66-59B9-E611-8106-C4346BDC0E01",
-                    "name": "Test",
-                    "accountnumber": "123"
-                },
-                {
-                    "@odata.type": "Microsoft.Dynamics.CRM.account",
-                    "accountid": "CD67D78E-16BB-E611-8109-C4346BDC3C21",
-                    "name": "Test2",
-                    "accountnumber": "1234"
-                }
-            ],
-        Entity: {
-            "@odata.type": "Microsoft.Dynamics.CRM.account",
-            "accountid": "CD67D78E-16BB-E611-8109-C4346BDC3C22",
-            "name": "Test3",
-            "accountnumber": "1234"
-        },
-        EntityReference: {
-            "@odata.type": "Microsoft.Dynamics.CRM.account",
-            "accountid": "CD67D78E-16BB-E611-8109-C4346BDC3C23"
-        },
-    };
-    req.send(JSON.stringify(body));
+    req.send(reqBody);
 }
 </script>
 
 <template>
-    <div style="display: flex;flex-direction: row; justify-content: center;">
-        <FlowControl :required="true" :disabled="false" v-model="selectedFlow"></FlowControl>
-        <LookUpControl v-if="selectedFlow?.primaryentity && selectedFlow.primaryentity != 'none'"
-            :logical-Name="selectedFlow?.primaryentity" :required="true" :disabled="selectedFlow == null"
-            v-model="selectedRecord"></LookUpControl>
-    </div>
-    <div style="display: flex;flex-direction: row; justify-content: center;"><el-button type="success"
-            @click="invoke">Invoke</el-button></div>
-    <div style="display: flex;flex-direction: row; justify-content: center;">{{ response }}</div>
-    <div>
-        <StringControl v-model="actionString" :required="true" att-name="string" :disabled="false"></StringControl>
-        <BoolControl v-model="actionBool" :required="true" att-name="bool" :disabled="false"></BoolControl>
-        <NumberControl v-model="actionNumber" :required="true" att-name="number" :disabled="false">
-        </NumberControl>
-        <DateControl v-model="actionDatetime" :required="true" att-name="date" :disabled="false"></DateControl>
-        <EntityCollectionControl v-model="actionEntityCollection" :required="true" att-name="entityCollection"
-            :disabled="false"></EntityCollectionControl>
-        <ActionEntityControl v-model="actionEntity" :required="true" att-name="entity" :disabled="false">
-        </ActionEntityControl>
-        <EntityReferenceControl v-model="actionEntityReference" :required="true" att-name="entityReference"
-            :disabled="false"></EntityReferenceControl>
+    <div v-loading="loading">
+        <div style="display: flex;flex-direction: row; justify-content: center;">
+            <FlowControl :required="true" :disabled="false" v-model="selectedFlow"></FlowControl>
+            <LookUpControl v-if="selectedFlow?.primaryentity && selectedFlow.primaryentity != 'none'"
+                :logicalName="selectedFlow?.primaryentity" :required="true" :disabled="selectedFlow == null"
+                v-model="selectedRecord"></LookUpControl>
+            <el-switch v-if="selectedFlow?.category == 3" v-model="isRawdModel" size="large" active-text="Rwa Model"
+                inactive-text="Field Model" style="--el-switch-on-color: #13ce66; --el-switch-off-color: #13ce66" />
+        </div>
+        <div style="display: flex;flex-direction: row; justify-content: center;">{{ response }}</div>
+
+        <div v-if="selectedFlow?.category == 3">
+            <div v-if="isRawdModel">
+                <StringControl v-model="rawdModelData" :required="false" attName="Parameters" :disabled="false">
+                </StringControl>
+            </div>
+            <div v-else>
+                <div v-for="actionField in actionInputFields">
+                    <div v-if="actionField.type == 'InArgument(mxs:EntityCollection)'">
+                        <ActionEntityCollectionControl v-model="actionInputData[actionField.name]"
+                            :required="actionField.required" :attName="actionField.name" :disabled="false">
+                        </ActionEntityCollectionControl>
+                    </div>
+                    <div v-else-if="actionField.type == 'InArgument(x:Boolean)'">
+                        <BoolControl v-model="actionInputData[actionField.name]" :required="actionField.required"
+                            :attName="actionField.name" :disabled="false"></BoolControl>
+                    </div>
+                    <div
+                        v-else-if="actionField.type == 'InArgument(x:Double)' || actionField.type == 'InArgument(mxs:Money)' || actionField.type == 'InArgument(x:Decimal)' || actionField.type == 'InArgument(mxs:OptionSetValue)' || actionField.type == 'InArgument(x:Int32)'">
+                        <NumberControl v-model="actionInputData[actionField.name]" :required="actionField.required"
+                            :attName="actionField.name" :disabled="false">
+                        </NumberControl>
+                    </div>
+                    <div v-else-if="actionField.type == 'InArgument(mxs:EntityReference)'">
+                        <ActionEntityReferenceControl v-model="actionInputData[actionField.name]"
+                            :required="actionField.required" :attName="actionField.name" :disabled="false">
+                        </ActionEntityReferenceControl>
+                    </div>
+                    <div v-else-if="actionField.type == 'InArgument(s:DateTime)'">
+                        <DateControl v-model="actionInputData[actionField.name]" :required="actionField.required"
+                            :attName="actionField.name" :disabled="false"></DateControl>
+                    </div>
+                    <div v-else-if="actionField.type == 'InArgument(x:String)'">
+                        <StringControl v-model="actionInputData[actionField.name]" :required="actionField.required"
+                            :attName="actionField.name" :disabled="false"></StringControl>
+                    </div>
+                    <div v-else-if="actionField.type == 'InArgument(mxs:Entity)'">
+                        <ActionEntityControl v-model="actionInputData[actionField.name]" :required="actionField.required"
+                            :attName="actionField.name" :disabled="false">
+                        </ActionEntityControl>
+                    </div>
+                    <div v-else>
+                        <div>Unsupported Field:</div>
+                        <div>Field Name:{{ actionField.name }}</div>
+                        <div>Field Type:{{ actionField.type }}</div>
+                        <div>Required:{{ actionField.required }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div style="display: flex;flex-direction: row; justify-content: center;">
+            <el-button type="success" @click="invoke">Invoke</el-button>
+        </div>
+
+        <div style="display: flex;flex-direction: row; justify-content: center;">
+            <el-table :data="invokeHistory" style="width: 100%" height="500" stripe>
+                <el-table-column fixed prop="invokeDate" label="InvokeDate" width="100" />
+                <el-table-column prop="name" label="Name" width="100" />
+                <el-table-column prop="url" label="URL" width="150" />
+                <el-table-column prop="requestBody" label="RequestBody" width="250" />
+                <el-table-column prop="response" label="Response" width="250" />
+                <el-table-column prop="statusCode" label="StatusCode" width="100" />
+            </el-table>
+        </div>
     </div>
 </template>

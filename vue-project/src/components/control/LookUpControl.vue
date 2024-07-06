@@ -15,6 +15,8 @@ const props = defineProps({
     },
     modelValue: {
         required: true
+    },
+    attName: {
     }
 }
 )
@@ -130,6 +132,7 @@ function getEntityDefinition() {
 </script>
 <template>
     <div style="display: flex; flex-wrap: nowrap; flex-direction: row; margin: 1em;">
+        <p>{{ attName }}</p>
         <el-autocomplete :disabled=disabled v-model="selectedName" :fetch-suggestions="querySearch"
             popper-class="my-autocomplete" placeholder="Select a record" @select="handleSelect" @change="onChange">
             <template #suffix>

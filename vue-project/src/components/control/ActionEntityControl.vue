@@ -31,7 +31,6 @@ const emit = defineEmits(['update:modelValue']);
 
 watch(() => value.value, (newValue, oldValue) => {
     checkValue(newValue);
-    emit('update:modelValue', newValue);
 })
 
 onMounted(() => {
@@ -39,9 +38,14 @@ onMounted(() => {
 })
 
 function checkValue(value) {
+    let modelValue = value;
+    if (!modelValue) {
+        modelValue = null;
+    }
     try {
         let Jvalue = JSON.parse(value);
         if (typeof Jvalue == 'object') {
+            modelValue = Jvalue;
             isJson.value = !Array.isArray(Jvalue);
         }
         else {
@@ -50,7 +54,7 @@ function checkValue(value) {
     } catch (error) {
         isJson.value = false;
     }
-    emit('update:modelValue', value);
+    emit('update:modelValue', modelValue);
 }
 </script>
 <template>

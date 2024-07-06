@@ -12,8 +12,8 @@ const props = defineProps({
 }
 )
 
-const value = ref(props.modelValue)
-const isJson = ref(false)
+const value = ref("")
+const isArray = ref(false)
 const tip = ref(`
       <pre>
 Please use standard JSON format and follow the specifications for the EntityCollection type input.
@@ -35,11 +35,10 @@ Here is an example:
 </pre>
 `)
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue'])
 
 watch(() => value.value, (newValue, oldValue) => {
     checkValue(newValue);
-    emit('update:modelValue', newValue);
 })
 
 onMounted(() => {
@@ -47,17 +46,23 @@ onMounted(() => {
 })
 
 function checkValue(value) {
+    let modelValue = value;
+    if (!modelValue) {
+        modelValue = null;
+    }
     try {
         let Jvalue = JSON.parse(value);
         if (typeof Jvalue == 'object') {
-            isJson.value = Array.isArray(Jvalue);
+            modelValue = Jvalue;
+            isArray.value = Array.isArray(Jvalue);
         }
         else {
-            isJson.value = false;
+            isArray.value = false;
         }
     } catch (error) {
-        isJson.value = false;
+        isArray.value = false;
     }
+    emit('update:modelValue', modelValue);
 }
 </script>
 <template>
@@ -69,8 +74,7 @@ function checkValue(value) {
                 <Warning />
             </el-icon>
         </el-tooltip>
-        <el-icon size="2em"
-            :color="(required && (modelValue == null || modelValue == '')) || !isJson ? '#F56C6C' : '#67C23A'">
+        <el-icon size="2em" :color="(!required && !value) || isArray ? '#67C23A' : '#F56C6C'">
             <SuccessFilled />
         </el-icon>
     </div>

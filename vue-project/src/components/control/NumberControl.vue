@@ -17,7 +17,7 @@ const value = ref(null)
 const emit = defineEmits(['update:modelValue']);
 
 watch(() => value.value, (newValue, oldValue) => {
-    emit('update:modelValue', newValue);
+    emit('update:modelValue', Number(newValue));
 })
 
 onMounted(() => {
