@@ -2,8 +2,10 @@
 import { RouterLink, RouterView } from 'vue-router'
 import HelloWorld from './components/HelloWorld.vue'
 import { onMounted } from 'vue'
+import { daxHelper } from './daxHelper.js'
 
 onMounted(() => {
+  daxHelper.getCrmUrl();
 })
 
 </script>
@@ -13,8 +15,9 @@ onMounted(() => {
     <div class="wrapper">
       <HelloWorld msg="DynaAppX" />
       <nav>
-        <RouterLink to="/accessChecK">AccessChecK</RouterLink>
+        <RouterLink to="/accessChecK">AccessCheck</RouterLink>
         <RouterLink to="/invokeFlow">InvokeFlow</RouterLink>
+        <RouterLink to="/metadataBrowser">MetadataBrowser(Powered by Microsoft)</RouterLink>
       </nav>
     </div>
   </header>

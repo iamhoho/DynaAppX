@@ -3,12 +3,16 @@ export const daxHelper = {
         if (import.meta.env.VITE_DEVURL) {
             return import.meta.env.VITE_DEVURL;
         }
+        else if (daxHelper.crmUrl) {
+            return daxHelper.crmUrl;
+        }
         else {
             let url = window.location.href.substring(0, window.location.href.indexOf("/WebResources"));
             if (url.match(/\/$/)) {
                 url = url.substring(0, url.length - 1);
             }
-            return url;
+            daxHelper.crmUrl = url;
+            return daxHelper.crmUrl;
         }
     },
     isGuid: function (str) {
