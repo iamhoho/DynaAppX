@@ -63,6 +63,7 @@ function invoke() {
     }
     loading.value = false;
 }
+
 function invokeWorkFlow() {
     const path = `/api/data/v9.0/workflows(${selectedFlow.value.id})/Microsoft.Dynamics.CRM.ExecuteWorkflow`;
     let reqBody = JSON.stringify({ "EntityId": selectedRecord.value.id });
@@ -80,6 +81,7 @@ function invokeWorkFlow() {
     };
     req.send(reqBody);
 }
+
 function invokeAction() {
     let path = "";
     if (selectedFlow.value.primaryentity && selectedFlow.value.primaryentity != "none") {
@@ -159,8 +161,8 @@ function invokeAction() {
                             :attName="actionField.name" :disabled="false"></StringControl>
                     </div>
                     <div v-else-if="actionField.type == 'InArgument(mxs:Entity)'">
-                        <ActionEntityControl v-model="actionInputData[actionField.name]" :required="actionField.required"
-                            :attName="actionField.name" :disabled="false">
+                        <ActionEntityControl v-model="actionInputData[actionField.name]"
+                            :required="actionField.required" :attName="actionField.name" :disabled="false">
                         </ActionEntityControl>
                     </div>
                     <div v-else>
