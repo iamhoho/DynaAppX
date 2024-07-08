@@ -1,8 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
-import AccessCheckView from '../views/AccessCheckView1.vue'
+import AccessCheckView from '../views/AccessCheckView.vue'
 import InvokeFlowView from '../views/InvokeFlowView.vue'
-import MetadataBrowser from '../views/MetadataBrowser.vue'
+import MetadataBrowser from '../views/MetadataBrowserView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
