@@ -17,6 +17,7 @@ onMounted(() => {
       <nav>
         <RouterLink to="/accessChecK">AccessCheck</RouterLink>
         <RouterLink to="/invokeFlow">InvokeFlow</RouterLink>
+        <RouterLink to="/godPage">GodPage</RouterLink>
         <RouterLink to="/metadataBrowser">MetadataBrowser(Powered by Microsoft)</RouterLink>
       </nav>
     </div>

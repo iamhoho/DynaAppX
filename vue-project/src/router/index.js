@@ -2,7 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import AccessCheckView from '../views/AccessCheckView.vue'
 import InvokeFlowView from '../views/InvokeFlowView.vue'
-import MetadataBrowser from '../views/MetadataBrowserView.vue'
+import MetadataBrowserView from '../views/MetadataBrowserView.vue'
+import GodPageView from '../views/GodPageView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -28,7 +29,13 @@ const router = createRouter({
     {
       path: '/metadataBrowser',
       name: 'metadataBrowser',
-      component: MetadataBrowser
+      component: MetadataBrowserView
+    }
+    ,
+    {
+      path: '/godPage',
+      name: 'godPage',
+      component: GodPageView
     }
   ]
 })

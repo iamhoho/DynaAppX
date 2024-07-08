@@ -1,19 +1,19 @@
 export const daxHelper = {
     getCrmUrl: function () {
-        if (import.meta.env.VITE_DEVURL) {
-            return import.meta.env.VITE_DEVURL;
-        }
-        else if (daxHelper.crmUrl) {
-            return daxHelper.crmUrl;
-        }
-        else {
-            let url = window.location.href.substring(0, window.location.href.indexOf("/WebResources"));
-            if (url.match(/\/$/)) {
-                url = url.substring(0, url.length - 1);
+        if (!daxHelper.crmUrl) {
+            if (import.meta.env.VITE_DEVURL) {
+                daxHelper.crmUrl = import.meta.env.VITE_DEVURL;
             }
-            daxHelper.crmUrl = url;
-            return daxHelper.crmUrl;
+            else {
+                let url = window.location.href.substring(0, window.location.href.indexOf("/WebResources"));
+                if (url.match(/\/$/)) {
+                    url = url.substring(0, url.length - 1);
+                }
+                daxHelper.crmUrl = url;
+            }
         }
+        return daxHelper.crmUrl;
+
     },
     isGuid: function (str) {
         const guidRegex = /^[{(]?[0-9A-Fa-f]{8}[-]?([0-9A-Fa-f]{4}[-]?){3}[0-9A-Fa-f]{12}[)}]?$/i;
@@ -41,7 +41,7 @@ export const daxHelper = {
     getEntityDefinitions: function () {
         if (!daxHelper.entityDefinitions) {
             const xhr = new XMLHttpRequest;
-            const path = '/api/data/v8.0/EntityDefinitions?$select=LogicalName,DisplayName,SchemaName,ObjectTypeCode'
+            const path = '/api/data/v8.0/EntityDefinitions?$select=LogicalName,DisplayName,SchemaName,ObjectTypeCode';
             xhr.open("GET", encodeURI(daxHelper.getCrmUrl() + path), false);
             xhr.withCredentials = true;
             xhr.setRequestHeader("Content-Type", "application/json; charset=utf-8");
@@ -55,6 +55,24 @@ export const daxHelper = {
             }
         }
         return daxHelper.entityDefinitions;
+    },
+    getEntityDefinition: function (metadataId) {
+        if (!daxHelper.isGuid(metadataId)) {
+            return null;
+        }
+        const xhr = new XMLHttpRequest;
+        const path = '/api/data/v8.0/EntityDefinitions(' + metadataId + ')?$expand=Attributes';
+        xhr.open("GET", encodeURI(daxHelper.getCrmUrl() + path), false);
+        xhr.withCredentials = true;
+        xhr.setRequestHeader("Content-Type", "application/json; charset=utf-8");
+        xhr.setRequestHeader("OData-MaxVersion", "4.0");
+        xhr.setRequestHeader("OData-Version", "4.0");
+        xhr.send();
+        if (xhr.status === 200) {
+            return JSON.parse(xhr.responseText);
+        } else {
+            return null;
+        }
     },
     getFlowDefinitions: function () {
         if (!daxHelper.flowDefinitions) {
