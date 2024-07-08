@@ -13,6 +13,8 @@ const selectedEntity = ref(null);
 const selectedRecord = ref(null);
 const entityDefinition = ref(null);
 const attributes = ref([]);
+const hiddenAttributes = ['versionnumber', 'utcconversiontimezonecode', 'timezoneruleversionnumber', 'statuscode', 'statecode', 'owninguser', 'owningteam', 'owningbusinessunit', 'ownerid', 'overriddencreatedon', 'modifiedonbehalfby', 'modifiedon', 'modifiedby', 'importsequencenumber', 'createdonbehalfby', 'createdon', 'createdby'];
+
 
 function loadData(entityInfo, recordLookUp) {
 
@@ -22,7 +24,7 @@ function setAttributes() {
     attributes.value = [];
     if (entityDefinition.value?.Attributes) {
         attributes.value = entityDefinition.value.Attributes.filter((x) => {
-            return x.AttributeOf == null && !x.IsPrimaryId;
+            return x.AttributeOf == null && !x.IsPrimaryId && !hiddenAttributes.includes(x.LogicalName);
         })
     }
 }
@@ -47,8 +49,7 @@ watch(() => selectedRecord.value, (newValue, oldValue) => {
             :disabled="selectedEntity == null" v-model="selectedRecord"></LookUpControl>
     </div>
 
-    <div style="display: flex;flex-wrap: wrap;flex-direction: row;justify-content: center;"
-        v-if="selectedRecord != null">
+    <div style="display: flex;flex-wrap: wrap;flex-direction: row;justify-content: center;" v-if="selectedRecord != null">
         <div v-for="attribute in attributes">
             <div v-if="attribute.type == 'InArgument(x:Boolean)'">
                 <BoolControl v-model="actionInputData[attribute.name]" :required="attribute.required"
@@ -70,6 +71,7 @@ watch(() => selectedRecord.value, (newValue, oldValue) => {
             </div>
             <div v-else>
                 <div>Unsupported Attribute:</div>
+                <div>Attribute DisplayName:{{ attribute.DisplayName.UserLocalizedLabel?.Label }}</div>
                 <div>Attribute LogicalName:{{ attribute.LogicalName }}</div>
                 <div>Attribute AttributeType:{{ attribute.AttributeType }}</div>
                 <div>Attribute RequiredLevel:{{ attribute.RequiredLevel.Value }}</div>
