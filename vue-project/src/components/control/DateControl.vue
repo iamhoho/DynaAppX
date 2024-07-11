@@ -7,6 +7,9 @@ const props = defineProps({
     },
     modelValue: {
     },
+    disabled: {
+        required: true
+    },
     attName: {
     }
 }
@@ -27,8 +30,8 @@ onMounted(() => {
 <template>
     <div style="display: flex; flex-wrap: nowrap; flex-direction: row; margin: 1em;">
         <p>{{ attName }}</p>
-        <el-date-picker format="YYYY-MM-DDTHH:mm:ssZ" v-model="value" type="datetime" placeholder="Select date and time"
-            style="width:250px" />
+        <el-date-picker :disabled=disabled format="YYYY-MM-DDTHH:mm:ssZ" v-model="value" type="datetime"
+            placeholder="Select date and time" style="width:250px" />
         <el-tooltip placement="top" effect="light">
             <template #content>The selected time zone is the same as the time zone of the current pc.</template>
             <el-icon>

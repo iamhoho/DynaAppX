@@ -13,8 +13,9 @@ const selectedEntity = ref(null);
 const selectedRecord = ref(null);
 const entityDefinition = ref(null);
 const attributes = ref([]);
-const hiddenAttributes = ['versionnumber', 'utcconversiontimezonecode', 'timezoneruleversionnumber', 'statuscode', 'statecode', 'owninguser', 'owningteam', 'owningbusinessunit', 'ownerid', 'overriddencreatedon', 'modifiedonbehalfby', 'modifiedon', 'modifiedby', 'importsequencenumber', 'createdonbehalfby', 'createdon', 'createdby'];
-
+const hiddenAttributes = ['versionnumber', 'utcconversiontimezonecode', 'timezoneruleversionnumber', 'owninguser', 'owningteam', 'owningbusinessunit', 'overriddencreatedon', 'modifiedonbehalfby', 'importsequencenumber', 'createdonbehalfby'];
+const disableAttributes = ['statuscode', 'statecode', 'ownerid', 'modifiedon', 'modifiedby', 'createdon', 'createdby'];
+const inputData = ref({});
 
 function loadData(entityInfo, recordLookUp) {
 
@@ -51,30 +52,42 @@ watch(() => selectedRecord.value, (newValue, oldValue) => {
 
     <div style="display: flex;flex-wrap: wrap;flex-direction: row;justify-content: center;" v-if="selectedRecord != null">
         <div v-for="attribute in attributes">
-            <div v-if="attribute.type == 'InArgument(x:Boolean)'">
-                <BoolControl v-model="actionInputData[attribute.name]" :required="attribute.required"
-                    :attName="attribute.name" :disabled="false"></BoolControl>
+            <div v-if="attribute.AttributeType == 'Boolean'">
+                <BoolControl v-model="inputData[attribute.LogicalName]" :required="false"
+                    :attName="attribute.DisplayName.UserLocalizedLabel.Label"
+                    :disabled="disableAttributes.includes(attribute.LogicalName)"></BoolControl>
             </div>
             <div
-                v-else-if="attribute.type == 'InArgument(x:Double)' || attribute.type == 'InArgument(mxs:Money)' || attribute.type == 'InArgument(x:Decimal)' || attribute.type == 'InArgument(mxs:OptionSetValue)' || attribute.type == 'InArgument(x:Int32)'">
-                <NumberControl v-model="actionInputData[attribute.name]" :required="attribute.required"
-                    :attName="attribute.name" :disabled="false">
+                v-else-if="attribute.AttributeType == 'Double' || attribute.AttributeType == 'Money' || attribute.AttributeType == 'Decimal' || attribute.AttributeType == 'Integer'">
+                <NumberControl v-model="inputData[attribute.LogicalName]" :required="false"
+                    :attName="attribute.DisplayName.UserLocalizedLabel.Label"
+                    :disabled="disableAttributes.includes(attribute.LogicalName)">
                 </NumberControl>
             </div>
-            <div v-else-if="attribute.type == 'InArgument(s:DateTime)'">
-                <DateControl v-model="actionInputData[attribute.name]" :required="attribute.required"
-                    :attName="attribute.name" :disabled="false"></DateControl>
+            <div v-else-if="attribute.AttributeType == 'DateTime'">
+                <DateControl v-model="inputData[attribute.LogicalName]" :required="false"
+                    :attName="attribute.DisplayName.UserLocalizedLabel.Label"
+                    :disabled="disableAttributes.includes(attribute.LogicalName)"></DateControl>
             </div>
-            <div v-else-if="attribute.type == 'InArgument(x:String)'">
-                <StringControl v-model="actionInputData[attribute.name]" :required="attribute.required"
-                    :attName="attribute.name" :disabled="false"></StringControl>
+            <div v-else-if="attribute.AttributeType == 'String' || attribute.AttributeType == 'Memo'">
+                <StringControl v-model="inputData[attribute.LogicalName]" :required="false"
+                    :attName="attribute.DisplayName.UserLocalizedLabel.Label"
+                    :disabled="disableAttributes.includes(attribute.LogicalName)"></StringControl>
+            </div>
+            <div v-else-if="attribute.AttributeType == 'Lookup'">
+                <LookUpControl :attName="attribute.DisplayName.UserLocalizedLabel.Label" :logicalName=attribute.Targets
+                    :required="false" :disabled="disableAttributes.includes(attribute.LogicalName)"
+                    v-model="inputData[attribute.LogicalName]"></LookUpControl>
             </div>
             <div v-else>
-                <div>Unsupported Attribute:</div>
+                <StringControl v-model="attribute.DisplayName.UserLocalizedLabel.Label" :required="false"
+                    :attName="attribute.DisplayName.UserLocalizedLabel.Label"
+                    :disabled="disableAttributes.includes(attribute.LogicalName)"></StringControl>
+                <!-- <div>Unsupported Attribute:</div>
                 <div>Attribute DisplayName:{{ attribute.DisplayName.UserLocalizedLabel?.Label }}</div>
                 <div>Attribute LogicalName:{{ attribute.LogicalName }}</div>
                 <div>Attribute AttributeType:{{ attribute.AttributeType }}</div>
-                <div>Attribute RequiredLevel:{{ attribute.RequiredLevel.Value }}</div>
+                <div>Attribute RequiredLevel:{{ attribute.RequiredLevel.Value }}</div> -->
             </div>
         </div>
     </div>
