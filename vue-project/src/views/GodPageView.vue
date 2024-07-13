@@ -43,52 +43,67 @@ watch(() => selectedRecord.value, (newValue, oldValue) => {
 </script>
 
 <template>
-    <div style="display: flex;flex-direction: row;justify-content: center;">
-        <EntityControl attName="Entity" :required="true" ref="selectEntity" :disabled="false" v-model="selectedEntity">
+    <div
+        style="display: flex;flex-direction: row;justify-content: center;align-items:center;border-bottom: 1px solid #dddddd;margin-bottom: 20px;">
+        <EntityControl lableName="Entity" :required="true" ref="selectEntity" :disabled="false" v-model="selectedEntity">
         </EntityControl>
-        <LookUpControl attName="Record" :logicalName="selectedEntity?.LogicalName" :required="true"
+        <LookUpControl lableName="Record" :logicalName="selectedEntity?.LogicalName" :required="true"
             :disabled="selectedEntity == null" v-model="selectedRecord"></LookUpControl>
+        <el-button style="margin-left: 50px;" type="success">Save</el-button>
     </div>
 
-    <div style="display: flex;flex-wrap: wrap;flex-direction: row;justify-content: center;" v-if="selectedRecord != null">
-        <div v-for="attribute in attributes">
+    <div class="godPage" style="display: flex;flex-wrap: wrap;flex-direction: row;justify-content: center;"
+        v-if="selectedRecord != null">
+        <div style="width:400px;" v-for="attribute in  attributes ">
             <div v-if="attribute.AttributeType == 'Boolean'">
                 <BoolControl v-model="inputData[attribute.LogicalName]" :required="false"
-                    :attName="attribute.DisplayName.UserLocalizedLabel.Label"
-                    :disabled="disableAttributes.includes(attribute.LogicalName)"></BoolControl>
+                    :lableName="attribute.DisplayName.UserLocalizedLabel?.Label" :disabled="disableAttributes.includes(attribute.LogicalName)
+                        " :attrabuteName="attribute.LogicalName"></BoolControl>
             </div>
             <div
                 v-else-if="attribute.AttributeType == 'Double' || attribute.AttributeType == 'Money' || attribute.AttributeType == 'Decimal' || attribute.AttributeType == 'Integer'">
                 <NumberControl v-model="inputData[attribute.LogicalName]" :required="false"
-                    :attName="attribute.DisplayName.UserLocalizedLabel.Label"
-                    :disabled="disableAttributes.includes(attribute.LogicalName)">
+                    :lableName="attribute.DisplayName.UserLocalizedLabel?.Label"
+                    :disabled="disableAttributes.includes(attribute.LogicalName)" :attrabuteName="attribute.LogicalName">
                 </NumberControl>
             </div>
             <div v-else-if="attribute.AttributeType == 'DateTime'">
                 <DateControl v-model="inputData[attribute.LogicalName]" :required="false"
-                    :attName="attribute.DisplayName.UserLocalizedLabel.Label"
-                    :disabled="disableAttributes.includes(attribute.LogicalName)"></DateControl>
+                    :lableName="attribute.DisplayName.UserLocalizedLabel?.Label"
+                    :disabled="disableAttributes.includes(attribute.LogicalName)" :attrabuteName="attribute.LogicalName">
+                </DateControl>
             </div>
             <div v-else-if="attribute.AttributeType == 'String' || attribute.AttributeType == 'Memo'">
                 <StringControl v-model="inputData[attribute.LogicalName]" :required="false"
-                    :attName="attribute.DisplayName.UserLocalizedLabel.Label"
-                    :disabled="disableAttributes.includes(attribute.LogicalName)"></StringControl>
+                    :lableName="attribute.DisplayName.UserLocalizedLabel?.Label"
+                    :disabled="disableAttributes.includes(attribute.LogicalName)" :attrabuteName="attribute.LogicalName">
+                </StringControl>
             </div>
-            <div v-else-if="attribute.AttributeType == 'Lookup'">
-                <LookUpControl :attName="attribute.DisplayName.UserLocalizedLabel.Label" :logicalName=attribute.Targets
+            <div v-else-if="attribute.AttributeType == 'Lookup' || attribute.AttributeType == 'Owner'">
+                <LookUpControl :lableName="attribute.DisplayName.UserLocalizedLabel?.Label" :logicalName=attribute.Targets
                     :required="false" :disabled="disableAttributes.includes(attribute.LogicalName)"
-                    v-model="inputData[attribute.LogicalName]"></LookUpControl>
+                    v-model="inputData[attribute.LogicalName]" :attrabuteName="attribute.LogicalName"></LookUpControl>
             </div>
             <div v-else>
                 <StringControl v-model="attribute.DisplayName.UserLocalizedLabel.Label" :required="false"
-                    :attName="attribute.DisplayName.UserLocalizedLabel.Label"
-                    :disabled="disableAttributes.includes(attribute.LogicalName)"></StringControl>
-                <!-- <div>Unsupported Attribute:</div>
-                <div>Attribute DisplayName:{{ attribute.DisplayName.UserLocalizedLabel?.Label }}</div>
-                <div>Attribute LogicalName:{{ attribute.LogicalName }}</div>
-                <div>Attribute AttributeType:{{ attribute.AttributeType }}</div>
-                <div>Attribute RequiredLevel:{{ attribute.RequiredLevel.Value }}</div> -->
+                    :lableName="attribute.DisplayName.UserLocalizedLabel?.Label"
+                    :disabled="disableAttributes.includes(attribute.LogicalName)" :attrabuteName="attribute.LogicalName">
+                </StringControl>
             </div>
         </div>
     </div>
 </template>
+<style scoped>
+.godPage:deep(.controlLable) {
+    width: 120px;
+    word-break: break-all;
+}
+
+.godPage:deep(.controlItem) {
+    width: 300px;
+}
+
+.godPage:deep(.controlItemTextarea) {
+    width: 300px;
+}
+</style>

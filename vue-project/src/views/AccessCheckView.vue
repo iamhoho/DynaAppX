@@ -10,6 +10,7 @@ const selectedRecord = ref(null);
 const selectedUser = ref(null);
 const accessRights = ref(null);
 const userRoles = ref([]);
+const accessList = ref(['ReadAccess', 'WriteAccess', 'CreateAccess', 'DeleteAccess', 'ShareAccess', 'AssignAccess', 'AppendAccess', 'AppendToAccess'])
 
 function loadData(userLookUp, recordLookUp) {
     getuserRoles(userLookUp);
@@ -56,32 +57,33 @@ watch(() => selectedUser.value, (newValue, oldValue) => {
     loadData(selectedUser.value, selectedRecord.value);
 
 })
+
 </script>
 
 <template>
-    <div style="display: flex;flex-direction: row;justify-content: center;">
-        <LookUp attName="User" logicalName="systemuser" :required="true" :disabled="false" v-model="selectedUser"></LookUp>
-        <EntityControl attName="Entity" :required="true" ref="selectEntity" :disabled="false" v-model="selectedEntity">
+    <div
+        style="display: flex;flex-direction: row;justify-content: center;border-bottom: 1px solid #dddddd;margin-bottom: 20px;">
+        <LookUp lableName="User" logicalName="systemuser" :required="true" :disabled="false" v-model="selectedUser">
+        </LookUp>
+        <EntityControl lableName="Entity" :required="true" ref="selectEntity" :disabled="false" v-model="selectedEntity">
         </EntityControl>
-        <LookUp attName="Record" :logicalName="selectedEntity?.LogicalName" :required="true"
+        <LookUp lableName="Record" :logicalName="selectedEntity?.LogicalName" :required="true"
             :disabled="selectedEntity == null" v-model="selectedRecord"></LookUp>
     </div>
     <div style="display: flex;flex-wrap: wrap;flex-direction: row;justify-content: center;">
         <div v-if="selectedUser != null" v-for=" userRole in userRoles">
-            <el-tag type="success">{{ userRole.name }}</el-tag>
+            <el-tag class="role-tag" type="success">{{ userRole.name }}</el-tag>
         </div>
     </div>
 
-
-    <div style="display: flex;flex-wrap: wrap;flex-direction: row;justify-content: center;"
+    <div style="display: flex;flex-wrap: wrap;flex-direction: row;justify-content: center; margin-top: 12px;"
         v-if="selectedUser != null && selectedRecord != null">
-        <el-button :type="accessRights?.indexOf('ReadAccess') > -1 ? 'success' : 'danger'">ReadAccess</el-button>
-        <el-button :type="accessRights?.indexOf('WriteAccess') > -1 ? 'success' : 'danger'">WriteAccess</el-button>
-        <el-button :type="accessRights?.indexOf('CreateAccess') > -1 ? 'success' : 'danger'">CreateAccess</el-button>
-        <el-button :type="accessRights?.indexOf('DeleteAccess') > -1 ? 'success' : 'danger'">DeleteAccess</el-button>
-        <el-button :type="accessRights?.indexOf('ShareAccess') > -1 ? 'success' : 'danger'">ShareAccess</el-button>
-        <el-button :type="accessRights?.indexOf('AssignAccess') > -1 ? 'success' : 'danger'">AssignAccess</el-button>
-        <el-button :type="accessRights?.indexOf('AppendAccess') > -1 ? 'success' : 'danger'">AppendAccess</el-button>
-        <el-button :type="accessRights?.indexOf('AppendToAccess') > -1 ? 'success' : 'danger'">AppendToAccess</el-button>
+        <el-button v-for="k in accessList" :key="k" :type="accessRights?.indexOf(k) > -1 ? 'success' : 'danger'">{{ k
+        }}</el-button>
     </div>
 </template>
+<style>
+.role-tag {
+    margin: 0 8px 8px 0;
+}
+</style>

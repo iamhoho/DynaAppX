@@ -8,7 +8,9 @@ const props = defineProps({
     modelValue: {
 
     },
-    attName: {
+    lableName: {
+    },
+    attrabuteName: {
     }
 }
 )
@@ -45,13 +47,17 @@ onMounted(() => {
 })
 </script>
 <template>
-    <div style="display: flex; flex-wrap: nowrap; flex-direction: row; margin: 1em;">
-        <p>{{ attName }}</p>
-        <el-select v-model="value" placeholder="Select" clearable style="width: 240px">
+    <div style="display: flex; flex-wrap: nowrap; flex-direction: row; margin: 1em; align-items: center;">
+        <div class="controlLable">
+            <p>{{ lableName }}</p>
+            <p v-if="attrabuteName">{{ attrabuteName }}</p>
+        </div>
+        <el-select class="controlItem" v-model="value" placeholder="Select" clearable>
             <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
-        <el-icon size="2em" :color="required && modelValue == null ? '#F56C6C' : '#67C23A'">
-            <SuccessFilled />
+        <el-icon style="margin-left: 5px;" size="2em">
+            <WarningFilled color="#F56C6C" v-if="required && modelValue == null" />
+            <SuccessFilled color="#67C23A" v-else />
         </el-icon>
     </div>
 </template>

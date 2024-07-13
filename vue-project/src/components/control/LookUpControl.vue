@@ -16,7 +16,9 @@ const props = defineProps({
     modelValue: {
         required: true
     },
-    attName: {
+    lableName: {
+    },
+    attrabuteName: {
     }
 }
 )
@@ -131,9 +133,12 @@ function getEntityDefinition() {
 }
 </script>
 <template>
-    <div style="display: flex; flex-wrap: nowrap; flex-direction: row; margin: 1em;">
-        <p>{{ attName }}</p>
-        <el-autocomplete :disabled=disabled v-model="selectedName" :fetch-suggestions="querySearch"
+    <div style="display: flex; flex-wrap: nowrap; flex-direction: row; margin: 1em; align-items: center;">
+        <div class="controlLable">
+            <p>{{ lableName }}</p>
+            <p v-if="attrabuteName">{{ attrabuteName }}</p>
+        </div>
+        <el-autocomplete class="controlItem" :disabled=disabled v-model="selectedName" :fetch-suggestions="querySearch"
             popper-class="my-autocomplete" placeholder="Select a record" @select="handleSelect" @change="onChange">
             <template #suffix>
                 <el-icon class="el-input__icon">
@@ -148,8 +153,10 @@ function getEntityDefinition() {
                         }}</span></div>
             </template>
         </el-autocomplete>
-        <el-icon size="2em" :color="required && selectedItem == null ? '#F56C6C' : '#67C23A'">
-            <SuccessFilled />
+
+        <el-icon style="margin-left: 5px;" size="2em">
+            <WarningFilled color="#F56C6C" v-if="required && selectedItem == null" />
+            <SuccessFilled color="#67C23A" v-else />
         </el-icon>
     </div>
 </template>

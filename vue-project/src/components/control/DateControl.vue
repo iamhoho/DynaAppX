@@ -10,7 +10,9 @@ const props = defineProps({
     disabled: {
         required: true
     },
-    attName: {
+    lableName: {
+    },
+    attrabuteName: {
     }
 }
 )
@@ -28,18 +30,22 @@ onMounted(() => {
 })
 </script>
 <template>
-    <div style="display: flex; flex-wrap: nowrap; flex-direction: row; margin: 1em;">
-        <p>{{ attName }}</p>
-        <el-date-picker :disabled=disabled format="YYYY-MM-DDTHH:mm:ssZ" v-model="value" type="datetime"
-            placeholder="Select date and time" style="width:250px" />
+    <div style="display: flex; flex-wrap: nowrap; flex-direction: row; margin: 1em; align-items: center;">
+        <div class="controlLable">
+            <p>{{ lableName }}</p>
+            <p v-if="attrabuteName">{{ attrabuteName }}</p>
+        </div>
+        <el-date-picker class="controlItem" :disabled=disabled format="YYYY-MM-DDTHH:mm:ssZ" v-model="value" type="datetime"
+            placeholder="Select date and time" />
+        <el-icon style="margin-left: 5px;" size="2em">
+            <WarningFilled color="#F56C6C" v-if="required && (modelValue == null || modelValue == '')" />
+            <SuccessFilled color="#67C23A" v-else />
+        </el-icon>
         <el-tooltip placement="top" effect="light">
             <template #content>The selected time zone is the same as the time zone of the current pc.</template>
             <el-icon>
                 <Warning />
             </el-icon>
         </el-tooltip>
-        <el-icon size="2em" :color="required && (modelValue == null || modelValue == '') ? '#F56C6C' : '#67C23A'">
-            <SuccessFilled />
-        </el-icon>
     </div>
 </template>

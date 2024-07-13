@@ -7,7 +7,9 @@ const props = defineProps({
     },
     modelValue: {
     },
-    attName: {
+    lableName: {
+    },
+    attrabuteName: {
     }
 }
 )
@@ -30,11 +32,15 @@ onMounted(() => {
 })
 </script>
 <template>
-    <div style="display: flex; flex-wrap: nowrap; flex-direction: row; margin: 1em;">
-        <p>{{ attName }}</p>
-        <el-input v-model="value" placeholder="Please input" type="number" />
-        <el-icon size="2em" :color="required && (modelValue == null || modelValue == '') ? '#F56C6C' : '#67C23A'">
-            <SuccessFilled />
+    <div style="display: flex; flex-wrap: nowrap; flex-direction: row; margin: 1em; align-items: center;">
+        <div class="controlLable">
+            <p>{{ lableName }}</p>
+            <p v-if="attrabuteName">{{ attrabuteName }}</p>
+        </div>
+        <el-input class="controlItem" v-model="value" placeholder="Please input" type="number" />
+        <el-icon style="margin-left: 5px;" size="2em">
+            <WarningFilled color="#F56C6C" v-if="required && (modelValue == null || modelValue == '')" />
+            <SuccessFilled color="#67C23A" v-else />
         </el-icon>
     </div>
 </template>
