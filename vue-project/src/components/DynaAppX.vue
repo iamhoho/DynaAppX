@@ -39,14 +39,6 @@ h3 {
   text-align: center;
 }
 
-@media (min-width: 1024px) {
-
-  .greetings h1,
-  .greetings h3 {
-    text-align: center;
-  }
-}
-
 .github-corner:hover .octo-arm {
   animation: octocat-wave 560ms ease-in-out
 }
