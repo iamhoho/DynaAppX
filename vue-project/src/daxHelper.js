@@ -45,20 +45,20 @@ export const daxHelper = {
         }
     },
     retrieve: function (queryString, useFormattedValue) {
-        var req = RekTec.ajax.getXHR();
-        req.open("GET", encodeURI(daxHelper.getWebAPIUrl() + queryString), false);
-        req.setRequestHeader("Accept", "application/json");
-        req.setRequestHeader("Content-Type", "application/json; charset=utf-8");
-        req.setRequestHeader("OData-MaxVersion", "4.0");
-        req.setRequestHeader("OData-Version", "4.0");
+        const xhr = new XMLHttpRequest;
+        xhr.open("GET", encodeURI(daxHelper.getWebAPIUrl() + queryString), false);
+        xhr.setRequestHeader("Accept", "application/json");
+        xhr.setRequestHeader("Content-Type", "application/json; charset=utf-8");
+        xhr.setRequestHeader("OData-MaxVersion", "4.0");
+        xhr.setRequestHeader("OData-Version", "4.0");
         if (useFormattedValue) {
-            req.setRequestHeader("Prefer", "odata.include-annotations=\"OData.Community.Display.V1.FormattedValue\"");
+            xhr.setRequestHeader("Prefer", "odata.include-annotations=\"OData.Community.Display.V1.FormattedValue\"");
         }
-        req.send();
-        if (req.status == 200)
-            return JSON.parse(req.responseText);
+        xhr.send();
+        if (xhr.status == 200)
+            return JSON.parse(xhr.responseText);
         else
-            throw new Error(JSON.parse(req.responseText).error.message);
+            throw new Error(JSON.parse(xhr.responseText).error.message);
     },
     getEntityDefinitions: function () {
         if (!daxHelper.entityDefinitions) {

@@ -16,10 +16,22 @@ const attributes = ref([]);
 const hiddenAttributes = ['versionnumber', 'utcconversiontimezonecode', 'timezoneruleversionnumber', 'owninguser', 'owningteam', 'owningbusinessunit', 'overriddencreatedon', 'modifiedonbehalfby', 'importsequencenumber', 'createdonbehalfby'];
 const disableAttributes = ['statuscode', 'statecode', 'ownerid', 'modifiedon', 'modifiedby', 'createdon', 'createdby'];
 const inputData = ref({});
+const selectedRecordData = ref({});
 
-function loadData(entityInfo, recordLookUp) {
-
+function handleSelectedRecord() {
+    lodaSelectedRecordData();
 }
+
+function lodaSelectedRecordData() {
+    if (!selectedRecord.value) {
+        selectedRecordData.value = {};
+    }
+    else {
+        selectedRecordData.value = daxHelper.retrieve(selectedRecord.value.entitySetName + '(' + selectedRecord.value.id + ')', true);
+    }
+}
+
+
 
 function setAttributes() {
     attributes.value = [];
@@ -37,7 +49,7 @@ watch(() => selectedEntity.value, (newValue, oldValue) => {
 })
 
 watch(() => selectedRecord.value, (newValue, oldValue) => {
-    loadData(selectedEntity.value, selectedRecord.value);
+    handleSelectedRecord();
 })
 
 </script>
