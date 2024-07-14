@@ -66,10 +66,10 @@ function invoke() {
 }
 
 function invokeWorkFlow() {
-    const path = `/api/data/v9.0/workflows(${selectedFlow.value.id})/Microsoft.Dynamics.CRM.ExecuteWorkflow`;
+    const path = `v8.0/workflows(${selectedFlow.value.id})/Microsoft.Dynamics.CRM.ExecuteWorkflow`;
     let reqBody = JSON.stringify({ "EntityId": selectedRecord.value.id });
     let req = new XMLHttpRequest();
-    req.open("POST", daxHelper.getCrmUrl() + path, true);
+    req.open("POST", daxHelper.getWebAPIUrl() + path, true);
     req.setRequestHeader("OData-MaxVersion", "4.0");
     req.setRequestHeader("OData-Version", "4.0");
     req.setRequestHeader("Accept", "application/json");
@@ -86,10 +86,10 @@ function invokeWorkFlow() {
 function invokeAction() {
     let path = "";
     if (selectedFlow.value.primaryentity && selectedFlow.value.primaryentity != "none") {
-        path = `/api/data/v9.0/${selectedRecord.value.entitySetName}(${selectedRecord.value.id})/Microsoft.Dynamics.CRM.${selectedFlow.value.uniquename}`;
+        path = `${selectedRecord.value.entitySetName}(${selectedRecord.value.id})/Microsoft.Dynamics.CRM.${selectedFlow.value.uniquename}`;
     }
     else {
-        path = `/api/data/v9.0/${selectedFlow.value.uniquename}`;
+        path = `${selectedFlow.value.uniquename}`;
     }
     let reqBody = null;
     if (isRawdModel.value) {
@@ -99,7 +99,7 @@ function invokeAction() {
     }
 
     let req = new XMLHttpRequest();
-    req.open("POST", daxHelper.getCrmUrl() + path, true);
+    req.open("POST", daxHelper.getWebAPIUrl() + path, true);
     req.setRequestHeader("OData-MaxVersion", "4.0");
     req.setRequestHeader("OData-Version", "4.0");
     req.setRequestHeader("Accept", "application/json");

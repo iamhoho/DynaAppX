@@ -23,8 +23,8 @@ function accessCheck(userLookUp, recordLookUp) {
         return;
     }
     const xhr = new XMLHttpRequest;
-    const path = `/api/data/v8.0/systemusers(${userLookUp.id})/Microsoft.Dynamics.CRM.RetrievePrincipalAccess(Target=@tid)?@tid={'@odata.id':'${recordLookUp.entitySetName}(${recordLookUp.id})'}`;
-    xhr.open("GET", encodeURI(daxHelper.getCrmUrl() + path), false);
+    const path = `systemusers(${userLookUp.id})/Microsoft.Dynamics.CRM.RetrievePrincipalAccess(Target=@tid)?@tid={'@odata.id':'${recordLookUp.entitySetName}(${recordLookUp.id})'}`;
+    xhr.open("GET", encodeURI(daxHelper.getWebAPIUrl() + path), false);
     xhr.setRequestHeader("Content-Type", "application/json; charset=utf-8");
     xhr.setRequestHeader("OData-MaxVersion", "4.0");
     xhr.setRequestHeader("OData-Version", "4.0");

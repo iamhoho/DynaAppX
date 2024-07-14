@@ -1,4 +1,7 @@
 export const daxHelper = {
+    getVersion: function () {
+        return "8.0";
+    },
     getCrmUrl: function () {
         if (!daxHelper.crmUrl) {
             if (import.meta.env.VITE_DEVURL) {
@@ -15,12 +18,15 @@ export const daxHelper = {
         return daxHelper.crmUrl;
 
     },
+    getWebAPIUrl: function () {
+        return daxHelper.getCrmUrl() + "/api/data/v" + daxHelper.getVersion() + "/";
+    },
     isGuid: function (str) {
         const guidRegex = /^[{(]?[0-9A-Fa-f]{8}[-]?([0-9A-Fa-f]{4}[-]?){3}[0-9A-Fa-f]{12}[)}]?$/i;
         return guidRegex.test(str);
     },
     fetch: function (entitySetName, fetchXml, useFormattedValue) {
-        let fetchStr = `${daxHelper.getCrmUrl()}/api/data/v8.0/${entitySetName}?fetchXml=${fetchXml}`;
+        let fetchStr = `${daxHelper.getWebAPIUrl()}${entitySetName}?fetchXml=${fetchXml}`;
         const xhr = new XMLHttpRequest;
         xhr.open("GET", encodeURI(fetchStr), false);
         xhr.setRequestHeader("Accept", "application/json");
@@ -38,11 +44,27 @@ export const daxHelper = {
             return [];
         }
     },
+    retrieve: function (queryString, useFormattedValue) {
+        var req = RekTec.ajax.getXHR();
+        req.open("GET", encodeURI(daxHelper.getWebAPIUrl() + queryString), false);
+        req.setRequestHeader("Accept", "application/json");
+        req.setRequestHeader("Content-Type", "application/json; charset=utf-8");
+        req.setRequestHeader("OData-MaxVersion", "4.0");
+        req.setRequestHeader("OData-Version", "4.0");
+        if (useFormattedValue) {
+            req.setRequestHeader("Prefer", "odata.include-annotations=\"OData.Community.Display.V1.FormattedValue\"");
+        }
+        req.send();
+        if (req.status == 200)
+            return JSON.parse(req.responseText);
+        else
+            throw new Error(JSON.parse(req.responseText).error.message);
+    },
     getEntityDefinitions: function () {
         if (!daxHelper.entityDefinitions) {
             const xhr = new XMLHttpRequest;
-            const path = '/api/data/v8.0/EntityDefinitions?$select=LogicalName,DisplayName,SchemaName,ObjectTypeCode';
-            xhr.open("GET", encodeURI(daxHelper.getCrmUrl() + path), false);
+            const path = 'EntityDefinitions?$select=LogicalName,DisplayName,SchemaName,ObjectTypeCode';
+            xhr.open("GET", encodeURI(daxHelper.getWebAPIUrl() + path), false);
             xhr.withCredentials = true;
             xhr.setRequestHeader("Content-Type", "application/json; charset=utf-8");
             xhr.setRequestHeader("OData-MaxVersion", "4.0");
@@ -61,8 +83,8 @@ export const daxHelper = {
             return null;
         }
         const xhr = new XMLHttpRequest;
-        const path = '/api/data/v8.0/EntityDefinitions(' + metadataId + ')?$expand=Attributes';
-        xhr.open("GET", encodeURI(daxHelper.getCrmUrl() + path), false);
+        const path = 'EntityDefinitions(' + metadataId + ')?$expand=Attributes';
+        xhr.open("GET", encodeURI(daxHelper.getWebAPIUrl() + path), false);
         xhr.withCredentials = true;
         xhr.setRequestHeader("Content-Type", "application/json; charset=utf-8");
         xhr.setRequestHeader("OData-MaxVersion", "4.0");

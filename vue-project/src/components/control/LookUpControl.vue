@@ -115,8 +115,8 @@ function getEntityDefinition() {
     })[0].MetadataId;
     metadataId = metadataId.replace("{", "").replace("}", "");
     const xhr = new XMLHttpRequest;
-    const path = `/api/data/v8.0/EntityDefinitions(${metadataId})?$expand=Attributes`;
-    xhr.open("GET", encodeURI(daxHelper.getCrmUrl() + path), false);
+    const path = `EntityDefinitions(${metadataId})?$expand=Attributes`;
+    xhr.open("GET", encodeURI(daxHelper.getWebAPIUrl() + path), false);
     xhr.setRequestHeader("Content-Type", "application/json; charset=utf-8");
     xhr.setRequestHeader("OData-MaxVersion", "4.0");
     xhr.setRequestHeader("OData-Version", "4.0");
