@@ -128,53 +128,57 @@ function invokeAction() {
                 inactive-text="Field Model" style="--el-switch-on-color: #13ce66; --el-switch-off-color: #13ce66" />
             <el-button style="margin-left: 50px;" type="success" @click="invoke">Invoke</el-button>
         </div>
-        <div style="display: flex;flex-direction: row; justify-content: center;">{{ response }}</div>
 
-        <div class="invokeFields" v-if="selectedFlow?.category == 3">
-            <div v-if="isRawdModel">
-                <StringControl v-model="rawdModelData" :required="false" lableName="Parameters" :disabled="false">
-                </StringControl>
-            </div>
-            <div v-else>
-                <div v-for="actionField in actionInputFields" class="invokeForm">
-                    <div v-if="actionField.type == 'InArgument(mxs:EntityCollection)'">
-                        <ActionEntityCollectionControl v-model="actionInputData[actionField.name]"
-                            :required="actionField.required" :lableName="actionField.name" :disabled="false">
-                        </ActionEntityCollectionControl>
-                    </div>
-                    <div v-else-if="actionField.type == 'InArgument(x:Boolean)'">
-                        <BoolControl v-model="actionInputData[actionField.name]" :required="actionField.required"
-                            :lableName="actionField.name" :disabled="false"></BoolControl>
-                    </div>
-                    <div
-                        v-else-if="actionField.type == 'InArgument(x:Double)' || actionField.type == 'InArgument(mxs:Money)' || actionField.type == 'InArgument(x:Decimal)' || actionField.type == 'InArgument(mxs:OptionSetValue)' || actionField.type == 'InArgument(x:Int32)'">
-                        <NumberControl v-model="actionInputData[actionField.name]" :required="actionField.required"
-                            :lableName="actionField.name" :disabled="false">
-                        </NumberControl>
-                    </div>
-                    <div v-else-if="actionField.type == 'InArgument(mxs:EntityReference)'">
-                        <ActionEntityReferenceControl v-model="actionInputData[actionField.name]"
-                            :required="actionField.required" :lableName="actionField.name" :disabled="false">
-                        </ActionEntityReferenceControl>
-                    </div>
-                    <div v-else-if="actionField.type == 'InArgument(s:DateTime)'">
-                        <DateControl v-model="actionInputData[actionField.name]" :required="actionField.required"
-                            :lableName="actionField.name" :disabled="false"></DateControl>
-                    </div>
-                    <div v-else-if="actionField.type == 'InArgument(x:String)'">
-                        <StringControl v-model="actionInputData[actionField.name]" :required="actionField.required"
-                            :lableName="actionField.name" :disabled="false"></StringControl>
-                    </div>
-                    <div v-else-if="actionField.type == 'InArgument(mxs:Entity)'">
-                        <ActionEntityControl v-model="actionInputData[actionField.name]" :required="actionField.required"
-                            :lableName="actionField.name" :disabled="false">
-                        </ActionEntityControl>
-                    </div>
-                    <div v-else>
-                        <div>Unsupported Field:</div>
-                        <div>Field Name:{{ actionField.name }}</div>
-                        <div>Field Type:{{ actionField.type }}</div>
-                        <div>Required:{{ actionField.required }}</div>
+        <div class="invokeFields" v-if="selectedFlow?.category == 3"
+            style="display: flex;flex-direction: row; justify-content: center;align-items: center;border-bottom: 1px solid #dddddd;margin-bottom: 20px;">
+            <div>
+                <h3 style="display: flex;flex-direction: row;justify-content: center;align-items: center;">Flow parameters
+                </h3>
+                <div v-if="isRawdModel">
+                    <StringControl v-model="rawdModelData" :required="false" lableName="Parameters" :disabled="false">
+                    </StringControl>
+                </div>
+                <div v-else>
+                    <div v-for="actionField in actionInputFields" class="invokeForm">
+                        <div v-if="actionField.type == 'InArgument(mxs:EntityCollection)'">
+                            <ActionEntityCollectionControl v-model="actionInputData[actionField.name]"
+                                :required="actionField.required" :lableName="actionField.name" :disabled="false">
+                            </ActionEntityCollectionControl>
+                        </div>
+                        <div v-else-if="actionField.type == 'InArgument(x:Boolean)'">
+                            <BoolControl v-model="actionInputData[actionField.name]" :required="actionField.required"
+                                :lableName="actionField.name" :disabled="false"></BoolControl>
+                        </div>
+                        <div
+                            v-else-if="actionField.type == 'InArgument(x:Double)' || actionField.type == 'InArgument(mxs:Money)' || actionField.type == 'InArgument(x:Decimal)' || actionField.type == 'InArgument(mxs:OptionSetValue)' || actionField.type == 'InArgument(x:Int32)'">
+                            <NumberControl v-model="actionInputData[actionField.name]" :required="actionField.required"
+                                :lableName="actionField.name" :disabled="false">
+                            </NumberControl>
+                        </div>
+                        <div v-else-if="actionField.type == 'InArgument(mxs:EntityReference)'">
+                            <ActionEntityReferenceControl v-model="actionInputData[actionField.name]"
+                                :required="actionField.required" :lableName="actionField.name" :disabled="false">
+                            </ActionEntityReferenceControl>
+                        </div>
+                        <div v-else-if="actionField.type == 'InArgument(s:DateTime)'">
+                            <DateControl v-model="actionInputData[actionField.name]" :required="actionField.required"
+                                :lableName="actionField.name" :disabled="false"></DateControl>
+                        </div>
+                        <div v-else-if="actionField.type == 'InArgument(x:String)'">
+                            <StringControl v-model="actionInputData[actionField.name]" :required="actionField.required"
+                                :lableName="actionField.name" :disabled="false"></StringControl>
+                        </div>
+                        <div v-else-if="actionField.type == 'InArgument(mxs:Entity)'">
+                            <ActionEntityControl v-model="actionInputData[actionField.name]"
+                                :required="actionField.required" :lableName="actionField.name" :disabled="false">
+                            </ActionEntityControl>
+                        </div>
+                        <div v-else>
+                            <div>Unsupported Field:</div>
+                            <div>Field Name:{{ actionField.name }}</div>
+                            <div>Field Type:{{ actionField.type }}</div>
+                            <div>Required:{{ actionField.required }}</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -182,14 +186,18 @@ function invokeAction() {
 
 
         <div v-if="invokeHistory.length > 0" style="display: flex;flex-direction: row; justify-content: center;">
-            <el-table :data="invokeHistory" style="width: 100%" height="500" stripe>
-                <el-table-column fixed prop="invokeDate" label="InvokeDate" width="100" />
-                <el-table-column prop="name" label="Name" width="100" />
-                <el-table-column prop="url" label="URL" width="150" />
-                <el-table-column prop="requestBody" label="RequestBody" width="380" />
-                <el-table-column prop="response" label="Response" width="380" />
-                <el-table-column prop="statusCode" label="StatusCode" width="100" />
-            </el-table>
+            <div>
+                <h3 style="display: flex;flex-direction: row;justify-content: center;align-items: center;">Invoke History
+                </h3>
+                <el-table :data="invokeHistory" style="width: 100%" max-height="1000" stripe>
+                    <el-table-column fixed prop="invokeDate" label="InvokeDate" width="100" />
+                    <el-table-column prop="name" label="Name" width="100" />
+                    <el-table-column prop="url" label="URL" width="150" />
+                    <el-table-column prop="requestBody" label="RequestBody" width="380" />
+                    <el-table-column prop="response" label="Response" width="380" />
+                    <el-table-column prop="statusCode" label="StatusCode" width="100" />
+                </el-table>
+            </div>
         </div>
     </div>
 </template>
