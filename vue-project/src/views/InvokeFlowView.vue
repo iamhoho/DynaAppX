@@ -8,9 +8,9 @@ import DateControl from '../components/control/DateControl.vue';
 import ActionEntityCollectionControl from '../components/control/ActionEntityCollectionControl.vue';
 import ActionEntityControl from '../components/control/ActionEntityControl.vue';
 import ActionEntityReferenceControl from '../components/control/ActionEntityReferenceControl.vue';
-import { daxHelper } from '../daxHelper.js'
+import { daxHelper } from '../daxHelper.js';
 import { ref, watch } from 'vue';
-import xmljs from 'xml-js'
+import xmljs from 'xml-js';
 
 const selectedFlow = ref(null);
 const selectedRecord = ref(null);
@@ -23,7 +23,6 @@ const isRawdModel = ref(false);
 const rawdModelData = ref("");
 
 watch(() => selectedFlow.value, (newValue) => {
-    console.log(newValue)
     getactionInputFields(newValue);
     actionInputData.value = {};
     selectedRecord.value = null;
@@ -132,7 +131,8 @@ function invokeAction() {
         <div class="invokeFields" v-if="selectedFlow?.category == 3"
             style="display: flex;flex-direction: row; justify-content: center;align-items: center;border-bottom: 1px solid #dddddd;margin-bottom: 20px;">
             <div>
-                <h3 style="display: flex;flex-direction: row;justify-content: center;align-items: center;">Flow parameters
+                <h3 style="display: flex;flex-direction: row;justify-content: center;align-items: center;">Flow
+                    parameters
                 </h3>
                 <div v-if="isRawdModel">
                     <StringControl v-model="rawdModelData" :required="false" lableName="Parameters" :disabled="false">
@@ -187,7 +187,8 @@ function invokeAction() {
 
         <div v-if="invokeHistory.length > 0" style="display: flex;flex-direction: row; justify-content: center;">
             <div>
-                <h3 style="display: flex;flex-direction: row;justify-content: center;align-items: center;">Invoke History
+                <h3 style="display: flex;flex-direction: row;justify-content: center;align-items: center;">Invoke
+                    History
                 </h3>
                 <el-table :data="invokeHistory" style="width: 100%" max-height="1000" stripe>
                     <el-table-column fixed prop="invokeDate" label="InvokeDate" width="100" />

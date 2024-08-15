@@ -10,7 +10,7 @@ const props = defineProps({
     },
     lableName: {
     },
-    attrabuteName: {
+    attributeName: {
     }
 }
 )
@@ -50,7 +50,7 @@ onMounted(() => {
     <div style="display: flex; flex-wrap: nowrap; flex-direction: row; margin: 1em; align-items: center;">
         <div class="controlLable">
             <p>{{ lableName }}</p>
-            <p v-if="attrabuteName">{{ attrabuteName }}</p>
+            <p v-if="attributeName">{{ attributeName }}</p>
         </div>
         <el-select class="controlItem" v-model="value" placeholder="Select" clearable>
             <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value" />

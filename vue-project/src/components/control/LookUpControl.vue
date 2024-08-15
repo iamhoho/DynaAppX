@@ -18,14 +18,15 @@ const props = defineProps({
     },
     lableName: {
     },
-    attrabuteName: {
+    attributeName: {
     }
 }
 )
 
-const selectedName = ref("")
+const selectedName = ref(props.modelValue?.name)
 const selectedItem = ref(props.modelValue)
 const entityDefinition = ref(null)
+
 watch(() => props.logicalName, (newValue, oldValue) => {
     selectedItem.value = null;
     if (newValue) {
@@ -94,7 +95,13 @@ function queryEntityDataAuto(queryString) {
                       </entity>
                     </fetch>`;
 
-    return daxHelper.fetch(entityDefinition.value.EntitySetName, fetchXml, true).value;
+    let data = daxHelper.fetch(entityDefinition.value.EntitySetName, fetchXml, true).value;
+    data.forEach(x => {
+        if (!x[entityDefinition.value.PrimaryNameAttribute]) {
+            x[entityDefinition.value.PrimaryNameAttribute] = "(No name)";
+        }
+    });
+    return data;
 }
 function getQueryAttributesFilter() {
     return (attribute) => {
@@ -108,35 +115,20 @@ function getQueryAttributesFilter() {
     }
 }
 function getEntityDefinition() {
-    let metadataId = daxHelper.getEntityDefinitions().filter((item) => {
-        return (
-            item.LogicalName == props.logicalName
-        )
-    })[0].MetadataId;
-    metadataId = metadataId.replace("{", "").replace("}", "");
-    const xhr = new XMLHttpRequest;
-    const path = `EntityDefinitions(${metadataId})?$expand=Attributes`;
-    xhr.open("GET", encodeURI(daxHelper.getWebAPIUrl() + path), false);
-    xhr.setRequestHeader("Content-Type", "application/json; charset=utf-8");
-    xhr.setRequestHeader("OData-MaxVersion", "4.0");
-    xhr.setRequestHeader("OData-Version", "4.0");
-    xhr.onreadystatechange = (event) => {
-        if (event.target.readyState == 4) {
-            if (event.target.status == 200) {
-                entityDefinition.value = JSON.parse(xhr.responseText);
-            } else {
-                ElMessage.error(`${xhr.responseURL} ${xhr.status} ${xhr.statusText}`);
-            }
-        }
-    };
-    xhr.send();
+    if (Array.isArray(props.logicalName))//To be optimized
+    {
+        entityDefinition.value = daxHelper.getEntityDefinitionByLogicalName(props.logicalName[0]);
+    }
+    else {
+        entityDefinition.value = daxHelper.getEntityDefinitionByLogicalName(props.logicalName);
+    }
 }
 </script>
 <template>
     <div style="display: flex; flex-wrap: nowrap; flex-direction: row; margin: 1em; align-items: center;">
         <div class="controlLable">
             <p>{{ lableName }}</p>
-            <p v-if="attrabuteName">{{ attrabuteName }}</p>
+            <p v-if="attributeName">{{ attributeName }}</p>
         </div>
         <el-autocomplete class="controlItem" :disabled=disabled v-model="selectedName" :fetch-suggestions="querySearch"
             popper-class="my-autocomplete" placeholder="Select a record" @select="handleSelect" @change="onChange">

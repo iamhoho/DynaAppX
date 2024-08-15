@@ -13,7 +13,7 @@ const props = defineProps({
     },
     lableName: {
     },
-    attrabuteName: {
+    attributeName: {
     }
 })
 
@@ -56,7 +56,7 @@ function createFilter(queryString) {
     <div style="display: flex; flex-wrap: nowrap; flex-direction: row; margin: 1em; align-items: center;">
         <div class="controlLable">
             <p>{{ lableName }}</p>
-            <p v-if="attrabuteName">{{ attrabuteName }}</p>
+            <p v-if="attributeName">{{ attributeName }}</p>
         </div>
         <el-autocomplete :disabled=disabled v-model="selectedName" :fetch-suggestions="querySearch"
             popper-class="my-autocomplete" placeholder="Select an entity" @select="handleSelect" @change="onChange"

@@ -9,7 +9,7 @@ const props = defineProps({
     },
     lableName: {
     },
-    attrabuteName: {
+    attributeName: {
     }
 }
 )
@@ -35,7 +35,7 @@ onMounted(() => {
     <div style="display: flex; flex-wrap: nowrap; flex-direction: row; margin: 1em; align-items: center;">
         <div class="controlLable">
             <p>{{ lableName }}</p>
-            <p v-if="attrabuteName">{{ attrabuteName }}</p>
+            <p v-if="attributeName">{{ attributeName }}</p>
         </div>
         <el-input class="controlItem" v-model="value" placeholder="Please input" type="number" />
         <el-icon style="margin-left: 5px;" size="2em">

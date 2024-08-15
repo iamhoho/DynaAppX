@@ -1,7 +1,6 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue'
 import { daxHelper } from '../../daxHelper.js'
-import { ElMessage } from 'element-plus'
 
 const props = defineProps({
     required: {
@@ -10,142 +9,134 @@ const props = defineProps({
     disabled: {
         required: true
     },
-    attributeType: {
-        required: true
-    },
     modelValue: {
         required: true
     },
     lableName: {
     },
-    attrabuteName: {
+    entityLogicName: {
+        required: true
+    },
+    attributeType: {
+        required: true
+    },
+    attributeName: {
+        required: true
     }
 }
 )
 
-const selectedName = ref("")
-const selectedItem = ref(props.modelValue)
-const entityDefinition = ref(null)
-const options = ref([]);
+const options = ref([])
+const entityDefinition = ref({})
+const attributeDefinition = ref({})
+const isMultiple = ref(false)
+const selectedItem = ref(null)
 
 onMounted(() => {
-
-
-})
-
-watch(() => props.logicalName, (newValue, oldValue) => {
-    selectedItem.value = null;
-    if (newValue) {
-        getEntityDefinition();
-    }
+    setOptions();
+    setDefaultValue();
 })
 
 const emit = defineEmits(['update:modelValue'])
 
 watch(() => selectedItem.value, (newValue, oldValue) => {
-    selectedName.value = newValue?.name;
-    emit('update:modelValue', newValue);
-})
-
-function onChange(item) {
-    selectedItem.value = null;
-}
-function handleSelect(item) {
-    if (item) {
-        selectedItem.value =
-        {
-            logicalName: entityDefinition.value.LogicalName,
-            id: item[entityDefinition.value.PrimaryIdAttribute],
-            name: item[entityDefinition.value.PrimaryNameAttribute],
-            entitySetName: entityDefinition.value.EntitySetName,
-        };
+    if (isMultiple.value) {
+        if (newValue.length == 0) {
+            emit('update:modelValue', null);
+        }
+        else {
+            emit('update:modelValue', newValue.join(","));
+        }
     }
     else {
-        selectedItem.value = null
-    }
-}
-function querySearch(queryString, cb) {
-    const results = loadData(queryString);
-    cb(results);
-}
-function loadData(queryString) {
-    if (!entityDefinition.value) {
-        getEntityDefinition();
-    }
-    if (!entityDefinition.value) {
-        ElMessage.error(`"entityDefinition" is missing!`);
-        return [];
-    }
-    return queryEntityDataAuto(queryString);
-}
-function queryEntityDataAuto(queryString) {
-    const queryAttributes = entityDefinition.value.Attributes.filter(getQueryAttributesFilter());
-    let attributeXml = `<attribute name='${entityDefinition.value.PrimaryNameAttribute}'/>
-                          <attribute name='createdon'/>
-                          <attribute name='modifiedon'/>`;
-    let conditionXml = "";
-    if (daxHelper.isGuid(queryString)) {
-        conditionXml = `<condition attribute='${entityDefinition.value.PrimaryIdAttribute}' operator='eq' value='{${queryString.replace("{", "").replace("}", "")}}' />`;
-    } else if (queryString) {
-        queryAttributes.forEach(attribute => {
-            conditionXml += `<condition attribute='${attribute.LogicalName}' operator='like' value='%${queryString}%' /> `;
-        });
-    }
-    let fetchXml = `<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' top='30'>
-                      <entity name='${entityDefinition.value.LogicalName}'>
-                           ${attributeXml}
-                        <order attribute='modifiedon' descending='true' />
-                        <filter type='or'>
-                           ${conditionXml}
-                        </filter>
-                      </entity>
-                    </fetch>`;
-
-    return daxHelper.fetch(entityDefinition.value.EntitySetName, fetchXml, true).value;
-}
-function getQueryAttributesFilter() {
-    return (attribute) => {
-        return (
-            attribute.IsPrimaryName == true ||
-            (attribute.AttributeOf == null && attribute.AttributeType == "String" &&
-                (attribute.LogicalName.toLowerCase().indexOf("code") != -1 ||
-                    attribute.LogicalName.toLowerCase().indexOf("name") != -1 ||
-                    attribute.LogicalName.toLowerCase().indexOf("number") != -1))
-        )
-    }
-}
-function getEntityDefinition() {
-    let metadataId = daxHelper.getEntityDefinitions().filter((item) => {
-        return (
-            item.LogicalName == props.logicalName
-        )
-    })[0].MetadataId;
-    metadataId = metadataId.replace("{", "").replace("}", "");
-    const xhr = new XMLHttpRequest;
-    const path = `EntityDefinitions(${metadataId})?$expand=Attributes`;
-    xhr.open("GET", encodeURI(daxHelper.getWebAPIUrl() + path), false);
-    xhr.setRequestHeader("Content-Type", "application/json; charset=utf-8");
-    xhr.setRequestHeader("OData-MaxVersion", "4.0");
-    xhr.setRequestHeader("OData-Version", "4.0");
-    xhr.onreadystatechange = (event) => {
-        if (event.target.readyState == 4) {
-            if (event.target.status == 200) {
-                entityDefinition.value = JSON.parse(xhr.responseText);
-            } else {
-                ElMessage.error(`${xhr.responseURL} ${xhr.status} ${xhr.statusText}`);
-            }
+        if (newValue || newValue == 0) {
+            emit('update:modelValue', newValue);
         }
-    };
-    xhr.send();
+        else {
+            emit('update:modelValue', null);
+        }
+    }
+})
+
+function setOptions() {
+    options.value = [];
+    entityDefinition.value = daxHelper.getEntityDefinitionByLogicalName(props.entityLogicName);
+    attributeDefinition.value = daxHelper.getAttributeDefinition(props.entityLogicName, props.attributeName);
+    if (props.attributeType == 'Picklist') {
+        setPicklistOptions();
+    }
+    else if (props.attributeType == 'State') {
+        setStateOptions();
+    }
+    else if (props.attributeType == 'Status') {
+        setStatusOptions();
+    }
+    else if (props.attributeType == 'Virtual') {
+        isMultiple.value = true;
+        setMultiSelectOptions();
+    }
+    else {
+        throw new Error('unsupported AttributeType: ' + props.attributeType);
+    }
+}
+
+function setDefaultValue() {
+    if (props.modelValue || props.modelValue == 0) {
+        if (!isMultiple.value) {
+            selectedItem.value = props.modelValue;
+        }
+        else {
+            selectedItem.value = props.modelValue.split(",").map(Number);
+        }
+    }
+}
+
+function setPicklistOptions() {
+    let attributeInfo = daxHelper.httpGetWebApiJsonResponse(`EntityDefinitions(${entityDefinition.value.MetadataId})/Attributes(${attributeDefinition.value.MetadataId})/Microsoft.Dynamics.CRM.PicklistAttributeMetadata?$expand=OptionSet,GlobalOptionSet`);
+    let optionsInfos = attributeInfo.OptionSet.Options;
+    optionsInfos.forEach(x => {
+        options.value.push({ value: x.Value, label: x.Label.UserLocalizedLabel.Label });
+    });
+}
+
+function setStateOptions() {
+    let attributeInfo = daxHelper.httpGetWebApiJsonResponse(`EntityDefinitions(${entityDefinition.value.MetadataId})/Attributes(${attributeDefinition.value.MetadataId})/Microsoft.Dynamics.CRM.StateAttributeMetadata?$expand=OptionSet,GlobalOptionSet`);
+    let optionsInfos = attributeInfo.OptionSet.Options;
+    optionsInfos.forEach(x => {
+        options.value.push({ value: x.Value, label: x.Label.UserLocalizedLabel.Label });
+    });
+}
+
+function setStatusOptions() {
+    let attributeInfo = daxHelper.httpGetWebApiJsonResponse(`EntityDefinitions(${entityDefinition.value.MetadataId})/Attributes(${attributeDefinition.value.MetadataId})/Microsoft.Dynamics.CRM.StatusAttributeMetadata?$expand=OptionSet,GlobalOptionSet`);
+    let optionsInfos = attributeInfo.OptionSet.Options;
+    optionsInfos.forEach(x => {
+        options.value.push({ value: x.Value, label: x.Label.UserLocalizedLabel.Label });
+    });
+}
+
+function setMultiSelectOptions() {
+    let attributeInfo = daxHelper.httpGetWebApiJsonResponse(`EntityDefinitions(${entityDefinition.value.MetadataId})/Attributes(${attributeDefinition.value.MetadataId})/Microsoft.Dynamics.CRM.MultiSelectPicklistAttributeMetadata?$expand=OptionSet,GlobalOptionSet`);
+    let optionsInfos = attributeInfo.OptionSet.Options;
+    optionsInfos.forEach(x => {
+        options.value.push({ value: x.Value, label: x.Label.UserLocalizedLabel.Label });
+    });
 }
 </script>
 <template>
     <div style="display: flex; flex-wrap: nowrap; flex-direction: row; margin: 1em; align-items: center;">
         <div class="controlLable">
             <p>{{ lableName }}</p>
-            <p v-if="attrabuteName">{{ attrabuteName }}</p>
+            <p v-if="attributeName">{{ attributeName }}</p>
         </div>
-        <el-select v-model="value" placeholder="Select" size="large">
+
+        <el-select v-if="!isMultiple" v-model="selectedItem" placeholder="Select" size="large" :disabled=disabled
+            clearable>
+            <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value" />
+        </el-select>
+
+        <el-select v-if="isMultiple" v-model="selectedItem" placeholder="Select" size="large" :disabled=disabled
+            multiple>
             <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
 

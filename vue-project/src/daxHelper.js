@@ -22,12 +22,12 @@ export const daxHelper = {
         return daxHelper.getCrmUrl() + "/api/data/v" + daxHelper.getVersion() + "/";
     },
     isGuid: function (str) {
-        const guidRegex = /^[{(]?[0-9A-Fa-f]{8}[-]?([0-9A-Fa-f]{4}[-]?){3}[0-9A-Fa-f]{12}[)}]?$/i;
+        let guidRegex = /^[{(]?[0-9A-Fa-f]{8}[-]?([0-9A-Fa-f]{4}[-]?){3}[0-9A-Fa-f]{12}[)}]?$/i;
         return guidRegex.test(str);
     },
     fetch: function (entitySetName, fetchXml, useFormattedValue) {
         let fetchStr = `${daxHelper.getWebAPIUrl()}${entitySetName}?fetchXml=${fetchXml}`;
-        const xhr = new XMLHttpRequest;
+        let xhr = new XMLHttpRequest;
         xhr.open("GET", encodeURI(fetchStr), false);
         xhr.setRequestHeader("Accept", "application/json");
         xhr.setRequestHeader("Content-Type", "application/json; charset=utf-8");
@@ -45,7 +45,7 @@ export const daxHelper = {
         }
     },
     retrieve: function (queryString, useFormattedValue) {
-        const xhr = new XMLHttpRequest;
+        let xhr = new XMLHttpRequest;
         xhr.open("GET", encodeURI(daxHelper.getWebAPIUrl() + queryString), false);
         xhr.setRequestHeader("Accept", "application/json");
         xhr.setRequestHeader("Content-Type", "application/json; charset=utf-8");
@@ -60,12 +60,25 @@ export const daxHelper = {
         else
             throw new Error(JSON.parse(xhr.responseText).error.message);
     },
+    httpGetWebApiJsonResponse: function (path) {
+        let xhr = new XMLHttpRequest;
+        xhr.open("GET", encodeURI(daxHelper.getWebAPIUrl() + path), false);
+        xhr.setRequestHeader("Accept", "application/json");
+        xhr.setRequestHeader("Content-Type", "application/json; charset=utf-8");
+        xhr.setRequestHeader("OData-MaxVersion", "4.0");
+        xhr.setRequestHeader("OData-Version", "4.0");
+        xhr.send();
+        if (xhr.status == 200)
+            return JSON.parse(xhr.responseText);
+        else
+            throw new Error("status:" + xhr.status + " statusText:" + xhr.statusText);
+
+    },
     getEntityDefinitions: function () {
         if (!daxHelper.entityDefinitions) {
-            const xhr = new XMLHttpRequest;
-            const path = 'EntityDefinitions?$select=LogicalName,DisplayName,SchemaName,ObjectTypeCode';
+            let xhr = new XMLHttpRequest;
+            let path = 'EntityDefinitions?$select=LogicalName,DisplayName,SchemaName,ObjectTypeCode';
             xhr.open("GET", encodeURI(daxHelper.getWebAPIUrl() + path), false);
-            xhr.withCredentials = true;
             xhr.setRequestHeader("Content-Type", "application/json; charset=utf-8");
             xhr.setRequestHeader("OData-MaxVersion", "4.0");
             xhr.setRequestHeader("OData-Version", "4.0");
@@ -78,20 +91,40 @@ export const daxHelper = {
         }
         return daxHelper.entityDefinitions;
     },
-    getEntityDefinition: function (metadataId) {
+    getAttributeDefinition: function (entityLogicalName, attributeLogicalName) {
+        return daxHelper.getEntityDefinitionByLogicalName(entityLogicalName).Attributes.filter((x) => {
+            return x.LogicalName == attributeLogicalName;
+        })[0];
+    },
+
+    getEntityDefinitionByLogicalName: function (logicalName) {
+        let metadataId = daxHelper.getEntityDefinitions().filter((item) => {
+            return (
+                item.LogicalName == logicalName
+            )
+        })[0].MetadataId;
+        metadataId = metadataId.replace("{", "").replace("}", "");
+        return daxHelper.getEntityDefinitionByMetadataId(metadataId);
+    },
+
+    getEntityDefinitionByMetadataId: function (metadataId) {
         if (!daxHelper.isGuid(metadataId)) {
             return null;
         }
-        const xhr = new XMLHttpRequest;
-        const path = 'EntityDefinitions(' + metadataId + ')?$expand=Attributes';
+        if (daxHelper.entityDefinitionMap.has(metadataId)) {
+            return daxHelper.entityDefinitionMap.get(metadataId);
+        }
+        let xhr = new XMLHttpRequest;
+        let path = 'EntityDefinitions(' + metadataId + ')?$expand=Attributes';
         xhr.open("GET", encodeURI(daxHelper.getWebAPIUrl() + path), false);
-        xhr.withCredentials = true;
         xhr.setRequestHeader("Content-Type", "application/json; charset=utf-8");
         xhr.setRequestHeader("OData-MaxVersion", "4.0");
         xhr.setRequestHeader("OData-Version", "4.0");
         xhr.send();
         if (xhr.status === 200) {
-            return JSON.parse(xhr.responseText);
+            let jsonResult = JSON.parse(xhr.responseText);
+            daxHelper.entityDefinitionMap.set(metadataId, jsonResult);
+            return jsonResult;
         } else {
             return null;
         }
@@ -125,11 +158,25 @@ export const daxHelper = {
                             <entity name="usersettings">
                             <attribute name="timezonebias"/>
                                 <filter type="and">
-                                <condition attribute="createdby" operator="eq-userid"/>
+                                <condition attribute="systemuserid" operator="eq-userid"/>
                                 </filter>
                             </entity>
                             </fetch>`;
             daxHelper.uesrTimezoneBias = daxHelper.fetch("usersettingscollection", fetchStr, true).value[0]['timezonebias'];
+        }
+        return daxHelper.uesrTimezoneBias;
+    },
+    getUesrUILanguageId: function () {
+        if (!daxHelper.uesrTimezoneBias) {
+            let fetchStr = `<fetch version="1.0" output-format="xml-platform" mapping="logical" distinct="false">
+                            <entity name="usersettings">
+                            <attribute name="uilanguageid"/>
+                                <filter type="and">
+                                <condition attribute="systemuserid" operator="eq-userid"/>
+                                </filter>
+                            </entity>
+                            </fetch>`;
+            daxHelper.uesrTimezoneBias = daxHelper.fetch("usersettingscollection", fetchStr, true).value[0]['uilanguageid'];
         }
         return daxHelper.uesrTimezoneBias;
     },
@@ -147,5 +194,30 @@ export const daxHelper = {
                 return String.fromCharCode(parseInt(match.replace(/\\u/g, ''), 16));
             }
         );
-    }
+    },
+    getFormattedValueString: function (attributeName) {
+        return "_" + attributeName + "_value@OData.Community.Display.V1.FormattedValue";
+    },
+    getLookUpWebApiAttributeName: function (attributeName) {
+        return "_" + attributeName + "_value"
+    },
+    createDeepCopy: function (obj) {
+        return JSON.parse(JSON.stringify(obj));
+    },
+    getCrmDateTimeString: function (date) {
+        return date.toISOString().slice(0, -5) + 'Z';
+    },
+    getLookUpModel: function (id, name, logicalName) {
+        if (!daxHelper.isGuid(id)) {
+            return {};
+        }
+        else {
+            return {
+                logicalName: logicalName,
+                id: id,
+                name: name
+            };
+        }
+    },
+    entityDefinitionMap: new Map(),
 };

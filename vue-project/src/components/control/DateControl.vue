@@ -1,5 +1,6 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue'
+import { daxHelper } from '../../daxHelper.js'
 
 const props = defineProps({
     required: {
@@ -12,7 +13,7 @@ const props = defineProps({
     },
     lableName: {
     },
-    attrabuteName: {
+    attributeName: {
     }
 }
 )
@@ -22,21 +23,25 @@ const value = ref(props.modelValue)
 const emit = defineEmits(['update:modelValue']);
 
 watch(() => value.value, (newValue, oldValue) => {
+    if (newValue) {
+        newValue = daxHelper.getCrmDateTimeString(newValue);
+    }
     emit('update:modelValue', newValue);
 })
 
 onMounted(() => {
 
 })
+
 </script>
 <template>
     <div style="display: flex; flex-wrap: nowrap; flex-direction: row; margin: 1em; align-items: center;">
         <div class="controlLable">
             <p>{{ lableName }}</p>
-            <p v-if="attrabuteName">{{ attrabuteName }}</p>
+            <p v-if="attributeName">{{ attributeName }}</p>
         </div>
-        <el-date-picker class="controlItem" :disabled=disabled format="YYYY-MM-DDTHH:mm:ssZ" v-model="value" type="datetime"
-            placeholder="Select date and time" />
+        <el-date-picker class="controlItem" :disabled=disabled format="YYYY-MM-DDTHH:mm:ssZ" v-model="value"
+            type="datetime" placeholder="Select date and time" />
         <el-icon style="margin-left: 5px;" size="2em">
             <WarningFilled color="#F56C6C" v-if="required && (modelValue == null || modelValue == '')" />
             <SuccessFilled color="#67C23A" v-else />

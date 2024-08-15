@@ -12,17 +12,22 @@ const props = defineProps({
     disabled: {
         required: true
     },
-    attrabuteName: {
+    attributeName: {
     }
 }
 )
 
 const value = ref(props.modelValue)
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue'])
 
 watch(() => value.value, (newValue, oldValue) => {
-    emit('update:modelValue', newValue);
+    if (newValue) {
+        emit('update:modelValue', newValue);
+    }
+    else {
+        emit('update:modelValue', null);
+    }
 })
 
 </script>
@@ -30,7 +35,7 @@ watch(() => value.value, (newValue, oldValue) => {
     <div style="display: flex; flex-wrap: nowrap; flex-direction: row; margin: 1em; align-items: center;">
         <div class="controlLable">
             <p>{{ lableName }}</p>
-            <p v-if="attrabuteName">{{ attrabuteName }}</p>
+            <p v-if="attributeName">{{ attributeName }}</p>
         </div>
         <el-input class="controlItemTextarea" v-model="value" placeholder="Please input" type="textarea"
             :disabled=disabled />
