@@ -18,11 +18,12 @@ const disableAttributes = ['statuscode', 'ownerid', 'modifiedby', 'createdon', '
 const inputData = ref({});
 const inputLookUpData = ref({});
 const selectedRecordApiData = ref({});
+const saveDialogVisible = ref(false);
+const fieldChangeData = ref([]);
 
 function handleSelectedRecord() {
     lodaSelectedRecordData();
 }
-
 function lodaSelectedRecordData() {
     if (!selectedRecord.value) {
         selectedRecordApiData.value = {};
@@ -35,7 +36,6 @@ function lodaSelectedRecordData() {
         setInputLookUpData();
     }
 }
-
 function setAttributes() {
     attributes.value = [];
     if (entityDefinition.value?.Attributes) {
@@ -49,7 +49,6 @@ function setAttributes() {
         }))
     }
 }
-
 function setInputLookUpData() {
     attributes.value.forEach((x) => {
         if (x.AttributeType == "Lookup" || x.AttributeType == "Owner") {
@@ -58,6 +57,44 @@ function setInputLookUpData() {
             inputLookUpData.value[attributeName] = daxHelper.getLookUpModel(selectedRecordApiData.value[attributeName], selectedRecordApiData.value[formattedName], x.Targets);
         }
     })
+}
+function saveBtn() {
+    if (selectedRecord.value == null) {
+        return;
+    }
+    setFieldChangeData();
+    saveDialogVisible.value = true;
+}
+function saveConfirm() {
+    alert("saveConfirm!");
+}
+function setFieldChangeData() {
+    fieldChangeData.value = [];
+    attributes.forEach(attribute => {
+        if (attribute.AttributeType == "Lookup" || attribute.AttributeType == "Owner") {
+            let attributeName = daxHelper.getLookUpWebApiAttributeName(attribute.LogicalName);
+            let formattedName = daxHelper.getFormattedValueString(x.LogicalName);
+
+            if (selectedRecordApiData.value[attributeName] != inputLookUpData.value[attributeName].id) {
+                let displayName = attribute.DisplayName.UserLocalizedLabel?.Label;
+                let oldValue = null;
+                if (selectedRecordApiData.value[formattedName]) {
+                    oldValue = selectedRecordApiData.value[formattedName] + "(" + selectedRecordApiData.value[attributeName] + ")";
+                }
+                let newValue = null;
+                let inputValue = null;
+                if (inputLookUpData.value[formattedName] && inputLookUpData.value[formattedName].id) {
+                    newValue = inputLookUpData.value[formattedName] + "(" + inputLookUpData.value[attributeName].id + ")";
+                    inputValue = inputLookUpData.value[attributeName].id;
+                }
+
+                fieldChangeData.value.push({ displayName: displayName, attributeName: attribute.LogicalName, oldValue: oldValue, newValue: newValue, inputValue: inputValue });
+            }
+
+        } else if (attribute.AttributeType == "Picklist" || attribute.AttributeType == "State" || attribute.AttributeType == "Status" || (attribute.AttributeType == "Virtual" && attribute.AttributeTypeName?.Value == "MultiSelectPicklistType")) {
+
+        }
+    });
 }
 
 watch(() => selectedEntity.value, (newValue, oldValue) => {
@@ -80,7 +117,7 @@ watch(() => selectedRecord.value, (newValue, oldValue) => {
         </EntityControl>
         <LookUpControl lableName="Record" :logicalName="selectedEntity?.LogicalName" :required="true"
             :disabled="selectedEntity == null" v-model="selectedRecord"></LookUpControl>
-        <el-button style="margin-left: 50px;" type="success">Save</el-button>
+        <el-button style="margin-left: 50px;" type="success" @click="saveBtn()">Save</el-button>
     </div>
 
     <div class="godPage" style="display: flex;flex-wrap: wrap;flex-direction: row;justify-content: center;"
@@ -113,14 +150,6 @@ watch(() => selectedRecord.value, (newValue, oldValue) => {
                     :attributeName="attribute.LogicalName">
                 </StringControl>
             </div>
-            <div v-else-if="attribute.AttributeType == 'Lookup' || attribute.AttributeType == 'Owner'">
-                <LookUpControl :lableName="attribute.DisplayName.UserLocalizedLabel?.Label"
-                    :logicalName="attribute.Targets" :required="false"
-                    :disabled="disableAttributes.includes(attribute.LogicalName)"
-                    v-model="inputLookUpData[daxHelper.getLookUpWebApiAttributeName(attribute.LogicalName)]"
-                    :attributeName="attribute.LogicalName">
-                </LookUpControl>
-            </div>
             <div
                 v-else-if="attribute.AttributeType == 'Picklist' || attribute.AttributeType == 'State' || attribute.AttributeType == 'Status' || (attribute.AttributeType == 'Virtual' && attribute.AttributeTypeName?.Value == 'MultiSelectPicklistType')">
                 <PickListControl :lableName="attribute.DisplayName.UserLocalizedLabel?.Label"
@@ -128,6 +157,14 @@ watch(() => selectedRecord.value, (newValue, oldValue) => {
                     :disabled="disableAttributes.includes(attribute.LogicalName)"
                     v-model="inputData[attribute.LogicalName]" :attributeType="attribute.AttributeType"
                     :attributeName="attribute.LogicalName"></PickListControl>
+            </div>
+            <div v-else-if="attribute.AttributeType == 'Lookup' || attribute.AttributeType == 'Owner'">
+                <LookUpControl :lableName="attribute.DisplayName.UserLocalizedLabel?.Label"
+                    :logicalName="attribute.Targets" :required="false"
+                    :disabled="disableAttributes.includes(attribute.LogicalName)"
+                    v-model="inputLookUpData[daxHelper.getLookUpWebApiAttributeName(attribute.LogicalName)]"
+                    :attributeName="attribute.LogicalName">
+                </LookUpControl>
             </div>
             <div v-else>
                 This Arrtibute Maybe Unsupported:
@@ -139,6 +176,22 @@ watch(() => selectedRecord.value, (newValue, oldValue) => {
             </div>
         </div>
     </div>
+
+    <el-dialog v-model="saveDialogVisible" title="Field Change Information:">
+        <el-table :data="fieldChangeData">
+            <el-table-column property="displayName" label="Display Name" />
+            <el-table-column property="attributeName" label="Attribute Name" />
+            <el-table-column property="oldValue" label="Old Value" />
+            <el-table-column property="newValue" label="New Value" />
+        </el-table>
+        <template #footer>
+            <span class="dialog-footer">
+                <el-button @click="saveDialogVisible = false">Cancel</el-button>
+                <el-button type="primary" @click="saveConfirm()">Confirm</el-button>
+            </span>
+        </template>
+    </el-dialog>
+
 </template>
 <style scoped>
 .godPage:deep(.controlLable) {

@@ -47,7 +47,7 @@ onMounted(() => {
             <SuccessFilled color="#67C23A" v-else />
         </el-icon>
         <el-tooltip placement="top" effect="light">
-            <template #content>The selected time zone is the same as the time zone of the current pc.</template>
+            <template #content>The time zone is the same as the time zone of the current pc.</template>
             <el-icon>
                 <Warning />
             </el-icon>

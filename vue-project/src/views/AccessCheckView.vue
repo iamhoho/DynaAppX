@@ -100,7 +100,7 @@ watch(() => selectedUser.value, (newValue, oldValue) => {
             <h3>Record Access Rights</h3>
         </div>
         <div style="display: flex;flex-wrap: wrap;flex-direction: row;justify-content: center; margin-top: 12px;">
-            <el-tag class="tag" v-for="k in accessList" :key="k"
+            <el-tag size="large" class="tag" v-for="k in accessList" :key="k"
                 :type="accessRights?.indexOf(k) > -1 ? 'success' : 'danger'">{{
                     k
                 }}</el-tag>
