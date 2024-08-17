@@ -11,7 +11,7 @@ const props = defineProps({
     },
     modelValue: {
     },
-    lableName: {
+    labelName: {
     },
     attributeName: {
     }
@@ -44,18 +44,19 @@ function querySearch(queryString, cb) {
 
 function createFilter(queryString) {
     return (item) => {
-        return (
-            item.DisplayName?.UserLocalizedLabel?.Label?.toLowerCase().indexOf(queryString.toLowerCase()) == 0 ||
+        let result = (
+            item.DisplayName?.UserLocalizedLabel?.Label?.toLowerCase().indexOf(queryString.toLowerCase()) > -1 ||
             item.LogicalName.toLowerCase().indexOf(queryString.toLowerCase()) == 0 ||
-            item.ObjectTypeCode.toString().toLowerCase().indexOf(queryString.toLowerCase()) == 0
+            item.ObjectTypeCode.toString().toLowerCase().indexOf(queryString.toLowerCase()) > -1
         )
+        return result;
     }
 }
 </script>
 <template>
     <div style="display: flex; flex-wrap: nowrap; flex-direction: row; margin: 1em; align-items: center;">
-        <div class="controlLable">
-            <p>{{ lableName }}</p>
+        <div class="controlLabel">
+            <p>{{ labelName }}</p>
             <p v-if="attributeName">{{ attributeName }}</p>
         </div>
         <el-autocomplete :disabled=disabled v-model="selectedName" :fetch-suggestions="querySearch"
@@ -70,7 +71,7 @@ function createFilter(queryString) {
                 <span>{{ item.DisplayName?.UserLocalizedLabel?.Label }} &nbsp;&nbsp;&nbsp; {{ item.LogicalName }}</span>
             </template>
         </el-autocomplete>
-        <el-icon style="margin-left: 5px;" size="2em">
+        <el-icon class="requiredIcon" style="margin-left: 5px;" size="2em">
             <WarningFilled color="#F56C6C" v-if="required && selectedItem == null" />
             <SuccessFilled color="#67C23A" v-else />
         </el-icon>

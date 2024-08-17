@@ -115,7 +115,7 @@ export const daxHelper = {
             return daxHelper.entityDefinitionMap.get(metadataId);
         }
         let xhr = new XMLHttpRequest;
-        let path = 'EntityDefinitions(' + metadataId + ')?$expand=Attributes';
+        let path = "EntityDefinitions(" + metadataId + ")?$expand=Attributes";
         xhr.open("GET", encodeURI(daxHelper.getWebAPIUrl() + path), false);
         xhr.setRequestHeader("Content-Type", "application/json; charset=utf-8");
         xhr.setRequestHeader("OData-MaxVersion", "4.0");
@@ -205,7 +205,10 @@ export const daxHelper = {
         return JSON.parse(JSON.stringify(obj));
     },
     getCrmDateTimeString: function (date) {
-        return date.toISOString().slice(0, -5) + 'Z';
+        if (typeof (newValue) != "object") {
+            return date
+        }
+        return date.toISOString().slice(0, -5) + "Z";
     },
     getLookUpModel: function (id, name, logicalName) {
         if (!daxHelper.isGuid(id)) {
@@ -219,5 +222,31 @@ export const daxHelper = {
             };
         }
     },
+    getOptionsetLabel: function (attributeMetadataId, value) {
+        let valueArray = [];
+        let labelArray = [];
+        let valueType = typeof (value);
+        if (valueType == "number" || valueType == "boolean" || (valueType == "string" && value.length > 0)) {
+            if (valueType == "number" || valueType == "boolean") {
+                valueArray.push(value);
+            }
+            if (valueType == "string") {
+                valueArray = value.split(",").map(Number);
+            }
+            let optionSet = daxHelper.attributesOptionsetMap.get(attributeMetadataId);
+            if (optionSet && optionSet.length > 0) {
+                valueArray.forEach(x => {
+                    let options = optionSet.filter(y => {
+                        return y.value == x;
+                    });
+                    if (options && options.length > 0) {
+                        labelArray.push(options[0].label);
+                    }
+                });
+            }
+        }
+        return labelArray.join(",");
+    },
     entityDefinitionMap: new Map(),
+    attributesOptionsetMap: new Map(),
 };

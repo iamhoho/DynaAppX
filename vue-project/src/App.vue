@@ -27,7 +27,7 @@ onMounted(() => {
 </template>
 
 <style>
-.controlLable {
+.controlLabel {
   /* width: 120px; */
   margin-right: 5px;
   font-size: 14px;

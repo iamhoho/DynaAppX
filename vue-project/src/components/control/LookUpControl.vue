@@ -16,7 +16,7 @@ const props = defineProps({
     modelValue: {
         required: true
     },
-    lableName: {
+    labelName: {
     },
     attributeName: {
     }
@@ -32,6 +32,10 @@ watch(() => props.logicalName, (newValue, oldValue) => {
     if (newValue) {
         getEntityDefinition();
     }
+})
+watch(() => props.modelValue, (newValue, oldValue) => {
+    selectedName.value = newValue?.name;
+    selectedItem.value = newValue;
 })
 
 const emit = defineEmits(['update:modelValue'])
@@ -126,8 +130,8 @@ function getEntityDefinition() {
 </script>
 <template>
     <div style="display: flex; flex-wrap: nowrap; flex-direction: row; margin: 1em; align-items: center;">
-        <div class="controlLable">
-            <p>{{ lableName }}</p>
+        <div class="controlLabel">
+            <p>{{ labelName }}</p>
             <p v-if="attributeName">{{ attributeName }}</p>
         </div>
         <el-autocomplete class="controlItem" :disabled=disabled v-model="selectedName" :fetch-suggestions="querySearch"
@@ -146,7 +150,7 @@ function getEntityDefinition() {
             </template>
         </el-autocomplete>
 
-        <el-icon style="margin-left: 5px;" size="2em">
+        <el-icon class="requiredIcon" style="margin-left: 5px;" size="2em">
             <WarningFilled color="#F56C6C" v-if="required && selectedItem == null" />
             <SuccessFilled color="#67C23A" v-else />
         </el-icon>

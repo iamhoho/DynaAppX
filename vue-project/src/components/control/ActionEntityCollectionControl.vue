@@ -7,7 +7,7 @@ const props = defineProps({
     },
     modelValue: {
     },
-    lableName: {
+    labelName: {
     },
     attributeName: {
     }
@@ -69,20 +69,20 @@ function checkValue(value) {
 </script>
 <template>
     <div style="display: flex; flex-wrap: nowrap; flex-direction: row; margin: 1em; align-items: center;">
-        <div class="controlLable">
-            <p>{{ lableName }}</p>
+        <div class="controlLabel">
+            <p>{{ labelName }}</p>
             <p v-if="attributeName">{{ attributeName }}</p>
         </div>
         <el-input class="controlItemTextarea" v-model="value" placeholder="Please input" type="textarea" />
-        <el-icon style="margin-left: 5px;" size="2em">
-            <SuccessFilled color="#67C23A" v-if="(!required && !value) || isArray" />
-            <WarningFilled color="#F56C6C" v-else />
-        </el-icon>
         <el-tooltip placement="top" effect="light" :content="tip" raw-content>
             <el-icon>
                 <Warning />
             </el-icon>
         </el-tooltip>
+        <el-icon class="requiredIcon" style="margin-left: 5px;" size="2em">
+            <SuccessFilled color="#67C23A" v-if="(!required && !value) || isArray" />
+            <WarningFilled color="#F56C6C" v-else />
+        </el-icon>
     </div>
 </template>
 <style></style>

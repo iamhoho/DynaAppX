@@ -64,12 +64,11 @@ watch(() => selectedUser.value, (newValue, oldValue) => {
 <template>
     <div
         style="display: flex;flex-direction: row;justify-content: center;border-bottom: 1px solid #dddddd;margin-bottom: 20px;">
-        <LookUp lableName="User" logicalName="systemuser" :required="true" :disabled="false" v-model="selectedUser">
+        <LookUp labelName="User" logicalName="systemuser" :required="true" :disabled="false" v-model="selectedUser">
         </LookUp>
-        <EntityControl lableName="Entity" :required="true" ref="selectEntity" :disabled="false"
-            v-model="selectedEntity">
+        <EntityControl labelName="Entity" :required="true" ref="selectEntity" :disabled="false" v-model="selectedEntity">
         </EntityControl>
-        <LookUp lableName="Record" :logicalName="selectedEntity?.LogicalName" :required="true"
+        <LookUp labelName="Record" :logicalName="selectedEntity?.LogicalName" :required="true"
             :disabled="selectedEntity == null" v-model="selectedRecord"></LookUp>
     </div>
 
@@ -80,7 +79,7 @@ watch(() => selectedUser.value, (newValue, oldValue) => {
         <div style="display: flex;flex-wrap: wrap;flex-direction: row;justify-content: center; margin-top: 12px;">
             <div v-for=" userRole in userRoles">
                 <el-button class="btn" type="success" @click="goToRolePage(userRole.roleid)">{{ userRole.name
-                    }}</el-button>
+                }}</el-button>
             </div>
         </div>
         <div style="display: flex;flex-wrap: wrap;flex-direction: row;justify-content: center; margin-top: 12px;">
@@ -90,7 +89,7 @@ watch(() => selectedUser.value, (newValue, oldValue) => {
             style="display: flex;flex-wrap: wrap;flex-direction: row;justify-content: center; margin-top: 12px;">
             <div v-for=" userTeam in userTeams">
                 <el-button class="btn" type="primary" @click="goToTeamPage(userTeam.teamid)">{{ userTeam.name
-                    }}</el-button>
+                }}</el-button>
             </div>
         </div>
     </div>
@@ -106,7 +105,6 @@ watch(() => selectedUser.value, (newValue, oldValue) => {
                 }}</el-tag>
         </div>
     </div>
-
 </template>
 <style>
 .btn {

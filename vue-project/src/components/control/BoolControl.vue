@@ -8,7 +8,7 @@ const props = defineProps({
     modelValue: {
 
     },
-    lableName: {
+    labelName: {
     },
     attributeName: {
     }
@@ -36,6 +36,9 @@ watch(() => value.value, (newValue, oldValue) => {
         emit('update:modelValue', newValue);
     }
 })
+watch(() => props.modelValue, (newValue, oldValue) => {
+    value.value = newValue;
+})
 
 onMounted(() => {
     if (props.modelValue == null || props.modelValue == undefined) {
@@ -48,14 +51,14 @@ onMounted(() => {
 </script>
 <template>
     <div style="display: flex; flex-wrap: nowrap; flex-direction: row; margin: 1em; align-items: center;">
-        <div class="controlLable">
-            <p>{{ lableName }}</p>
+        <div class="controlLabel">
+            <p>{{ labelName }}</p>
             <p v-if="attributeName">{{ attributeName }}</p>
         </div>
         <el-select class="controlItem" v-model="value" placeholder="Select" clearable>
             <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
-        <el-icon style="margin-left: 5px;" size="2em">
+        <el-icon class="requiredIcon" style="margin-left: 5px;" size="2em">
             <WarningFilled color="#F56C6C" v-if="required && modelValue == null" />
             <SuccessFilled color="#67C23A" v-else />
         </el-icon>

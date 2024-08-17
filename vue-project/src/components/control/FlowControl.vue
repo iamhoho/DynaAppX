@@ -12,7 +12,7 @@ const props = defineProps({
     modelValue: {
         required: true
     },
-    lableName: {
+    labelName: {
     },
     attributeName: {
     }
@@ -102,8 +102,8 @@ function loadData(queryString) {
 </script>
 <template>
     <div style="display: flex; flex-wrap: nowrap; flex-direction: row; margin: 1em; align-items: center;">
-        <div class="controlLable">
-            <p>{{ lableName }}</p>
+        <div class="controlLabel">
+            <p>{{ labelName }}</p>
             <p v-if="attributeName">{{ attributeName }}</p>
         </div>
         <el-autocomplete :disabled=disabled v-model="selectedName" :fetch-suggestions="querySearch"
@@ -122,7 +122,7 @@ function loadData(queryString) {
                         }}</span></div>
             </template>
         </el-autocomplete>
-        <el-icon style="margin-left: 5px;" size="2em">
+        <el-icon class="requiredIcon" style="margin-left: 5px;" size="2em">
             <WarningFilled color="#F56C6C" v-if="required && selectedItem == null" />
             <SuccessFilled color="#67C23A" v-else />
         </el-icon>

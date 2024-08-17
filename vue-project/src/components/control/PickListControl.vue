@@ -12,7 +12,7 @@ const props = defineProps({
     modelValue: {
         required: true
     },
-    lableName: {
+    labelName: {
     },
     entityLogicName: {
         required: true
@@ -34,7 +34,7 @@ const selectedItem = ref(null)
 
 onMounted(() => {
     setOptions();
-    setDefaultValue();
+    setDefaultValue(props.modelValue);
 })
 
 const emit = defineEmits(['update:modelValue'])
@@ -57,6 +57,9 @@ watch(() => selectedItem.value, (newValue, oldValue) => {
         }
     }
 })
+watch(() => props.modelValue, (newValue, oldValue) => {
+    setDefaultValue(newValue)
+})
 
 function setOptions() {
     options.value = [];
@@ -64,6 +67,9 @@ function setOptions() {
     attributeDefinition.value = daxHelper.getAttributeDefinition(props.entityLogicName, props.attributeName);
     if (props.attributeType == 'Picklist') {
         setPicklistOptions();
+    }
+    else if (props.attributeType == "Boolean") {
+        setBooleanOptions();
     }
     else if (props.attributeType == 'State') {
         setStateOptions();
@@ -78,19 +84,18 @@ function setOptions() {
     else {
         throw new Error('unsupported AttributeType: ' + props.attributeType);
     }
+    daxHelper.attributesOptionsetMap.set(attributeDefinition.value.MetadataId, options.value);
 }
-
-function setDefaultValue() {
-    if (props.modelValue || props.modelValue == 0) {
+function setDefaultValue(modelValue) {
+    if (modelValue || modelValue == 0) {
         if (!isMultiple.value) {
-            selectedItem.value = props.modelValue;
+            selectedItem.value = modelValue;
         }
         else {
-            selectedItem.value = props.modelValue.split(",").map(Number);
+            selectedItem.value = modelValue.split(",").map(Number);
         }
     }
 }
-
 function setPicklistOptions() {
     let attributeInfo = daxHelper.httpGetWebApiJsonResponse(`EntityDefinitions(${entityDefinition.value.MetadataId})/Attributes(${attributeDefinition.value.MetadataId})/Microsoft.Dynamics.CRM.PicklistAttributeMetadata?$expand=OptionSet,GlobalOptionSet`);
     let optionsInfos = attributeInfo.OptionSet.Options;
@@ -98,7 +103,12 @@ function setPicklistOptions() {
         options.value.push({ value: x.Value, label: x.Label.UserLocalizedLabel.Label });
     });
 }
-
+function setBooleanOptions() {
+    let attributeInfo = daxHelper.httpGetWebApiJsonResponse(`EntityDefinitions(${entityDefinition.value.MetadataId})/Attributes(${attributeDefinition.value.MetadataId})/Microsoft.Dynamics.CRM.BooleanAttributeMetadata?$expand=OptionSet,GlobalOptionSet`);
+    let optionSetInfos = attributeInfo.OptionSet;
+    options.value.push({ value: false, label: optionSetInfos.FalseOption.Label.UserLocalizedLabel.Label });
+    options.value.push({ value: true, label: optionSetInfos.TrueOption.Label.UserLocalizedLabel.Label });
+}
 function setStateOptions() {
     let attributeInfo = daxHelper.httpGetWebApiJsonResponse(`EntityDefinitions(${entityDefinition.value.MetadataId})/Attributes(${attributeDefinition.value.MetadataId})/Microsoft.Dynamics.CRM.StateAttributeMetadata?$expand=OptionSet,GlobalOptionSet`);
     let optionsInfos = attributeInfo.OptionSet.Options;
@@ -125,22 +135,20 @@ function setMultiSelectOptions() {
 </script>
 <template>
     <div style="display: flex; flex-wrap: nowrap; flex-direction: row; margin: 1em; align-items: center;">
-        <div class="controlLable">
-            <p>{{ lableName }}</p>
+        <div class="controlLabel">
+            <p>{{ labelName }}</p>
             <p v-if="attributeName">{{ attributeName }}</p>
         </div>
 
-        <el-select v-if="!isMultiple" v-model="selectedItem" placeholder="Select" size="large" :disabled=disabled
-            clearable>
+        <el-select v-if="!isMultiple" v-model="selectedItem" placeholder="Select" size="large" :disabled=disabled clearable>
             <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
 
-        <el-select v-if="isMultiple" v-model="selectedItem" placeholder="Select" size="large" :disabled=disabled
-            multiple>
+        <el-select v-if="isMultiple" v-model="selectedItem" placeholder="Select" size="large" :disabled=disabled multiple>
             <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value" />
         </el-select>
 
-        <el-icon style="margin-left: 5px;" size="2em">
+        <el-icon class="requiredIcon" style="margin-left: 5px;" size="2em">
             <WarningFilled color="#F56C6C" v-if="required && selectedItem == null" />
             <SuccessFilled color="#67C23A" v-else />
         </el-icon>

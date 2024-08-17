@@ -117,9 +117,9 @@ function invokeAction() {
     <div v-loading="loading">
         <div
             style="display: flex;flex-direction: row; justify-content: center;align-items: center;border-bottom: 1px solid #dddddd;margin-bottom: 20px;">
-            <FlowControl lableName=" Flow" :required="true" :disabled="false" v-model="selectedFlow">
+            <FlowControl labelName=" Flow" :required="true" :disabled="false" v-model="selectedFlow">
             </FlowControl>
-            <LookUpControl :lableName="'Record(' + selectedFlow?.primaryentity + ')'"
+            <LookUpControl :labelName="'Record(' + selectedFlow?.primaryentity + ')'"
                 v-if="selectedFlow?.primaryentity && selectedFlow.primaryentity != 'none'"
                 :logicalName="selectedFlow?.primaryentity" :required="true" :disabled="selectedFlow == null"
                 v-model="selectedRecord"></LookUpControl>
@@ -135,42 +135,42 @@ function invokeAction() {
                     parameters
                 </h3>
                 <div v-if="isRawdModel">
-                    <StringControl v-model="rawdModelData" :required="false" lableName="Parameters" :disabled="false">
+                    <StringControl v-model="rawdModelData" :required="false" labelName="Parameters" :disabled="false">
                     </StringControl>
                 </div>
                 <div v-else>
                     <div v-for="actionField in actionInputFields" class="invokeForm">
                         <div v-if="actionField.type == 'InArgument(mxs:EntityCollection)'">
                             <ActionEntityCollectionControl v-model="actionInputData[actionField.name]"
-                                :required="actionField.required" :lableName="actionField.name" :disabled="false">
+                                :required="actionField.required" :labelName="actionField.name" :disabled="false">
                             </ActionEntityCollectionControl>
                         </div>
                         <div v-else-if="actionField.type == 'InArgument(x:Boolean)'">
                             <BoolControl v-model="actionInputData[actionField.name]" :required="actionField.required"
-                                :lableName="actionField.name" :disabled="false"></BoolControl>
+                                :labelName="actionField.name" :disabled="false"></BoolControl>
                         </div>
                         <div
                             v-else-if="actionField.type == 'InArgument(x:Double)' || actionField.type == 'InArgument(mxs:Money)' || actionField.type == 'InArgument(x:Decimal)' || actionField.type == 'InArgument(mxs:OptionSetValue)' || actionField.type == 'InArgument(x:Int32)'">
                             <NumberControl v-model="actionInputData[actionField.name]" :required="actionField.required"
-                                :lableName="actionField.name" :disabled="false">
+                                :labelName="actionField.name" :disabled="false">
                             </NumberControl>
                         </div>
                         <div v-else-if="actionField.type == 'InArgument(mxs:EntityReference)'">
                             <ActionEntityReferenceControl v-model="actionInputData[actionField.name]"
-                                :required="actionField.required" :lableName="actionField.name" :disabled="false">
+                                :required="actionField.required" :labelName="actionField.name" :disabled="false">
                             </ActionEntityReferenceControl>
                         </div>
                         <div v-else-if="actionField.type == 'InArgument(s:DateTime)'">
                             <DateControl v-model="actionInputData[actionField.name]" :required="actionField.required"
-                                :lableName="actionField.name" :disabled="false"></DateControl>
+                                :labelName="actionField.name" :disabled="false"></DateControl>
                         </div>
                         <div v-else-if="actionField.type == 'InArgument(x:String)'">
                             <StringControl v-model="actionInputData[actionField.name]" :required="actionField.required"
-                                :lableName="actionField.name" :disabled="false"></StringControl>
+                                :labelName="actionField.name" :disabled="false"></StringControl>
                         </div>
                         <div v-else-if="actionField.type == 'InArgument(mxs:Entity)'">
                             <ActionEntityControl v-model="actionInputData[actionField.name]"
-                                :required="actionField.required" :lableName="actionField.name" :disabled="false">
+                                :required="actionField.required" :labelName="actionField.name" :disabled="false">
                             </ActionEntityControl>
                         </div>
                         <div v-else>
@@ -204,7 +204,7 @@ function invokeAction() {
 </template>
 
 <style scoped>
-.invokeFields:deep(.controlLable) {
+.invokeFields:deep(.controlLabel) {
     width: 120px;
     word-break: break-all;
 }
