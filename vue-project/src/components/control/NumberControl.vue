@@ -19,7 +19,10 @@ const value = ref(null)
 const emit = defineEmits(['update:modelValue']);
 
 watch(() => value.value, (newValue, oldValue) => {
-    if (newValue == "" || newValue == null || newValue == undefined) {
+    if (typeof (newValue) == "number") {
+        emit('update:modelValue', Number(newValue));
+    }
+    else if (newValue == "" || newValue == null || newValue == undefined) {
         emit('update:modelValue', null);
     }
     else {
@@ -27,7 +30,7 @@ watch(() => value.value, (newValue, oldValue) => {
     }
 })
 watch(() => props.modelValue, (newValue, oldValue) => {
-    value = newValue;
+    value.value = newValue;
 })
 
 onMounted(() => {

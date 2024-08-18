@@ -25,6 +25,37 @@ export const daxHelper = {
         let guidRegex = /^[{(]?[0-9A-Fa-f]{8}[-]?([0-9A-Fa-f]{4}[-]?){3}[0-9A-Fa-f]{12}[)}]?$/i;
         return guidRegex.test(str);
     },
+    update: function (entitySetName, entityId, entity) {
+        let updateStr = `${daxHelper.getWebAPIUrl()}${entitySetName}(${entityId})`;
+        let xhr = new XMLHttpRequest;
+        xhr.open("PATCH", encodeURI(updateStr), false);
+        xhr.setRequestHeader("Accept", "application/json");
+        xhr.setRequestHeader("Content-Type", "application/json; charset=utf-8");
+        xhr.setRequestHeader("OData-MaxVersion", "4.0");
+        xhr.setRequestHeader("OData-Version", "4.0");
+        xhr.send(JSON.stringify(entity));
+        if (xhr.status == 204) {
+            return null;
+        }
+        else {
+            return xhr;
+        }
+    },
+    delete: function (path) {
+        let xhr = new XMLHttpRequest;
+        xhr.open("DELETE", encodeURI(daxHelper.getWebAPIUrl() + path), false);
+        xhr.setRequestHeader("Accept", "application/json");
+        xhr.setRequestHeader("Content-Type", "application/json; charset=utf-8");
+        xhr.setRequestHeader("OData-MaxVersion", "4.0");
+        xhr.setRequestHeader("OData-Version", "4.0");
+        xhr.send();
+        if (xhr.status == 204) {
+            return null;
+        }
+        else {
+            return xhr;
+        }
+    },
     fetch: function (entitySetName, fetchXml, useFormattedValue) {
         let fetchStr = `${daxHelper.getWebAPIUrl()}${entitySetName}?fetchXml=${fetchXml}`;
         let xhr = new XMLHttpRequest;
@@ -77,7 +108,7 @@ export const daxHelper = {
     getEntityDefinitions: function () {
         if (!daxHelper.entityDefinitions) {
             let xhr = new XMLHttpRequest;
-            let path = 'EntityDefinitions?$select=LogicalName,DisplayName,SchemaName,ObjectTypeCode';
+            let path = 'EntityDefinitions?$select=LogicalName,DisplayName,SchemaName,ObjectTypeCode,EntitySetName';
             xhr.open("GET", encodeURI(daxHelper.getWebAPIUrl() + path), false);
             xhr.setRequestHeader("Content-Type", "application/json; charset=utf-8");
             xhr.setRequestHeader("OData-MaxVersion", "4.0");

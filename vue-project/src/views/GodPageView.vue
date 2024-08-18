@@ -7,14 +7,14 @@ import EntityControl from '../components/control/EntityControl.vue';
 import PickListControl from '@/components/control/PickListControl.vue';
 import { daxHelper } from '../daxHelper.js';
 import { ref, watch } from 'vue';
-import { ElMessageBox } from 'element-plus'
+import { ElMessageBox, ElMessage } from 'element-plus'
 
 const selectedEntity = ref(null);
 const selectedRecord = ref(null);
 const entityDefinition = ref(null);
 const attributes = ref([]);
 const hiddenAttributes = ['versionnumber', 'utcconversiontimezonecode', 'timezoneruleversionnumber', 'owninguser', 'owningteam', 'owningbusinessunit', 'overriddencreatedon', 'modifiedonbehalfby', 'importsequencenumber', 'createdonbehalfby'];
-const disableAttributes = ['statuscode', 'ownerid', 'modifiedby', 'createdon', 'createdby'];
+const disableAttributes = ['statuscode', 'ownerid', 'modifiedby', 'createdon', 'createdby', 'modifiedon'];
 const modelData = ref({});
 const modelLookUpData = ref({});
 const originalData = ref({});
@@ -72,7 +72,8 @@ function setFieldChangeData() {
         let logicalName = attribute.LogicalName;
         let oldValue = null;
         let newValue = null;
-        let inputValue = null;
+        let updateAttributeName = null;
+        let updateValue = null;
 
         if (attribute.AttributeType == "Lookup" || attribute.AttributeType == "Owner") {
             let attributeName = daxHelper.getLookUpWebApiAttributeName(logicalName);
@@ -82,11 +83,25 @@ function setFieldChangeData() {
                 if (originalData.value[formattedName]) {
                     oldValue = originalData.value[formattedName] + "(" + originalData.value[attributeName] + ")";
                 }
+
+                let targetsInfo = daxHelper.getEntityDefinitions().filter((item) => {
+                    return (
+                        item.LogicalName == attribute.Targets[0]
+                    );
+                })[0];
+                let isDeleteLookUp = true;
+                let deleteLookUpPath = "";
                 if (modelLookUpData.value[attributeName] && modelLookUpData.value[attributeName].id) {
+                    isDeleteLookUp = false;
                     newValue = modelLookUpData.value[attributeName].name + "(" + modelLookUpData.value[attributeName].id + ")";
-                    inputValue = modelLookUpData.value[attributeName].id;
+                    updateValue = `/${targetsInfo.EntitySetName}(${modelLookUpData.value[attributeName].id})`
+                    updateAttributeName = logicalName + "@odata.bind";
                 }
-                changedData.value.push({ displayName: displayName, attributeName: logicalName, oldValue: oldValue, newValue: newValue, inputValue: inputValue });
+                else {
+                    isDeleteLookUp = true;
+                    deleteLookUpPath = `/${selectedEntity.value.EntitySetName}(${selectedRecord.value.id})/${logicalName}/$ref`;
+                }
+                changedData.value.push({ displayName: displayName, attributeName: logicalName, oldValue: oldValue, newValue: newValue, updateAttributeName: updateAttributeName, updateValue: updateValue, isDeleteLookUp: isDeleteLookUp, deleteLookUpPath: deleteLookUpPath });
             }
 
         }
@@ -97,9 +112,10 @@ function setFieldChangeData() {
                 }
                 if (modelData.value[logicalName] != null) {
                     newValue = daxHelper.getOptionsetLabel(attribute.MetadataId, modelData.value[logicalName]) + "(" + modelData.value[logicalName] + ")";
-                    inputValue = modelData.value[logicalName];
+                    updateValue = modelData.value[logicalName];
                 }
-                changedData.value.push({ displayName: displayName, attributeName: logicalName, oldValue: oldValue, newValue: newValue, inputValue: inputValue });
+                updateAttributeName = logicalName;
+                changedData.value.push({ displayName: displayName, attributeName: logicalName, oldValue: oldValue, newValue: newValue, updateAttributeName: updateAttributeName, updateValue: updateValue });
             }
         }
         else {
@@ -109,9 +125,10 @@ function setFieldChangeData() {
                 }
                 if (modelData.value[logicalName] != null) {
                     newValue = modelData.value[logicalName];
-                    inputValue = modelData.value[logicalName];
+                    updateValue = modelData.value[logicalName];
                 }
-                changedData.value.push({ displayName: displayName, attributeName: logicalName, oldValue: oldValue, newValue: newValue, inputValue: inputValue });
+                updateAttributeName = logicalName;
+                changedData.value.push({ displayName: displayName, attributeName: logicalName, oldValue: oldValue, newValue: newValue, updateAttributeName: updateAttributeName, updateValue: updateValue });
             }
         }
     });
@@ -134,7 +151,6 @@ function dataChangedByExternalConfirm() {
     )
         .then(() => {
             saveData();
-            saveDialogVisible.value = false;
         })
         .catch((action) => {
             if (action == "cancel") {
@@ -162,71 +178,135 @@ function saveConfirmBtn() {
     }
     else {
         saveData();
-        saveDialogVisible.value = false;
     }
 }
 function saveData() {
-    lodaSelectedRecordData();
+    let updateEntity = {};
+    let deleteLookUpPaths = [];
+    let resultS = [];
+    let hasError = false;
+
+    changedData.value.forEach(x => {
+        if (!x.isDeleteLookUp) {
+            updateEntity[x.updateAttributeName] = x.updateValue;
+        }
+        else {
+            deleteLookUpPaths.push(x.deleteLookUpPath);
+        }
+    });
+
+    let isUpdateEntity = Object.keys(updateEntity).length > 0;
+
+    if (isUpdateEntity) {
+        let updateResult = daxHelper.update(entityDefinition.value.EntitySetName, selectedRecord.value.id, updateEntity);
+        if (updateResult != null) {
+            hasError = true;
+        }
+        resultS.push(updateResult);
+    }
+
+    if (!hasError) {
+        deleteLookUpPaths.forEach(x => {
+            resultS.push(daxHelper.delete(x));
+        });
+    }
+    resultS.forEach(x => {
+        if (x != null) {
+            hasError = true;
+            return;
+        }
+    });
+
+    if (!hasError) {
+        ElMessage({
+            showClose: true,
+            message: 'Success!',
+            type: 'success',
+        })
+        lodaSelectedRecordData();
+        saveDialogVisible.value = false;
+    }
+    else {
+        resultS.forEach(x => {
+            if (x != null) {
+                ElMessage({
+                    showClose: true,
+                    message: JSON.stringify(JSON.parse(x.responseText)),
+                    type: 'error',
+                });
+            }
+        });
+        if (resultS.length > 1) {
+            lodaSelectedRecordData();
+            saveDialogVisible.value = false;
+        }
+    }
 }
 
 </script>
 
 <template>
     <div
-        style="display: flex;flex-direction: row;justify-content: center;align-items:center;border-bottom: 1px solid #dddddd;margin-bottom: 20px;">
+        style="display: flex;flex-direction: row;justify-content: center;align-items:center;border-bottom: 1px solid #dddddd;margin-bottom: 20px; ">
         <EntityControl labelName="Entity" :required="true" ref="selectEntity" :disabled="false" v-model="selectedEntity">
         </EntityControl>
         <LookUpControl labelName="Record" :logicalName="selectedEntity?.LogicalName" :required="true"
             :disabled="selectedEntity == null" v-model="selectedRecord"></LookUpControl>
         <el-button style="margin-left: 50px;" type="success" @click="saveBtn()">Save</el-button>
     </div>
-
-    <div class="godPage" style="display: flex;flex-wrap: wrap;flex-direction: row;justify-content: center;"
-        v-if="selectedRecord != null">
-        <div style="width:400px;" v-for="attribute in attributes ">
-            <div
-                v-if="attribute.AttributeType == 'Picklist' || attribute.AttributeType == 'Boolean' || attribute.AttributeType == 'State' || attribute.AttributeType == 'Status' || (attribute.AttributeType == 'Virtual' && attribute.AttributeTypeName?.Value == 'MultiSelectPicklistType')">
-                <PickListControl :labelName="attribute.DisplayName.UserLocalizedLabel?.Label"
-                    :entityLogicName="selectedEntity.LogicalName" :required="false"
-                    :disabled="disableAttributes.includes(attribute.LogicalName)" v-model="modelData[attribute.LogicalName]"
-                    :attributeType="attribute.AttributeType" :attributeName="attribute.LogicalName"></PickListControl>
-            </div>
-            <div
-                v-else-if="attribute.AttributeType == 'Double' || attribute.AttributeType == 'Money' || attribute.AttributeType == 'Decimal' || attribute.AttributeType == 'Integer'">
-                <NumberControl v-model="modelData[attribute.LogicalName]" :required="false"
-                    :labelName="attribute.DisplayName.UserLocalizedLabel?.Label"
-                    :disabled="disableAttributes.includes(attribute.LogicalName)" :attributeName="attribute.LogicalName">
-                </NumberControl>
-            </div>
-            <div v-else-if="attribute.AttributeType == 'DateTime'">
-                <DateControl v-model="modelData[attribute.LogicalName]" :required="false"
-                    :labelName="attribute.DisplayName.UserLocalizedLabel?.Label"
-                    :disabled="disableAttributes.includes(attribute.LogicalName)" :attributeName="attribute.LogicalName">
-                </DateControl>
-            </div>
-            <div v-else-if="attribute.AttributeType == 'String' || attribute.AttributeType == 'Memo'">
-                <StringControl v-model="modelData[attribute.LogicalName]" :required="false"
-                    :labelName="attribute.DisplayName.UserLocalizedLabel?.Label"
-                    :disabled="disableAttributes.includes(attribute.LogicalName)" :attributeName="attribute.LogicalName">
-                </StringControl>
-            </div>
-            <div v-else-if="attribute.AttributeType == 'Lookup' || attribute.AttributeType == 'Owner'">
-                <LookUpControl :labelName="attribute.DisplayName.UserLocalizedLabel?.Label" :logicalName="attribute.Targets"
-                    :required="false" :disabled="disableAttributes.includes(attribute.LogicalName)"
-                    v-model="modelLookUpData[daxHelper.getLookUpWebApiAttributeName(attribute.LogicalName)]"
-                    :attributeName="attribute.LogicalName">
-                </LookUpControl>
-            </div>
-            <div v-else>
-                This Arrtibute Maybe Unsupported:
-                <StringControl v-model="modelData[attribute.LogicalName]" :required="false"
-                    :labelName="attribute.DisplayName.UserLocalizedLabel?.Label"
-                    :disabled="disableAttributes.includes(attribute.LogicalName)" :attributeName="attribute.LogicalName">
-                </StringControl>
+    <el-scrollbar max-height="800px">
+        <div class="godPage" style="display: flex;flex-wrap: wrap;flex-direction: row;justify-content: center;"
+            v-if="selectedRecord != null">
+            <div style="width:400px;" v-for="attribute in attributes ">
+                <div
+                    v-if="attribute.AttributeType == 'Picklist' || attribute.AttributeType == 'Boolean' || attribute.AttributeType == 'State' || attribute.AttributeType == 'Status' || (attribute.AttributeType == 'Virtual' && attribute.AttributeTypeName?.Value == 'MultiSelectPicklistType')">
+                    <PickListControl :labelName="attribute.DisplayName.UserLocalizedLabel?.Label"
+                        :entityLogicName="selectedEntity.LogicalName" :required="false"
+                        :disabled="disableAttributes.includes(attribute.LogicalName)"
+                        v-model="modelData[attribute.LogicalName]" :attributeType="attribute.AttributeType"
+                        :attributeName="attribute.LogicalName"></PickListControl>
+                </div>
+                <div
+                    v-else-if="attribute.AttributeType == 'Double' || attribute.AttributeType == 'Money' || attribute.AttributeType == 'Decimal' || attribute.AttributeType == 'Integer'">
+                    <NumberControl v-model="modelData[attribute.LogicalName]" :required="false"
+                        :labelName="attribute.DisplayName.UserLocalizedLabel?.Label"
+                        :disabled="disableAttributes.includes(attribute.LogicalName)"
+                        :attributeName="attribute.LogicalName">
+                    </NumberControl>
+                </div>
+                <div v-else-if="attribute.AttributeType == 'DateTime'">
+                    <DateControl v-model="modelData[attribute.LogicalName]" :required="false"
+                        :labelName="attribute.DisplayName.UserLocalizedLabel?.Label"
+                        :disabled="disableAttributes.includes(attribute.LogicalName)"
+                        :attributeName="attribute.LogicalName">
+                    </DateControl>
+                </div>
+                <div v-else-if="attribute.AttributeType == 'String' || attribute.AttributeType == 'Memo'">
+                    <StringControl v-model="modelData[attribute.LogicalName]" :required="false"
+                        :labelName="attribute.DisplayName.UserLocalizedLabel?.Label"
+                        :disabled="disableAttributes.includes(attribute.LogicalName)"
+                        :attributeName="attribute.LogicalName">
+                    </StringControl>
+                </div>
+                <div v-else-if="attribute.AttributeType == 'Lookup' || attribute.AttributeType == 'Owner'">
+                    <LookUpControl :labelName="attribute.DisplayName.UserLocalizedLabel?.Label"
+                        :logicalName="attribute.Targets" :required="false"
+                        :disabled="disableAttributes.includes(attribute.LogicalName)"
+                        v-model="modelLookUpData[daxHelper.getLookUpWebApiAttributeName(attribute.LogicalName)]"
+                        :attributeName="attribute.LogicalName">
+                    </LookUpControl>
+                </div>
+                <div v-else>
+                    This Arrtibute Maybe Unsupported:
+                    <StringControl v-model="modelData[attribute.LogicalName]" :required="false"
+                        :labelName="attribute.DisplayName.UserLocalizedLabel?.Label"
+                        :disabled="disableAttributes.includes(attribute.LogicalName)"
+                        :attributeName="attribute.LogicalName">
+                    </StringControl>
+                </div>
             </div>
         </div>
-    </div>
-
+    </el-scrollbar>
     <el-dialog v-model="saveDialogVisible" title="Changed Data:">
         <el-table :data="changedData" stripe>
             <el-table-column property="displayName" label="Display Name" width="150" />
