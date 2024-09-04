@@ -1,0 +1,52 @@
+<RibbonDiffXml>
+    <CustomActions>
+        <CustomAction Id="dax.ApplicationRibbon.DynaAppx.Button.CustomAction" Location="Mscrm.BasicHomeTab.Tools.Controls._children" Sequence="60">
+            <CommandUIDefinition>
+                <Button Alt="$LocLabels:dax.ApplicationRibbon.DynaAppx.Button.Alt" Command="dax.ApplicationRibbon.DynaAppx.Command" Id="dax.ApplicationRibbon.DynaAppx.Button" Image16by16="$webresource:dax_/images/DynaAppx.png" LabelText="$LocLabels:dax.ApplicationRibbon.DynaAppx.Button.LabelText" Sequence="60" TemplateAlias="isv" ToolTipTitle="$LocLabels:dax.ApplicationRibbon.DynaAppx.Button.ToolTipTitle" ToolTipDescription="$LocLabels:dax.ApplicationRibbon.DynaAppx.Button.ToolTipDescription"/>
+            </CommandUIDefinition>
+        </CustomAction>
+    </CustomActions>
+    <Templates>
+        <RibbonTemplates Id="Mscrm.Templates"/>
+    </Templates>
+    <CommandDefinitions>
+        <CommandDefinition Id="dax.ApplicationRibbon.DynaAppx.Command">
+            <EnableRules/>
+            <DisplayRules/>
+            <Actions>
+                <Url Address="$webresource:dax_/index.html" WinMode="0"/>
+            </Actions>
+        </CommandDefinition>
+    </CommandDefinitions>
+    <RuleDefinitions>
+        <TabDisplayRules/>
+        <DisplayRules/>
+        <EnableRules/>
+    </RuleDefinitions>
+    <LocLabels>
+        <LocLabel Id="dax.ApplicationRibbon.DynaAppx.Button.Alt">
+            <Titles>
+                <Title description="DynaAppx" languagecode="1033"/>
+                <Title description="DynaAppx" languagecode="2052"/>
+            </Titles>
+        </LocLabel>
+        <LocLabel Id="dax.ApplicationRibbon.DynaAppx.Button.LabelText">
+            <Titles>
+                <Title description="DynaAppx" languagecode="2052"/>
+                <Title description="DynaAppx" languagecode="1033"/>
+            </Titles>
+        </LocLabel>
+        <LocLabel Id="dax.ApplicationRibbon.DynaAppx.Button.ToolTipDescription">
+            <Titles>
+                <Title description="Tools for Dynamics CRM/365/Power Apps users." languagecode="1033"/>
+                <Title description="Tools for Dynamics CRM/365/Power Apps users." languagecode="2052"/>
+            </Titles>
+        </LocLabel>
+        <LocLabel Id="dax.ApplicationRibbon.DynaAppx.Button.ToolTipTitle">
+            <Titles>
+                <Title description="DynaAppx" languagecode="1033"/>
+                <Title description="DynaAppx" languagecode="2052"/>
+            </Titles>
+        </LocLabel>
+    </LocLabels>
+</RibbonDiffXml>

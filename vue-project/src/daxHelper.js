@@ -9,6 +9,9 @@ export const daxHelper = {
             }
             else {
                 let url = window.location.href.substring(0, window.location.href.indexOf("/WebResources"));
+                if (url.indexOf("/%7B") >= 0) {
+                    url = url.substring(0, url.indexOf("/%7B"));
+                }
                 if (url.match(/\/$/)) {
                     url = url.substring(0, url.length - 1);
                 }
@@ -281,3 +284,4 @@ export const daxHelper = {
     entityDefinitionMap: new Map(),
     attributesOptionsetMap: new Map(),
 };
+daxHelper.getCrmUrl()
