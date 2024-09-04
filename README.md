@@ -14,7 +14,7 @@ You can find the entry in the Aapplication ribbon (if you have configured it), o
   ![Get Start](/ReadMeSrc/055a2d2902fb7cb714d73eaa97f3a629.gif)
  #### InvokeFlow
 
-  In this feature, you can select an Action or Workflow (On-Demand) and trigger the call on the page. The page provides two ways to input parameters. The first way will display the fields you need to input, and the second way allows you to use raw JSON format data as input.
+  In this feature, you can select an Action or Workflow (On-Demand) and trigger the call on the page. The page provides two ways to input parameters. The first way will display the fields you need to input, and the second way allows you to use raw JSON format data as input.By scrolling down, you can also see your call records.
  
   ![Get Start](/ReadMeSrc/055a2d2902fb7cb714d73eaa97f3a629.gif)
  #### GodPage
