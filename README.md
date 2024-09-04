@@ -4,7 +4,7 @@ Tools for Dynamics CRM/365/Power Apps users.
 ### How to get started
 You can find the entry in the Aapplication ribbon (if you have configured it), or go to the configuration page in the DynaAppx solution.
  
- ![Get Start](/ReadMeSrc/055a2d2902fb7cb714d73eaa97f3a629.gif)
+ ![Get Start](/ReadMeSrc/Start.mp4)
 
  ### Feature Introduction
  #### AccessCheck
