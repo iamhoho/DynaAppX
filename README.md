@@ -3,7 +3,7 @@ Tools for Dynamics CRM/365/Power Apps users.
 
 ### How to get started
 The simplest way is to download the pre-packaged managed solution from the Releases section and import it into the system.
-Then you can find the entry in the Aapplication ribbon (if you have configured it), or go to the configuration page in the DynaAppx solution.
+Then you can find the entry in the Aapplication ribbon, or go to the configuration page in the DynaAppx solution.
 If you want to package the resources and generate the solution using the source code yourself, I will provide a tutorial at a later time.
 
 
