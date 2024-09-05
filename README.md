@@ -6,7 +6,7 @@ The simplest way is to download the pre-packaged managed solution from the Relea
 Then you can find the entry in the Aapplication ribbon, or go to the configuration page in the DynaAppx solution.
 If you want to package the resources and generate the solution using the source code yourself, I will provide a tutorial at a later time.
 
-
+![DynaAppx](/ReadMeSrc/DynaAppx.jpeg)
  ### Feature Introduction(The GIF demo is coming soon)
  #### AccessCheck
 
