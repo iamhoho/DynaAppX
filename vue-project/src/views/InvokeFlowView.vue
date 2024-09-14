@@ -65,7 +65,7 @@ function invoke() {
 }
 
 function invokeWorkFlow() {
-    const path = `v8.0/workflows(${selectedFlow.value.id})/Microsoft.Dynamics.CRM.ExecuteWorkflow`;
+    const path = `workflows(${selectedFlow.value.id})/Microsoft.Dynamics.CRM.ExecuteWorkflow`;
     let reqBody = JSON.stringify({ "EntityId": selectedRecord.value.id });
     let req = new XMLHttpRequest();
     req.open("POST", daxHelper.getWebAPIUrl() + path, true);
