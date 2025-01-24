@@ -14,7 +14,7 @@ const selectedRecord = ref(null);
 const entityDefinition = ref(null);
 const attributes = ref([]);
 const hiddenAttributes = ['versionnumber', 'utcconversiontimezonecode', 'timezoneruleversionnumber', 'owninguser', 'owningteam', 'owningbusinessunit', 'overriddencreatedon', 'modifiedonbehalfby', 'importsequencenumber', 'createdonbehalfby'];
-const disableAttributes = ['statuscode', 'ownerid', 'modifiedby', 'createdon', 'createdby', 'modifiedon'];
+const disableAttributes = ['ownerid', 'modifiedby', 'createdon', 'createdby', 'modifiedon'];
 const modelData = ref({});
 const modelLookUpData = ref({});
 const originalData = ref({});
@@ -248,7 +248,8 @@ function saveData() {
 <template>
     <div
         style="display: flex;flex-direction: row;justify-content: center;align-items:center;border-bottom: 1px solid #dddddd;margin-bottom: 20px; ">
-        <EntityControl labelName="Entity" :required="true" ref="selectEntity" :disabled="false" v-model="selectedEntity">
+        <EntityControl labelName="Entity" :required="true" ref="selectEntity" :disabled="false"
+            v-model="selectedEntity">
         </EntityControl>
         <LookUpControl labelName="Record" :logicalName="selectedEntity?.LogicalName" :required="true"
             :disabled="selectedEntity == null" v-model="selectedRecord"></LookUpControl>
