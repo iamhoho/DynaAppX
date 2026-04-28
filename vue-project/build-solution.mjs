@@ -279,7 +279,7 @@ async function build() {
   ensureDir(webResourcesDir);
 
   // Build Vue project
-  console.log('1. Building Vue project...');
+  console.log('1. Building Vue project (public/ files copied automatically)...');
   try {
     execSync('npm run build', { cwd: __dirname, stdio: 'inherit' });
   } catch (e) {
@@ -287,30 +287,8 @@ async function build() {
     process.exit(1);
   }
 
-  // Copy additional static files from src/assets to dist
-  console.log('\n2. Copying static assets...');
-  const assetsDir = path.join(__dirname, 'src', 'assets');
-  const metadataBrowserDir = path.join(assetsDir, 'MetadataBrowser');
-  if (fs.existsSync(metadataBrowserDir)) {
-    const destDir = path.join(distDir, 'metadatabrowser');
-    ensureDir(destDir);
-    fs.readdirSync(metadataBrowserDir).forEach(file => {
-      fs.copyFileSync(path.join(metadataBrowserDir, file), path.join(destDir, file));
-      console.log(`   metadatabrowser/${file}`);
-    });
-  }
-
-  // Copy DynaAppx.png for ribbon
-  const dynaAppxPng = path.join(__dirname, '..', 'DynaAppx.png');
-  const imagesDir = path.join(distDir, 'images');
-  if (fs.existsSync(dynaAppxPng)) {
-    ensureDir(imagesDir);
-    fs.copyFileSync(dynaAppxPng, path.join(imagesDir, 'DynaAppx.png'));
-    console.log(`   images/DynaAppx.png`);
-  }
-
   // Update config with dist files
-  console.log('\n3. Processing dist files...');
+  console.log('\n2. Processing dist files...');
   const distFiles = getAllFiles(distDir);
   const webResources = {};
 
@@ -332,7 +310,7 @@ async function build() {
   config.webResources = webResources;
 
   // Generate XML files
-  console.log('\n4. Generating solution XML files...');
+  console.log('\n3. Generating solution XML files...');
   fs.writeFileSync(path.join(outputDir, 'solution.xml'), generateSolutionXml());
   fs.writeFileSync(path.join(outputDir, 'customizations.xml'), generateCustomizationsXml());
   fs.writeFileSync(path.join(outputDir, '[Content_Types].xml'), generateContentTypes());
@@ -341,7 +319,7 @@ async function build() {
   console.log('   [Content_Types].xml');
 
   // Create zip
-  console.log('\n5. Creating solution package...');
+  console.log('\n4. Creating solution package...');
   try {
     execSync(`cd "${outputDir}" && zip -r "${zipFileName}" .`, { stdio: 'inherit' });
   } catch (e) {
