@@ -30,3 +30,5 @@ coverage
 *.tsbuildinfo
 DynaAppX_1_0_2_managed.zip
 DynaAppX_Solution/
+
+*.zip:Zone.Identifier
