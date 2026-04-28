@@ -1,0 +1,28 @@
+{
+  "version": "1.0.2",
+  "publisher": {
+    "uniqueName": "DynaAppXPublisher",
+    "displayName": "DynaAppXPublisher",
+    "prefix": "dax",
+    "optionValuePrefix": 81059,
+    "email": "",
+    "website": ""
+  },
+  "webResources": {
+    "dax_/assets/index-CkSeLS6d.js": "b4dbbad5-a256-422c-b004-5271bf0a1a3f",
+    "dax_/assets/index-K-7Gnu3O.css": "cc4eeb99-1db2-4337-8bd5-b588bfff916b",
+    "dax_/favicon.ico": "d27c73a8-60ce-4e63-a7b2-c30454395026",
+    "dax_/images/DynaAppx.png": "b693e723-b16a-ef11-8dbc-bd90dc48e2a2",
+    "dax_/index.html": "150f61fa-353c-ef11-8dba-a26e594caa56",
+    "dax_/metadatabrowser/entitymetadatabrowser.htm": "1e109f35-0d43-4311-9bbc-a4a66565751a",
+    "dax_/metadatabrowser/metadatabrowser.htm": "c5f12140-07f1-4421-aece-7259818d806c"
+  },
+  "ribbon": {
+    "buttonId": "dax.ApplicationRibbon.DynaAppx.Button",
+    "buttonAlt": "DynaAppx",
+    "buttonLabel": "DynaAppx",
+    "buttonTooltip": "Tools for Dynamics CRM/365/Power Apps users.",
+    "ribbonLocation": "Mscrm.BasicHomeTab.Tools.Controls._children",
+    "ribbonSequence": "60"
+  }
+}
