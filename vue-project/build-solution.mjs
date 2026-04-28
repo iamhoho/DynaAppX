@@ -1,8 +1,10 @@
 import fs from 'fs';
 import path from 'path';
-import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
+import { execSync } from 'child_process';
 import crypto from 'crypto';
+import archiver from 'archiver';
+import { createWriteStream } from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -320,14 +322,28 @@ async function build() {
 
   // Create zip
   console.log('\n4. Creating solution package...');
-  try {
-    execSync(`cd "${outputDir}" && zip -r "${zipFileName}" .`, { stdio: 'inherit' });
-  } catch (e) {
-    console.error('Zip failed!');
-    process.exit(1);
+  const zipPath = path.join(outputDir, zipFileName);
+  const output = createWriteStream(zipPath);
+  const archive = archiver('zip', { zlib: { level: 9 } });
+
+  archive.pipe(output);
+
+  // Add all files from outputDir (except the zip we're creating)
+  const files = fs.readdirSync(outputDir);
+  for (const file of files) {
+    if (file !== zipFileName) {
+      const filePath = path.join(outputDir, file);
+      if (fs.statSync(filePath).isDirectory() && file !== 'WebResources') continue;
+      if (file === 'WebResources') {
+        archive.directory(path.join(outputDir, 'WebResources'), 'WebResources');
+      } else {
+        archive.file(filePath, { name: file });
+      }
+    }
   }
 
-  const zipPath = path.join(outputDir, zipFileName);
+  await archive.finalize();
+
   const stats = fs.statSync(zipPath);
   console.log(`\n✓ Solution package created: ${zipPath} (${(stats.size / 1024).toFixed(1)} KB)`);
 
