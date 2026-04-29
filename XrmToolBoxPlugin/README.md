@@ -2,82 +2,57 @@
 
 Access Check & Flow Invocation Tool for Dynamics 365 CRM.
 
-## 功能
+## Features
 
-- **AccessCheck**: 检查用户在 CRM 记录上的访问权限
-- **InvokeFlow**: 执行 Dynamics 365 工作流和操作
+- **AccessCheck**: Check user permissions on CRM records
+  - Select user from dropdown
+  - View user's roles and teams
+  - Check record access rights (Read, Write, Create, Delete, Share, Assign, Append, AppendTo)
 
-## 开发环境要求
+- **InvokeFlow**: Execute Dynamics 365 workflows and actions
+  - Select workflow or action from dropdown
+  - Execute on selected record
+  - View execution history
+
+## Development Environment
 
 - Windows 10/11
 - Visual Studio 2022
 - .NET Framework 4.8
-- XrmToolBox (用于测试和调试)
+- XrmToolBox (for testing)
 
-## 项目结构
+## Project Structure
 
 ```
 XrmToolBoxPlugin/
-├── DynaAppX.csproj        # 项目文件
-├── DynaAppXPlugin.cs      # 插件主类 (含 UI)
-└── Properties/
-    └── AssemblyInfo.cs    # 程序集信息
+├── DynaAppX.csproj              # Project file
+├── MyPlugin.cs                  # Plugin entry class (MEF Export)
+├── MyPluginControl.cs           # Main UI logic
+├── MyPluginControl.designer.cs  # UI designer code
+├── Settings.cs                  # Plugin settings
+└── Properties/                  # Assembly info
 ```
 
-## NuGet 包依赖
+## Build & Deploy
 
-- `XrmToolBoxPackage` - XrmToolBox SDK
-- `Microsoft.CrmSdk.CoreAssemblies` - Dynamics CRM SDK
-- `Microsoft.CrmSdk.Workflow` - 工作流支持
-- `Microsoft.CrmSdk.XrmTooling.CoreAssembly` - XrmTooling 核心
-- `Microsoft.CrmSdk.XrmTooling.WpfControls` - WPF 控件
+1. Open `DynaAppX.csproj` in Visual Studio
+2. Restore NuGet packages
+3. Build project
+4. DLL will be copied to `bin\XrmToolBox\Plugins\`
+5. Copy the DLL to XrmToolBox's Plugins folder
+6. Restart XrmToolBox
 
-## 构建步骤
+## Usage
 
-1. 在 Windows 上克隆仓库
-2. 用 Visual Studio 打开 `DynaAppX.csproj`
-3. 还原 NuGet 包（Visual Studio 会自动提示）
-4. 生成项目（Ctrl+Shift+B）
-5. DLL 输出到 `bin/Debug/` 或 `bin/Release/`
+1. Connect to your Dynamics 365 organization
+2. Click "Reload Data" to load users, flows, and entities
+3. **AccessCheck Tab**: Select user, entity, enter record ID, click "Check Access"
+4. **InvokeFlow Tab**: Select flow, enter record ID, click "Invoke"
 
-## 部署到 XrmToolBox
+## Authentication
 
-1. 编译项目生成 `DynaAppX.dll`
-2. 打开 XrmToolBox
-3. 进入 **Plugin Manager**（工具 → 插件管理器）
-4. 点击 **Import** 导入编译好的 DLL
-5. 重启 XrmToolBox
-6. 在工具列表中找到 **DynaAppX**
+Uses XrmToolBox's built-in CRM connection - no additional authentication needed.
 
-## 使用方法
-
-### AccessCheck
-
-1. 从下拉列表选择用户
-2. 选择实体类型并输入记录 ID (GUID)
-3. 点击 "Check Access"
-4. 查看用户的角色、团队和该记录上的访问权限
-
-### InvokeFlow
-
-1. 从下拉列表选择工作流或操作
-2. 如果是工作流，需要选择记录类型并输入记录 ID
-3. 如果是操作，根据配置可能需要输入记录 ID
-4. 点击 "Invoke"
-5. 查看执行历史
-
-## 调试
-
-在 Visual Studio 中：
-1. 设置断点
-2. **调试 → 附加到进程**
-3. 选择 `XrmToolBox.exe` 进程
-4. 在 XrmToolBox 中执行插件操作触发断点
-
-## 认证
-
-插件使用 XrmToolBox 内置的 CRM 连接管理，不需要额外配置认证。
-
-## 许可证
+## License
 
 MIT

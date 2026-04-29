@@ -1,56 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <OutputType>Library</OutputType>
     <RootNamespace>DynaAppX</RootNamespace>
     <AssemblyName>DynaAppX</AssemblyName>
-    <UseWindowsForms>true</UseWindowsForms>
-    <LangVersion>latest</LangVersion>
-    <Deterministic>true</Deterministic>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <AssemblyTitle>DynaAppX</AssemblyTitle>
-    <Product>DynaAppX</Product>
-    <Company></Company>
-    <Copyright>Copyright © 2024</Copyright>
+    <TargetFramework>net48</TargetFramework>
     <Version>1.0.0.0</Version>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
-    <ComVisible>false</ComVisible>
+    <Authors></Authors>
+    <Company></Company>
+    <Copyright>Copyright © 2024</Copyright>
+    <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)'=='Release'">
-    <DefineConstants>TRACE</DefineConstants>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CrmSdk.CoreAssemblies" Version="9.0.2.59" />
-    <PackageReference Include="Microsoft.CrmSdk.Workflow" Version="9.0.2.59" />
-    <PackageReference Include="Microsoft.CrmSdk.XrmTooling.CoreAssembly" Version="9.1.1.65" />
-    <PackageReference Include="Microsoft.CrmSdk.XrmTooling.WpfControls" Version="9.1.1.65" />
-    <PackageReference Include="XrmToolBoxPackage" Version="1.2025.7.71" />
+    <PackageReference Include="XrmToolBoxPackage" Version="1.2022.5.56" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="System.Activities" />
-    <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.ServiceModel" />
-    <Reference Include="System.Workflow.Activities" />
-    <Reference Include="System.Workflow.ComponentModel" />
-    <Reference Include="System.Workflow.Runtime" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
+  <PropertyGroup>
+    <PostBuildEvent>
+      IF NOT EXIST $(TargetDir)XrmToolBox mkdir $(TargetDir)XrmToolBox
+      IF NOT EXIST $(TargetDir)XrmToolBox\Plugins mkdir $(TargetDir)XrmToolBox\Plugins
+      move /Y "$(TargetDir)DynaAppX.dll" $(TargetDir)XrmToolBox\Plugins\
+      IF "$(ConfigurationName)"=="Debug" (
+        move /Y "$(TargetDir)DynaAppX.pdb" $(TargetDir)XrmToolBox\Plugins\
+      )
+    </PostBuildEvent>
+  </PropertyGroup>
 </Project>
