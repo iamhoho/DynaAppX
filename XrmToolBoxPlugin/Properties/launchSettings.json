@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "XrmToolBox Debug": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Program Files (x86)\\XrmToolBox\\XrmToolBox.exe",
+      "commandLineArgs": "",
+      "workingDirectory": ""
+    }
+  }
+}
