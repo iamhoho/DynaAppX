@@ -1,19 +1,17 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
 import DynaAppX from './components/DynaAppX.vue'
-import { onMounted } from 'vue'
-import { daxHelper } from './daxHelper.js'
+import ConnectionBar from './components/ConnectionBar.vue'
+import { ref } from 'vue'
 
-onMounted(() => {
-  daxHelper.getCrmUrl();
-})
-
+const connectionBar = ref(null)
 </script>
 
 <template>
   <header>
     <div class="wrapper">
       <DynaAppX />
+      <ConnectionBar ref="connectionBar" />
       <nav>
         <RouterLink to="/accessChecK">AccessCheck</RouterLink>
         <RouterLink to="/invokeFlow">InvokeFlow</RouterLink>
@@ -28,7 +26,6 @@ onMounted(() => {
 
 <style>
 .controlLabel {
-  /* width: 120px; */
   margin-right: 5px;
   font-size: 14px;
 }
@@ -48,8 +45,8 @@ nav {
   width: 100%;
   font-size: 1.2rem;
   text-align: center;
-  margin-top: 2rem;
-  margin-bottom: 2rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
 }
 
 

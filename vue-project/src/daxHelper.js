@@ -1,6 +1,10 @@
 export const daxHelper = {
+    crmUrl: null,
     getVersion: function () {
         return "8.0";
+    },
+    setCrmUrl: function (url) {
+        daxHelper.crmUrl = url;
     },
     getCrmUrl: function () {
         if (!daxHelper.crmUrl) {
