@@ -10,6 +10,7 @@
     <AssemblyName>DynaAppX</AssemblyName>
     <TargetFramework>net472</TargetFramework>
     <FileAlignment>512</FileAlignment>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <Version>1.0.0.0</Version>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
