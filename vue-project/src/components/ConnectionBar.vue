@@ -6,8 +6,7 @@ import { ElInput, ElButton, ElDialog, ElMessage } from 'element-plus'
 
 const dialogVisible = ref(false)
 const crmUrl = ref(daxHelper.crmUrl || '')
-const connected = ref(!!daxHelper.crmUrl)
-const isAuthEnabled = ref(!!import.meta.env.VITE_AZURE_CLIENT_ID)
+const isAuthEnabled = ref(!!import.meta.env.VITE_AZURE_CLIENT_ID && import.meta.env.VITE_AZURE_CLIENT_ID !== 'YOUR_AZURE_AD_APP_CLIENT_ID')
 
 function openDialog() {
   dialogVisible.value = true
@@ -17,8 +16,6 @@ async function login() {
   try {
     await authService.login()
     daxHelper.accessToken = await authService.getAccessToken()
-    connected.value = true
-    dialogVisible.value = false
     ElMessage.success('Logged in successfully')
   } catch (error) {
     ElMessage.error('Login failed: ' + error.message)
@@ -29,7 +26,6 @@ async function logout() {
   try {
     await authService.logout()
     daxHelper.accessToken = null
-    connected.value = false
     ElMessage.success('Logged out')
   } catch (error) {
     ElMessage.error('Logout failed: ' + error.message)
@@ -49,30 +45,34 @@ function connect() {
     url = url.slice(0, -1)
   }
   daxHelper.setCrmUrl(url)
-  connected.value = true
   dialogVisible.value = false
   ElMessage.success('Connected to: ' + url)
 }
 
-defineExpose({ openDialog, connected })
+defineExpose({ openDialog })
 </script>
 
 <template>
   <div class="connection-bar">
-    <span class="status" :class="{ connected }">
-      {{ connected ? 'Connected' : 'Not Connected' }}
-    </span>
     <template v-if="isAuthEnabled">
-      <el-button v-if="!connected" size="small" @click="login">
+      <span class="status" :class="{ connected: daxHelper.accessToken }">
+        {{ daxHelper.accessToken ? 'Logged In' : 'Not Logged In' }}
+      </span>
+      <el-button v-if="!daxHelper.accessToken" size="small" @click="login">
         Login with OAuth2
       </el-button>
       <el-button v-else size="small" @click="logout">
         Logout
       </el-button>
     </template>
-    <el-button v-else size="small" @click="openDialog">
-      {{ connected ? 'Change CRM' : 'Connect CRM' }}
-    </el-button>
+    <template v-else>
+      <span class="status" :class="{ connected: daxHelper.crmUrl }">
+        {{ daxHelper.crmUrl ? 'Connected' : 'Not Connected' }}
+      </span>
+      <el-button size="small" @click="openDialog">
+        {{ daxHelper.crmUrl ? 'Change CRM' : 'Connect CRM' }}
+      </el-button>
+    </template>
   </div>
 
   <el-dialog v-model="dialogVisible" title="Connect to Dynamics 365" width="400px">
