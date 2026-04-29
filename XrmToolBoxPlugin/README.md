@@ -18,24 +18,31 @@ Access Check & Flow Invocation Tool for Dynamics 365 CRM.
 
 ```
 XrmToolBoxPlugin/
-├── DynaAppXPlugin.cs         # 插件主类
-├── DynaAppXControl.cs        # WinForms UI 控件
-├── DynaAppXPlugin.csproj     # 项目文件
+├── DynaAppX.csproj        # 项目文件
+├── DynaAppXPlugin.cs      # 插件主类 (含 UI)
 └── Properties/
-    └── AssemblyInfo.cs       # 程序集信息
+    └── AssemblyInfo.cs    # 程序集信息
 ```
+
+## NuGet 包依赖
+
+- `XrmToolBoxPackage` - XrmToolBox SDK
+- `Microsoft.CrmSdk.CoreAssemblies` - Dynamics CRM SDK
+- `Microsoft.CrmSdk.Workflow` - 工作流支持
+- `Microsoft.CrmSdk.XrmTooling.CoreAssembly` - XrmTooling 核心
+- `Microsoft.CrmSdk.XrmTooling.WpfControls` - WPF 控件
 
 ## 构建步骤
 
 1. 在 Windows 上克隆仓库
-2. 用 Visual Studio 打开 `DynaAppXPlugin.csproj`
+2. 用 Visual Studio 打开 `DynaAppX.csproj`
 3. 还原 NuGet 包（Visual Studio 会自动提示）
 4. 生成项目（Ctrl+Shift+B）
 5. DLL 输出到 `bin/Debug/` 或 `bin/Release/`
 
 ## 部署到 XrmToolBox
 
-1. 编译项目生成 `DynaAppXPlugin.dll`
+1. 编译项目生成 `DynaAppX.dll`
 2. 打开 XrmToolBox
 3. 进入 **Plugin Manager**（工具 → 插件管理器）
 4. 点击 **Import** 导入编译好的 DLL
@@ -71,8 +78,6 @@ XrmToolBoxPlugin/
 
 插件使用 XrmToolBox 内置的 CRM 连接管理，不需要额外配置认证。
 
-## 依赖
+## 许可证
 
-- Microsoft.CrmSdk.XrmTool.CoreToolbox 9.1.0.4
-- Microsoft.Xrm.Sdk 9.0.2.48
-- Microsoft.Xrm.Tooling.Connector 9.1.0.4
+MIT
