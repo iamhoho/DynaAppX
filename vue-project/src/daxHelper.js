@@ -26,7 +26,12 @@ export const daxHelper = {
 
     },
     getWebAPIUrl: function () {
-        return daxHelper.getCrmUrl() + "/api/data/v" + daxHelper.getVersion() + "/";
+        let baseUrl = daxHelper.getCrmUrl();
+        // In dev mode with VITE_DEVURL, use proxy to avoid CORS cookie issues
+        if (import.meta.env.DEV && import.meta.env.VITE_DEVURL) {
+          return '/crm-api/api/data/v' + daxHelper.getVersion() + '/';
+        }
+        return baseUrl + "/api/data/v" + daxHelper.getVersion() + "/";
     },
     isGuid: function (str) {
         let guidRegex = /^[{(]?[0-9A-Fa-f]{8}[-]?([0-9A-Fa-f]{4}[-]?){3}[0-9A-Fa-f]{12}[)}]?$/i;
