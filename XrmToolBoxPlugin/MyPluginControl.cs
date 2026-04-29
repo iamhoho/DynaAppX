@@ -75,39 +75,27 @@ namespace DynaAppX
                     // Load users
                     var userQuery = new QueryExpression("systemuser")
                     {
-                        ColumnSet = new ColumnSet("fullname", "systemuserid"),
-                        Orders = new[] { new OrderExpression("fullname", OrderType.Ascending) }
+                        ColumnSet = new ColumnSet("fullname", "systemuserid")
                     };
+                    userQuery.Orders.Add(new OrderExpression("fullname", OrderType.Ascending));
                     var users = Service.RetrieveMultiple(userQuery);
 
                     // Load workflows
                     var workflowQuery = new QueryExpression("workflow")
                     {
-                        ColumnSet = new ColumnSet("name", "uniquename", "category", "primaryentity"),
-                        Criteria = new FilterExpression
-                        {
-                            Conditions = new[]
-                            {
-                                new ConditionExpression("statecode", ConditionOperator.Equal, 1),
-                                new ConditionExpression("type", ConditionOperator.Equal, 1),
-                                new ConditionExpression("ondemand", ConditionOperator.Equal, true)
-                            }
-                        }
+                        ColumnSet = new ColumnSet("name", "uniquename", "category", "primaryentity")
                     };
+                    workflowQuery.Criteria.AddCondition("statecode", ConditionOperator.Equal, 1);
+                    workflowQuery.Criteria.AddCondition("type", ConditionOperator.Equal, 1);
+                    workflowQuery.Criteria.AddCondition("ondemand", ConditionOperator.Equal, true);
                     var workflows = Service.RetrieveMultiple(workflowQuery);
 
                     // Load entities
                     var entityQuery = new QueryExpression("entity")
                     {
-                        ColumnSet = new ColumnSet("logicalname"),
-                        Criteria = new FilterExpression
-                        {
-                            Conditions = new[]
-                            {
-                                new ConditionExpression("isvalidforqueue", ConditionOperator.Equal, true)
-                            }
-                        }
+                        ColumnSet = new ColumnSet("logicalname")
                     };
+                    entityQuery.Criteria.AddCondition("isvalidforqueue", ConditionOperator.Equal, true);
                     var entities = Service.RetrieveMultiple(entityQuery);
 
                     args.Result = new { Users = users, Workflows = workflows, Entities = entities };
@@ -182,41 +170,21 @@ namespace DynaAppX
                     // Load roles
                     var roleQuery = new QueryExpression("role")
                     {
-                        ColumnSet = new ColumnSet("name", "roleid"),
-                        LinkEntities = new[]
-                        {
-                            new LinkEntity("role", "systemuserroles", "roleid", "roleid", JoinOperator.Inner)
-                            {
-                                LinkCriteria = new FilterExpression
-                                {
-                                    Conditions = new[]
-                                    {
-                                        new ConditionExpression("systemuserid", ConditionOperator.Equal, userId)
-                                    }
-                                }
-                            }
-                        }
+                        ColumnSet = new ColumnSet("name", "roleid")
                     };
+                    var roleLink = new LinkEntity("role", "systemuserroles", "roleid", "roleid", JoinOperator.Inner);
+                    roleLink.LinkCriteria.AddCondition("systemuserid", ConditionOperator.Equal, userId);
+                    roleQuery.LinkEntities.Add(roleLink);
                     var roles = Service.RetrieveMultiple(roleQuery);
 
                     // Load teams
                     var teamQuery = new QueryExpression("team")
                     {
-                        ColumnSet = new ColumnSet("name", "teamid"),
-                        LinkEntities = new[]
-                        {
-                            new LinkEntity("team", "teammembership", "teamid", "teamid", JoinOperator.Inner)
-                            {
-                                LinkCriteria = new FilterExpression
-                                {
-                                    Conditions = new[]
-                                    {
-                                        new ConditionExpression("systemuserid", ConditionOperator.Equal, userId)
-                                    }
-                                }
-                            }
-                        }
+                        ColumnSet = new ColumnSet("name", "teamid")
                     };
+                    var teamLink = new LinkEntity("team", "teammembership", "teamid", "teamid", JoinOperator.Inner);
+                    teamLink.LinkCriteria.AddCondition("systemuserid", ConditionOperator.Equal, userId);
+                    teamQuery.LinkEntities.Add(teamLink);
                     var teams = Service.RetrieveMultiple(teamQuery);
 
                     args.Result = new { Roles = roles, Teams = teams };

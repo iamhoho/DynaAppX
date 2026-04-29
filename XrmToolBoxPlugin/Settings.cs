@@ -4,7 +4,7 @@ using XrmToolBox.Extensibility;
 
 namespace DynaAppX
 {
-    public class Settings : SettingsBase
+    public class Settings
     {
         public string LastUsedOrganizationWebappUrl { get; set; }
 
@@ -12,7 +12,7 @@ namespace DynaAppX
         {
         }
 
-        public override void Save(IOrganizationService service = null)
+        public void Save()
         {
             SettingsManager.Instance.Save(GetType(), this);
         }
