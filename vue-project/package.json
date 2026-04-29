@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@azure/msal-browser": "^5.9.0",
     "@element-plus/icons-vue": "^2.3.1",
     "element-plus": "^2.7.6",
     "pinia": "^2.1.7",

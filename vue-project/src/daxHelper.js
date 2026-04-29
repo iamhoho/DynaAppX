@@ -1,5 +1,8 @@
+import { authService } from './authService.js'
+
 export const daxHelper = {
     crmUrl: null,
+    accessToken: null,
     getVersion: function () {
         return "8.0";
     },
@@ -33,6 +36,12 @@ export const daxHelper = {
         }
         return baseUrl + "/api/data/v" + daxHelper.getVersion() + "/";
     },
+    getAccessToken: async function () {
+        if (!daxHelper.accessToken) {
+            daxHelper.accessToken = await authService.getAccessToken();
+        }
+        return daxHelper.accessToken;
+    },
     isGuid: function (str) {
         let guidRegex = /^[{(]?[0-9A-Fa-f]{8}[-]?([0-9A-Fa-f]{4}[-]?){3}[0-9A-Fa-f]{12}[)}]?$/i;
         return guidRegex.test(str);
@@ -45,6 +54,9 @@ export const daxHelper = {
         xhr.setRequestHeader("Content-Type", "application/json; charset=utf-8");
         xhr.setRequestHeader("OData-MaxVersion", "4.0");
         xhr.setRequestHeader("OData-Version", "4.0");
+        if (daxHelper.accessToken) {
+            xhr.setRequestHeader("Authorization", "Bearer " + daxHelper.accessToken);
+        }
         xhr.send(JSON.stringify(entity));
         if (xhr.status == 204) {
             return null;
@@ -60,6 +72,9 @@ export const daxHelper = {
         xhr.setRequestHeader("Content-Type", "application/json; charset=utf-8");
         xhr.setRequestHeader("OData-MaxVersion", "4.0");
         xhr.setRequestHeader("OData-Version", "4.0");
+        if (daxHelper.accessToken) {
+            xhr.setRequestHeader("Authorization", "Bearer " + daxHelper.accessToken);
+        }
         xhr.send();
         if (xhr.status == 204) {
             return null;
@@ -79,6 +94,9 @@ export const daxHelper = {
         if (useFormattedValue) {
             xhr.setRequestHeader("Prefer", "odata.include-annotations=\"*\"");
         }
+        if (daxHelper.accessToken) {
+            xhr.setRequestHeader("Authorization", "Bearer " + daxHelper.accessToken);
+        }
         xhr.send();
         if (xhr.status == 200) {
             return JSON.parse(xhr.responseText);
@@ -97,6 +115,9 @@ export const daxHelper = {
         if (useFormattedValue) {
             xhr.setRequestHeader("Prefer", "odata.include-annotations=\"OData.Community.Display.V1.FormattedValue\"");
         }
+        if (daxHelper.accessToken) {
+            xhr.setRequestHeader("Authorization", "Bearer " + daxHelper.accessToken);
+        }
         xhr.send();
         if (xhr.status == 200)
             return JSON.parse(xhr.responseText);
@@ -110,6 +131,9 @@ export const daxHelper = {
         xhr.setRequestHeader("Content-Type", "application/json; charset=utf-8");
         xhr.setRequestHeader("OData-MaxVersion", "4.0");
         xhr.setRequestHeader("OData-Version", "4.0");
+        if (daxHelper.accessToken) {
+            xhr.setRequestHeader("Authorization", "Bearer " + daxHelper.accessToken);
+        }
         xhr.send();
         if (xhr.status == 200)
             return JSON.parse(xhr.responseText);
@@ -125,6 +149,9 @@ export const daxHelper = {
             xhr.setRequestHeader("Content-Type", "application/json; charset=utf-8");
             xhr.setRequestHeader("OData-MaxVersion", "4.0");
             xhr.setRequestHeader("OData-Version", "4.0");
+            if (daxHelper.accessToken) {
+                xhr.setRequestHeader("Authorization", "Bearer " + daxHelper.accessToken);
+            }
             xhr.send();
             if (xhr.status === 200) {
                 daxHelper.entityDefinitions = JSON.parse(xhr.responseText).value;
@@ -163,6 +190,9 @@ export const daxHelper = {
         xhr.setRequestHeader("Content-Type", "application/json; charset=utf-8");
         xhr.setRequestHeader("OData-MaxVersion", "4.0");
         xhr.setRequestHeader("OData-Version", "4.0");
+        if (daxHelper.accessToken) {
+            xhr.setRequestHeader("Authorization", "Bearer " + daxHelper.accessToken);
+        }
         xhr.send();
         if (xhr.status === 200) {
             let jsonResult = JSON.parse(xhr.responseText);

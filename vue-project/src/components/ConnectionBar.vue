@@ -1,14 +1,39 @@
 <script setup>
 import { ref } from 'vue'
 import { daxHelper } from '../daxHelper.js'
+import { authService } from '../authService.js'
 import { ElInput, ElButton, ElDialog, ElMessage } from 'element-plus'
 
 const dialogVisible = ref(false)
 const crmUrl = ref(daxHelper.crmUrl || '')
 const connected = ref(!!daxHelper.crmUrl)
+const isAuthEnabled = ref(!!import.meta.env.VITE_AZURE_CLIENT_ID)
 
 function openDialog() {
   dialogVisible.value = true
+}
+
+async function login() {
+  try {
+    await authService.login()
+    daxHelper.accessToken = await authService.getAccessToken()
+    connected.value = true
+    dialogVisible.value = false
+    ElMessage.success('Logged in successfully')
+  } catch (error) {
+    ElMessage.error('Login failed: ' + error.message)
+  }
+}
+
+async function logout() {
+  try {
+    await authService.logout()
+    daxHelper.accessToken = null
+    connected.value = false
+    ElMessage.success('Logged out')
+  } catch (error) {
+    ElMessage.error('Logout failed: ' + error.message)
+  }
 }
 
 function connect() {
@@ -37,7 +62,15 @@ defineExpose({ openDialog, connected })
     <span class="status" :class="{ connected }">
       {{ connected ? 'Connected' : 'Not Connected' }}
     </span>
-    <el-button size="small" @click="openDialog">
+    <template v-if="isAuthEnabled">
+      <el-button v-if="!connected" size="small" @click="login">
+        Login with OAuth2
+      </el-button>
+      <el-button v-else size="small" @click="logout">
+        Logout
+      </el-button>
+    </template>
+    <el-button v-else size="small" @click="openDialog">
       {{ connected ? 'Change CRM' : 'Connect CRM' }}
     </el-button>
   </div>
