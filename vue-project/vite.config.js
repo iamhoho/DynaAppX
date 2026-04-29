@@ -14,7 +14,8 @@ export default defineConfig(({ mode }) => {
       target: devUrl,
       changeOrigin: true,
       secure: true,
-      rewrite: (path) => path.replace(/^\/crm-api/, '')
+      rewrite: (path) => path.replace(/^\/crm-api/, ''),
+      cookieDomainRewrite: 'localhost'
     }
   }
 
