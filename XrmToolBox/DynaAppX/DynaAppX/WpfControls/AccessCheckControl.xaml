@@ -1,0 +1,108 @@
+<UserControl x:Class="DynaAppX.WpfControls.AccessCheckControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:Converters="clr-namespace:DynaAppX.Converters"
+             mc:Ignorable="d"
+             d:DesignHeight="600" d:DesignWidth="900">
+    <UserControl.Resources>
+        <Converters:AccessColorConverter x:Key="AccessColorConverter"/>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10" HorizontalAlignment="Center">
+            <TextBlock Text="Access Check Tool" FontSize="20" FontWeight="Bold" VerticalAlignment="Center"/>
+        </StackPanel>
+
+        <!-- Selection Row -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="10" HorizontalAlignment="Center">
+            <TextBlock Text="User:" VerticalAlignment="Center" Width="80" Margin="0,0,5,0"/>
+            <ComboBox x:Name="cboUser" Width="250" Margin="0,0,20,0" IsEditable="True"
+                      DisplayMemberPath="FullName" SelectedValuePath="Id"
+                      SelectionChanged="cboUser_SelectionChanged"
+                      DropDownOpened="cboUser_DropDownOpened"/>
+            <TextBlock Text="Entity:" VerticalAlignment="Center" Width="80" Margin="0,0,5,0"/>
+            <ComboBox x:Name="cboEntity" Width="200" Margin="0,0,20,0"
+                      DisplayMemberPath="DisplayName"
+                      SelectionChanged="cboEntity_SelectionChanged"
+                      DropDownOpened="cboEntity_DropDownOpened"/>
+            <TextBlock Text="Record:" VerticalAlignment="Center" Width="80" Margin="0,0,5,0"/>
+            <ComboBox x:Name="cboRecord" Width="250" IsEditable="True"
+                      DisplayMemberPath="RecordName" SelectedValuePath="Id"
+                      SelectionChanged="cboRecord_SelectionChanged"
+                      DropDownOpened="cboRecord_DropDownOpened"/>
+        </StackPanel>
+
+        <!-- User Info Section -->
+        <GroupBox Grid.Row="2" Header="User Info" Margin="10" Padding="10">
+            <StackPanel>
+                <TextBlock x:Name="txtUserName" FontWeight="Bold" Margin="0,0,0,5"/>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Roles: " FontWeight="Bold" VerticalAlignment="Center"/>
+                    <ItemsControl x:Name="lstRoles">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Content="{Binding Name}" Margin="2" Padding="5,2"
+                                        Click="btnRole_Click" Tag="{Binding Id}"
+                                        Background="#5cb85c" Foreground="White"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
+                    <TextBlock Text="Teams: " FontWeight="Bold" VerticalAlignment="Center"/>
+                    <ItemsControl x:Name="lstTeams">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Content="{Binding Name}" Margin="2" Padding="5,2"
+                                        Click="btnTeam_Click" Tag="{Binding Id}"
+                                        Background="#337ab7" Foreground="White"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </StackPanel>
+        </GroupBox>
+
+        <!-- Access Rights Section -->
+        <GroupBox Grid.Row="3" Header="Record Access Rights" Margin="10" Padding="10">
+            <ItemsControl x:Name="lstAccessRights">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Margin="3" Padding="10,5" CornerRadius="3"
+                                Background="{Binding HasAccess, Converter={StaticResource AccessColorConverter}}">
+                            <TextBlock Text="{Binding RightName}" FontWeight="Bold" Foreground="White"/>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </GroupBox>
+
+        <!-- Status -->
+        <TextBlock Grid.Row="4" x:Name="txtStatus" Margin="10" VerticalAlignment="Bottom"/>
+    </Grid>
+</UserControl>

@@ -253,6 +253,14 @@
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Settings.cs" />
+    <Compile Include="Converters\AccessColorConverter.cs" />
+    <Compile Include="WpfControls\AccessCheckControl.xaml.cs">
+      <DependentUpon>AccessCheckControl.xaml</DependentUpon>
+    </Compile>
+    <Page Include="WpfControls\AccessCheckControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Compile Include="WpfControls\WpfTestControl.xaml.cs">
       <DependentUpon>WpfTestControl.xaml</DependentUpon>
     </Compile>
