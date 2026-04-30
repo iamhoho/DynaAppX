@@ -25,21 +25,27 @@ namespace DynaAppX.WpfControls
         public void SetService(IOrganizationService service)
         {
             _service = service;
-            // Load data after service is set
+            txtStatus.Text = "Service connected. Ready.";
             LoadEntities();
         }
 
         private void AccessCheckControl_Loaded(object sender, RoutedEventArgs e)
         {
-            // Don't load here, wait for SetService to be called
+            txtStatus.Text = "Waiting for CRM connection...";
         }
 
         private void LoadEntities()
         {
-            if (_service == null) return;
+            if (_service == null)
+            {
+                txtStatus.Text = "Error: Service not initialized";
+                return;
+            }
 
             try
             {
+                txtStatus.Text = "Loading entities...";
+
                 // Get custom entities
                 var customQuery = new QueryExpression("entitydefinition")
                 {
@@ -73,6 +79,7 @@ namespace DynaAppX.WpfControls
 
                 cboEntity.ItemsSource = null;
                 cboEntity.ItemsSource = allEntities;
+                txtStatus.Text = $"Loaded {allEntities.Count} entities";
             }
             catch (Exception ex)
             {
@@ -97,7 +104,7 @@ namespace DynaAppX.WpfControls
 
         private void cboRecord_DropDownOpened(object sender, EventArgs e)
         {
-            if (cboRecord.IsEditable)
+            if (cboRecord.IsEditable && cboEntity.SelectedItem != null)
             {
                 SearchRecords(cboRecord.Text);
             }
@@ -125,6 +132,12 @@ namespace DynaAppX.WpfControls
 
         private void SearchUsers(string searchText)
         {
+            if (_service == null)
+            {
+                txtStatus.Text = "Error: Service not initialized";
+                return;
+            }
+
             try
             {
                 var query = new QueryExpression("systemuser")
@@ -159,6 +172,12 @@ namespace DynaAppX.WpfControls
 
         private void LoadRecords(Entity entity)
         {
+            if (_service == null)
+            {
+                txtStatus.Text = "Error: Service not initialized";
+                return;
+            }
+
             try
             {
                 var entityName = entity.GetAttributeValue<string>("LogicalName");
@@ -205,6 +224,8 @@ namespace DynaAppX.WpfControls
 
         private string GetPrimaryNameAttribute(string entityName)
         {
+            if (_service == null) return "name";
+
             try
             {
                 var query = new QueryExpression("entitydefinition")
@@ -226,6 +247,8 @@ namespace DynaAppX.WpfControls
 
         private void LoadUserRoles(Entity user)
         {
+            if (_service == null) return;
+
             try
             {
                 var userId = user.Id;
@@ -250,6 +273,8 @@ namespace DynaAppX.WpfControls
 
         private void LoadUserTeams(Entity user)
         {
+            if (_service == null) return;
+
             try
             {
                 var userId = user.Id;
@@ -274,6 +299,8 @@ namespace DynaAppX.WpfControls
 
         private void CheckAccessRights()
         {
+            if (_service == null) return;
+
             if (cboUser.SelectedItem == null || cboRecord.SelectedItem == null || cboEntity.SelectedItem == null)
             {
                 lstAccessRights.ItemsSource = null;
@@ -316,6 +343,8 @@ namespace DynaAppX.WpfControls
 
         private bool HasAccess(Guid userId, Guid recordId, string entityName, string entitySetName, string accessRight)
         {
+            if (_service == null) return false;
+
             try
             {
                 // Check access via principalobjectaccess table
