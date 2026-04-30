@@ -250,7 +250,16 @@ namespace DynaAppX.WpfControls
                 </fetch>";
 
                 var results = _service.RetrieveMultiple(new FetchExpression(fetchXml));
-                lstRoles.ItemsSource = results.Entities;
+                var roleWrappers = new List<RoleWrapper>();
+                foreach (var r in results.Entities)
+                {
+                    roleWrappers.Add(new RoleWrapper
+                    {
+                        Id = r.Id,
+                        Name = r.GetAttributeValue<string>("name") ?? "(No name)"
+                    });
+                }
+                lstRoles.ItemsSource = roleWrappers;
             }
             catch (Exception ex)
             {
@@ -279,7 +288,16 @@ namespace DynaAppX.WpfControls
                 </fetch>";
 
                 var results = _service.RetrieveMultiple(new FetchExpression(fetchXml));
-                lstTeams.ItemsSource = results.Entities;
+                var teamWrappers = new List<TeamWrapper>();
+                foreach (var t in results.Entities)
+                {
+                    teamWrappers.Add(new TeamWrapper
+                    {
+                        Id = t.Id,
+                        Name = t.GetAttributeValue<string>("name") ?? "(No name)"
+                    });
+                }
+                lstTeams.ItemsSource = teamWrappers;
             }
             catch (Exception ex)
             {
@@ -409,6 +427,18 @@ namespace DynaAppX.WpfControls
         public string DomainName { get; set; }
         public string DisplayName => FullName;
         public Entity Entity { get; set; }
+    }
+
+    public class RoleWrapper
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; }
+    }
+
+    public class TeamWrapper
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; }
     }
 
     public class EntityWrapper
