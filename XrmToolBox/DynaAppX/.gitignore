@@ -1,0 +1,77 @@
+# Visual Studio / .NET common
+.vs/
+.vscode/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Bb]in/
+[Oo]bj/
+TestResults/
+artifacts/
+
+# NuGet
+packages/
+*.nupkg
+project.lock.json
+project.fragment.lock.json
+.nuget/
+
+# Publish/Deployment
+PublishProfiles/
+*.Publish.xml
+*.azurePubxml
+*.azurePubxml.user
+
+# Rider / ReSharper
+.idea/
+*.sln.iml
+_ReSharper*/
+*.DotSettings.user
+*.DotSettings
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# Visual Studio Code workspace
+.history/
+.vscode/
+
+# Logs and databases
+*.log
+*.sqlite
+*.db
+*.db-journal
+*.mdf
+*.ldf
+
+# Symbols and temporary files
+*.pdb
+*.cache
+*.opendb
+*.class
+*.DS_Store
+Thumbs.db
+Desktop.ini
+
+# VS source control / team files
+*.vspscc
+*.vssscc
+
+# npm / frontend
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Other common
+*.bak
+*.orig
+*.rej
+
+# Keep solution and project files tracked:
+# *.sln
+# *.csproj
+# *.vbproj
+# *.fsproj
