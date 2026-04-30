@@ -42,8 +42,8 @@ namespace DynaAppX.WpfControls
                     ColumnSet = new ColumnSet("LogicalName", "DisplayName", "EntitySetName", "PrimaryIdAttribute", "PrimaryNameAttribute"),
                     Orders = { new OrderExpression("DisplayName", OrderType.Ascending) }
                 };
-                customQuery.Criteria.AddCondition("IsIntersect", ConditionOperator.Equals, false);
-                customQuery.Criteria.AddCondition("IsCustomEntity", ConditionOperator.Equals, true);
+                customQuery.Criteria.AddCondition("IsIntersect", ConditionOperator.Equal, false);
+                customQuery.Criteria.AddCondition("IsCustomEntity", ConditionOperator.Equal, true);
 
                 _entities = _service.RetrieveMultiple(customQuery);
 
@@ -53,7 +53,7 @@ namespace DynaAppX.WpfControls
                     ColumnSet = new ColumnSet("LogicalName", "DisplayName", "EntitySetName", "PrimaryIdAttribute", "PrimaryNameAttribute"),
                     Orders = { new OrderExpression("DisplayName", OrderType.Ascending) }
                 };
-                systemQuery.Criteria.AddCondition("IsIntersect", ConditionOperator.Equals, false);
+                systemQuery.Criteria.AddCondition("IsIntersect", ConditionOperator.Equal, false);
 
                 var systemEntities = _service.RetrieveMultiple(systemQuery);
 
