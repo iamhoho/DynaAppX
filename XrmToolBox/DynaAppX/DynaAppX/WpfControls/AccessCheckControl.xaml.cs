@@ -12,7 +12,7 @@ namespace DynaAppX.WpfControls
         private IOrganizationService _service;
         private EntityCollection _entities;
         private List<Entity> _users = new List<Entity>();
-        private List<Entity> _records = new List<Entity>();
+        private List<RecordWrapper> _records = new List<RecordWrapper>();
 
         public event Action<string> OpenRecordRequested;
 
@@ -36,26 +36,39 @@ namespace DynaAppX.WpfControls
         {
             try
             {
-                var query = new QueryExpression("entitydefinition")
+                // Get custom entities
+                var customQuery = new QueryExpression("entitydefinition")
                 {
-                    ColumnSet = new ColumnSet("LogicalName", "DisplayName", "EntitySetName"),
+                    ColumnSet = new ColumnSet("LogicalName", "DisplayName", "EntitySetName", "PrimaryIdAttribute", "PrimaryNameAttribute"),
                     Orders = { new OrderExpression("DisplayName", OrderType.Ascending) }
                 };
-                query.Criteria.AddCondition("IsIntersect", ConditionOperator.Equals, false);
-                query.Criteria.AddCondition("IsCustomEntity", ConditionOperator.Equals, true);
+                customQuery.Criteria.AddCondition("IsIntersect", ConditionOperator.Equals, false);
+                customQuery.Criteria.AddCondition("IsCustomEntity", ConditionOperator.Equals, true);
 
-                _entities = _service.RetrieveMultiple(query);
+                _entities = _service.RetrieveMultiple(customQuery);
 
-                var allEntities = new EntityCollection(_entities.Entities);
-                query.Criteria.RemoveCondition("IsCustomEntity");
-                var systemEntities = _service.RetrieveMultiple(query);
+                // Get system entities
+                var systemQuery = new QueryExpression("entitydefinition")
+                {
+                    ColumnSet = new ColumnSet("LogicalName", "DisplayName", "EntitySetName", "PrimaryIdAttribute", "PrimaryNameAttribute"),
+                    Orders = { new OrderExpression("DisplayName", OrderType.Ascending) }
+                };
+                systemQuery.Criteria.AddCondition("IsIntersect", ConditionOperator.Equals, false);
+
+                var systemEntities = _service.RetrieveMultiple(systemQuery);
+
+                var allEntities = new List<Entity>();
+                foreach (var entity in _entities.Entities)
+                {
+                    allEntities.Add(entity);
+                }
                 foreach (var entity in systemEntities.Entities)
                 {
-                    allEntities.Entities.Add(entity);
+                    allEntities.Add(entity);
                 }
 
                 cboEntity.ItemsSource = null;
-                cboEntity.ItemsSource = allEntities.Entities;
+                cboEntity.ItemsSource = allEntities;
             }
             catch (Exception ex)
             {
@@ -195,7 +208,7 @@ namespace DynaAppX.WpfControls
                     ColumnSet = new ColumnSet("PrimaryNameAttribute"),
                     Criteria = new FilterExpression()
                 };
-                query.Criteria.AddCondition("LogicalName", ConditionOperator.Equals, entityName);
+                query.Criteria.AddCondition("LogicalName", ConditionOperator.Equal, entityName);
 
                 var results = _service.RetrieveMultiple(query);
                 if (results.Entities.Count > 0)
@@ -215,22 +228,12 @@ namespace DynaAppX.WpfControls
 
                 var query = new QueryExpression("role")
                 {
-                    ColumnSet = new ColumnSet("roleid", "name"),
-                    Joiner = JoinOperator.Inner,
-                    LinkEntities =
-                    {
-                        new LinkEntity("role", "systemuserroles", "roleid", "roleid", JoinOperator.Inner)
-                        {
-                            LinkCriteria = new FilterExpression
-                            {
-                                Conditions =
-                                {
-                                    new ConditionExpression("systemuserid", ConditionOperator.Equal, userId)
-                                }
-                            }
-                        }
-                    }
+                    ColumnSet = new ColumnSet("roleid", "name")
                 };
+
+                var link = new LinkEntity("role", "systemuserroles", "roleid", "roleid", JoinOperator.Inner);
+                link.LinkCriteria.AddCondition("systemuserid", ConditionOperator.Equal, userId);
+                query.LinkEntities.Add(link);
 
                 var results = _service.RetrieveMultiple(query);
                 lstRoles.ItemsSource = results.Entities;
@@ -249,22 +252,12 @@ namespace DynaAppX.WpfControls
 
                 var query = new QueryExpression("team")
                 {
-                    ColumnSet = new ColumnSet("teamid", "name"),
-                    Joiner = JoinOperator.Inner,
-                    LinkEntities =
-                    {
-                        new LinkEntity("team", "teammembership", "teamid", "teamid", JoinOperator.Inner)
-                        {
-                            LinkCriteria = new FilterExpression
-                            {
-                                Conditions =
-                                {
-                                    new ConditionExpression("systemuserid", ConditionOperator.Equal, userId)
-                                }
-                            }
-                        }
-                    }
+                    ColumnSet = new ColumnSet("teamid", "name")
                 };
+
+                var link = new LinkEntity("team", "teammembership", "teamid", "teamid", JoinOperator.Inner);
+                link.LinkCriteria.AddCondition("systemuserid", ConditionOperator.Equal, userId);
+                query.LinkEntities.Add(link);
 
                 var results = _service.RetrieveMultiple(query);
                 lstTeams.ItemsSource = results.Entities;
@@ -321,22 +314,14 @@ namespace DynaAppX.WpfControls
         {
             try
             {
-                var target = new EntityReference(entityName, recordId);
-                var access = _service.Retrieve("systemuser", userId, new ColumnSet("systemuserid"));
-
-                // Try to retrieve principal access
+                // Check access via principalobjectaccess table
                 var query = new QueryExpression("principalobjectaccess")
                 {
                     ColumnSet = new ColumnSet("accessrights"),
-                    Criteria = new FilterExpression
-                    {
-                        Conditions =
-                        {
-                            new ConditionExpression("principalid", ConditionOperator.Equal, userId),
-                            new ConditionExpression("objectid", ConditionOperator.Equal, recordId)
-                        }
-                    }
+                    Criteria = new FilterExpression()
                 };
+                query.Criteria.AddCondition("principalid", ConditionOperator.Equal, userId);
+                query.Criteria.AddCondition("objectid", ConditionOperator.Equal, recordId);
 
                 var results = _service.RetrieveMultiple(query);
                 if (results.Entities.Count > 0)
