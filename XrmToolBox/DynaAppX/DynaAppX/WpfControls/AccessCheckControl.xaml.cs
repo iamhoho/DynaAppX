@@ -100,7 +100,8 @@ namespace DynaAppX.WpfControls
 
         private void cboUser_DropDownOpened(object sender, EventArgs e)
         {
-            SearchUsers("");
+            var searchText = cboUser.Text ?? "";
+            SearchUsers(searchText);
         }
 
         private void cboRecord_DropDownOpened(object sender, EventArgs e)
