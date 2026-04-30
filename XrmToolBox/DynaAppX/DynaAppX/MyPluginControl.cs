@@ -58,9 +58,9 @@ namespace DynaAppX
             }
 
             // Pass service to the AccessCheck control
-            if (accessCheckControl != null && Service != null)
+            if (accessCheckControl != null && newService != null)
             {
-                accessCheckControl.SetService(Service);
+                accessCheckControl.SetService(newService);
             }
         }
 
