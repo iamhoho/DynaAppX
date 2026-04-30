@@ -25,15 +25,19 @@ namespace DynaAppX.WpfControls
         public void SetService(IOrganizationService service)
         {
             _service = service;
+            // Load data after service is set
+            LoadEntities();
         }
 
         private void AccessCheckControl_Loaded(object sender, RoutedEventArgs e)
         {
-            LoadEntities();
+            // Don't load here, wait for SetService to be called
         }
 
         private void LoadEntities()
         {
+            if (_service == null) return;
+
             try
             {
                 // Get custom entities
