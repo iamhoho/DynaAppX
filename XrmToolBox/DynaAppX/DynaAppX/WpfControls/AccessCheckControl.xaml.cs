@@ -14,6 +14,7 @@ namespace DynaAppX.WpfControls
         private IOrganizationService _service;
         private List<UserWrapper> _users = new List<UserWrapper>();
         private List<RecordWrapper> _records = new List<RecordWrapper>();
+        private List<EntityWrapper> _allEntities = new List<EntityWrapper>();
         private List<EntityWrapper> _entities = new List<EntityWrapper>();
 
         public event Action<string> OpenRecordRequested;
@@ -56,6 +57,7 @@ namespace DynaAppX.WpfControls
 
                 var response = (RetrieveAllEntitiesResponse)_service.Execute(request);
 
+                _allEntities.Clear();
                 _entities.Clear();
                 foreach (var entity in response.EntityMetadata)
                 {
@@ -63,14 +65,16 @@ namespace DynaAppX.WpfControls
                     if (string.IsNullOrEmpty(entity.LogicalName)) continue;
 
                     var displayName = entity.DisplayName?.UserLocalizedLabel?.Label ?? entity.LogicalName;
-                    _entities.Add(new EntityWrapper
+                    var wrapper = new EntityWrapper
                     {
                         LogicalName = entity.LogicalName,
                         DisplayName = displayName,
                         EntitySetName = entity.EntitySetName,
                         PrimaryIdAttribute = entity.PrimaryIdAttribute,
                         PrimaryNameAttribute = entity.PrimaryNameAttribute
-                    });
+                    };
+                    _allEntities.Add(wrapper);
+                    _entities.Add(wrapper);
                 }
 
                 cboEntity.ItemsSource = null;
@@ -91,6 +95,37 @@ namespace DynaAppX.WpfControls
             {
                 LoadRecords(entityWrapper);
             }
+        }
+
+        private void cboEntity_DropDownOpened(object sender, EventArgs e)
+        {
+            var searchText = cboEntity.Text?.ToLower() ?? "";
+            FilterEntities(searchText);
+        }
+
+        private void FilterEntities(string searchText)
+        {
+            _entities.Clear();
+            if (string.IsNullOrEmpty(searchText))
+            {
+                foreach (var entity in _allEntities)
+                {
+                    _entities.Add(entity);
+                }
+            }
+            else
+            {
+                foreach (var entity in _allEntities)
+                {
+                    if (entity.LogicalName.ToLower().Contains(searchText) ||
+                        entity.DisplayName.ToLower().Contains(searchText))
+                    {
+                        _entities.Add(entity);
+                    }
+                }
+            }
+            cboEntity.ItemsSource = null;
+            cboEntity.ItemsSource = _entities;
         }
 
         private void cboUser_DropDownOpened(object sender, EventArgs e)
@@ -120,11 +155,6 @@ namespace DynaAppX.WpfControls
         private void cboRecord_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             CheckAccessRights();
-        }
-
-        private void cboEntity_DropDownOpened(object sender, EventArgs e)
-        {
-            LoadEntities();
         }
 
         private void SearchUsers(string searchText)
