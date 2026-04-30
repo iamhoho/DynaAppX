@@ -1,5 +1,7 @@
 using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Query;
+using Microsoft.Xrm.Sdk.Metadata;
 using System;
 using System.Collections.Generic;
 using System.Windows;
@@ -46,35 +48,28 @@ namespace DynaAppX.WpfControls
             {
                 txtStatus.Text = "Loading entities...";
 
-                var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
-                    <entity name='entitydefinition'>
-                        <attribute name='LogicalName'/>
-                        <attribute name='DisplayName'/>
-                        <attribute name='EntitySetName'/>
-                        <attribute name='PrimaryIdAttribute'/>
-                        <attribute name='PrimaryNameAttribute'/>
-                        <order attribute='DisplayName' descending='false'/>
-                        <filter type='and'>
-                            <condition attribute='IsIntersect' operator='eq' value='0'/>
-                        </filter>
-                    </entity>
-                </fetch>";
+                var request = new RetrieveAllEntitiesRequest
+                {
+                    EntityFilters = EntityFilters.Entity,
+                    RetrieveAsIfPublished = true
+                };
 
-                var result = _service.RetrieveMultiple(new FetchExpression(fetchXml));
+                var response = (RetrieveAllEntitiesResponse)_service.Execute(request);
 
                 _entities.Clear();
-                foreach (var entity in result.Entities)
+                foreach (var entity in response.EntityMetadata)
                 {
-                    var displayName = entity.GetAttributeValue<string>("DisplayName");
-                    var label = displayName ?? entity.GetAttributeValue<string>("LogicalName");
+                    if (entity.IsIntersect == true) continue;
+                    if (string.IsNullOrEmpty(entity.LogicalName)) continue;
+
+                    var displayName = entity.DisplayName?.UserLocalizedLabel?.Label ?? entity.LogicalName;
                     _entities.Add(new EntityWrapper
                     {
-                        LogicalName = entity.GetAttributeValue<string>("LogicalName"),
-                        DisplayName = label,
-                        EntitySetName = entity.GetAttributeValue<string>("EntitySetName"),
-                        PrimaryIdAttribute = entity.GetAttributeValue<string>("PrimaryIdAttribute"),
-                        PrimaryNameAttribute = entity.GetAttributeValue<string>("PrimaryNameAttribute"),
-                        Entity = entity
+                        LogicalName = entity.LogicalName,
+                        DisplayName = displayName,
+                        EntitySetName = entity.EntitySetName,
+                        PrimaryIdAttribute = entity.PrimaryIdAttribute,
+                        PrimaryNameAttribute = entity.PrimaryNameAttribute
                     });
                 }
 
