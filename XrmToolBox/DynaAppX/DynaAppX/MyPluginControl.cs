@@ -13,6 +13,7 @@ namespace DynaAppX
     {
         private Settings mySettings;
         private AccessCheckControl accessCheckControl;
+        private IOrganizationService currentService;
 
         public MyPluginControl()
         {
@@ -26,6 +27,7 @@ namespace DynaAppX
             // Initialize AccessCheck control
             accessCheckControl = new AccessCheckControl();
             accessCheckControl.OpenRecordRequested += OnOpenRecordRequested;
+            accessCheckControl.SetService(currentService);
 
             var elementHost = new ElementHost
             {
@@ -56,6 +58,7 @@ namespace DynaAppX
                 mySettings.LastUsedOrganizationWebappUrl = detail.WebApplicationUrl;
                 LogInfo("Connection has changed to: {0}", detail.WebApplicationUrl);
             }
+            currentService = newService;
 
             // Pass service to the AccessCheck control
             if (accessCheckControl != null && newService != null)
