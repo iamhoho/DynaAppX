@@ -1,22 +1,19 @@
-﻿using McTools.Xrm.Connection;
+using McTools.Xrm.Connection;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Windows.Forms.Integration;
 using XrmToolBox.Extensibility;
+using DynaAppX.WpfControls;
 
 namespace DynaAppX
 {
     public partial class MyPluginControl : PluginControlBase
     {
         private Settings mySettings;
+        private ElementHost elementHost;
+        private WpfTestControl wpfControl;
 
         public MyPluginControl()
         {
@@ -25,13 +22,24 @@ namespace DynaAppX
 
         private void MyPluginControl_Load(object sender, EventArgs e)
         {
-            ShowInfoNotification("This is a notification that can lead to XrmToolBox repository", new Uri("https://github.com/MscrmTools/XrmToolBox"));
+            ShowInfoNotification("This is a WPF demo for XrmToolBox", new Uri("https://github.com/MscrmTools/XrmToolBox"));
+
+            // Initialize WPF control and host it
+            wpfControl = new WpfTestControl();
+            elementHost = new ElementHost
+            {
+                Dock = DockStyle.Fill,
+                Child = wpfControl
+            };
+
+            // Add ElementHost to the existing controls
+            this.Controls.Add(elementHost);
+            this.toolStripMenu.Visible = false;
 
             // Loads or creates the settings for the plugin
             if (!SettingsManager.Instance.TryLoad(GetType(), out mySettings))
             {
                 mySettings = new Settings();
-
                 LogWarning("Settings not found => a new settings file has been created!");
             }
             else
@@ -47,8 +55,6 @@ namespace DynaAppX
 
         private void tsbSample_Click(object sender, EventArgs e)
         {
-            // The ExecuteMethod method handles connecting to an
-            // organization if XrmToolBox is not yet connected
             ExecuteMethod(GetAccounts);
         }
 
@@ -79,20 +85,11 @@ namespace DynaAppX
             });
         }
 
-        /// <summary>
-        /// This event occurs when the plugin is closed
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void MyPluginControl_OnCloseTool(object sender, EventArgs e)
         {
-            // Before leaving, save the settings
             SettingsManager.Instance.Save(GetType(), mySettings);
         }
 
-        /// <summary>
-        /// This event occurs when the connection has been updated in XrmToolBox
-        /// </summary>
         public override void UpdateConnection(IOrganizationService newService, ConnectionDetail detail, string actionName, object parameter)
         {
             base.UpdateConnection(newService, detail, actionName, parameter);
