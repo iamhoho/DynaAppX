@@ -10,9 +10,9 @@ namespace DynaAppX.WpfControls
     public partial class AccessCheckControl : UserControl
     {
         private IOrganizationService _service;
-        private EntityCollection _entities;
-        private List<Entity> _users = new List<Entity>();
+        private List<UserWrapper> _users = new List<UserWrapper>();
         private List<RecordWrapper> _records = new List<RecordWrapper>();
+        private List<EntityWrapper> _entities = new List<EntityWrapper>();
 
         public event Action<string> OpenRecordRequested;
 
@@ -46,40 +46,41 @@ namespace DynaAppX.WpfControls
             {
                 txtStatus.Text = "Loading entities...";
 
-                // Get custom entities
-                var customQuery = new QueryExpression("entitydefinition")
-                {
-                    ColumnSet = new ColumnSet("LogicalName", "DisplayName", "EntitySetName", "PrimaryIdAttribute", "PrimaryNameAttribute"),
-                    Orders = { new OrderExpression("DisplayName", OrderType.Ascending) }
-                };
-                customQuery.Criteria.AddCondition("IsIntersect", ConditionOperator.Equal, false);
-                customQuery.Criteria.AddCondition("IsCustomEntity", ConditionOperator.Equal, true);
+                var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
+                    <entity name='entitydefinition'>
+                        <attribute name='LogicalName'/>
+                        <attribute name='DisplayName'/>
+                        <attribute name='EntitySetName'/>
+                        <attribute name='PrimaryIdAttribute'/>
+                        <attribute name='PrimaryNameAttribute'/>
+                        <order attribute='DisplayName' descending='false'/>
+                        <filter type='and'>
+                            <condition attribute='IsIntersect' operator='eq' value='0'/>
+                        </filter>
+                    </entity>
+                </fetch>";
 
-                _entities = _service.RetrieveMultiple(customQuery);
+                var result = _service.RetrieveMultiple(new FetchExpression(fetchXml));
 
-                // Get system entities
-                var systemQuery = new QueryExpression("entitydefinition")
+                _entities.Clear();
+                foreach (var entity in result.Entities)
                 {
-                    ColumnSet = new ColumnSet("LogicalName", "DisplayName", "EntitySetName", "PrimaryIdAttribute", "PrimaryNameAttribute"),
-                    Orders = { new OrderExpression("DisplayName", OrderType.Ascending) }
-                };
-                systemQuery.Criteria.AddCondition("IsIntersect", ConditionOperator.Equal, false);
-
-                var systemEntities = _service.RetrieveMultiple(systemQuery);
-
-                var allEntities = new List<Entity>();
-                foreach (var entity in _entities.Entities)
-                {
-                    allEntities.Add(entity);
-                }
-                foreach (var entity in systemEntities.Entities)
-                {
-                    allEntities.Add(entity);
+                    var displayName = entity.GetAttributeValue<string>("DisplayName");
+                    var label = displayName ?? entity.GetAttributeValue<string>("LogicalName");
+                    _entities.Add(new EntityWrapper
+                    {
+                        LogicalName = entity.GetAttributeValue<string>("LogicalName"),
+                        DisplayName = label,
+                        EntitySetName = entity.GetAttributeValue<string>("EntitySetName"),
+                        PrimaryIdAttribute = entity.GetAttributeValue<string>("PrimaryIdAttribute"),
+                        PrimaryNameAttribute = entity.GetAttributeValue<string>("PrimaryNameAttribute"),
+                        Entity = entity
+                    });
                 }
 
                 cboEntity.ItemsSource = null;
-                cboEntity.ItemsSource = allEntities;
-                txtStatus.Text = $"Loaded {allEntities.Count} entities";
+                cboEntity.ItemsSource = _entities;
+                txtStatus.Text = $"Loaded {_entities.Count} entities";
             }
             catch (Exception ex)
             {
@@ -91,9 +92,9 @@ namespace DynaAppX.WpfControls
         {
             cboRecord.ItemsSource = null;
             _records.Clear();
-            if (cboEntity.SelectedItem is Entity entity)
+            if (cboEntity.SelectedItem is EntityWrapper entityWrapper)
             {
-                LoadRecords(entity);
+                LoadRecords(entityWrapper);
             }
         }
 
@@ -112,7 +113,7 @@ namespace DynaAppX.WpfControls
 
         private void cboUser_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (cboUser.SelectedItem is Entity user)
+            if (cboUser.SelectedItem is UserWrapper user)
             {
                 LoadUserRoles(user);
                 LoadUserTeams(user);
@@ -140,29 +141,35 @@ namespace DynaAppX.WpfControls
 
             try
             {
-                var query = new QueryExpression("systemuser")
-                {
-                    ColumnSet = new ColumnSet("systemuserid", "fullname", "domainname"),
-                    Orders = { new OrderExpression("fullname", OrderType.Ascending) },
-                    TopCount = 30
-                };
+                var fetchXml = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' top='30'>
+                    <entity name='systemuser'>
+                        <attribute name='systemuserid'/>
+                        <attribute name='fullname'/>
+                        <attribute name='domainname'/>
+                        <order attribute='fullname' descending='false'/>
+                        <filter type='and'>
+                            <condition attribute='isdisabled' operator='eq' value='0'/>
+                            {(!string.IsNullOrEmpty(searchText) ? $"<condition attribute='fullname' operator='like' value='%{searchText}%'/>" : "")}
+                        </filter>
+                    </entity>
+                </fetch>";
 
-                if (!string.IsNullOrEmpty(searchText))
-                {
-                    query.Criteria.AddCondition("fullname", ConditionOperator.Like, $"%{searchText}%");
-                }
-
-                var results = _service.RetrieveMultiple(query);
+                var result = _service.RetrieveMultiple(new FetchExpression(fetchXml));
                 _users.Clear();
-                foreach (var user in results.Entities)
+                foreach (var user in result.Entities)
                 {
-                    _users.Add(user);
+                    _users.Add(new UserWrapper
+                    {
+                        Id = user.Id,
+                        FullName = user.GetAttributeValue<string>("fullname") ?? "(No name)",
+                        DomainName = user.GetAttributeValue<string>("domainname"),
+                        Entity = user
+                    });
                 }
 
                 cboUser.ItemsSource = null;
                 cboUser.ItemsSource = _users;
-                cboUser.DisplayMemberPath = "FullName";
-                cboUser.SelectedValuePath = "Id";
+                txtStatus.Text = $"Found {_users.Count} users";
             }
             catch (Exception ex)
             {
@@ -170,7 +177,7 @@ namespace DynaAppX.WpfControls
             }
         }
 
-        private void LoadRecords(Entity entity)
+        private void LoadRecords(EntityWrapper entityWrapper)
         {
             if (_service == null)
             {
@@ -180,19 +187,20 @@ namespace DynaAppX.WpfControls
 
             try
             {
-                var entityName = entity.GetAttributeValue<string>("LogicalName");
-                var primaryNameAttr = GetPrimaryNameAttribute(entityName);
+                var entityName = entityWrapper.LogicalName;
+                var primaryNameAttr = entityWrapper.PrimaryNameAttribute ?? "name";
 
-                var query = new QueryExpression(entityName)
-                {
-                    ColumnSet = new ColumnSet(primaryNameAttr),
-                    Orders = { new OrderExpression(primaryNameAttr, OrderType.Ascending) },
-                    TopCount = 30
-                };
+                var fetchXml = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' top='30'>
+                    <entity name='{entityName}'>
+                        <attribute name='{entityWrapper.PrimaryIdAttribute}'/>
+                        <attribute name='{primaryNameAttr}'/>
+                        <order attribute='{primaryNameAttr}' descending='false'/>
+                    </entity>
+                </fetch>";
 
-                var results = _service.RetrieveMultiple(query);
+                var result = _service.RetrieveMultiple(new FetchExpression(fetchXml));
                 _records.Clear();
-                foreach (var record in results.Entities)
+                foreach (var record in result.Entities)
                 {
                     var recordName = record.GetAttributeValue<string>(primaryNameAttr) ?? "(No name)";
                     _records.Add(new RecordWrapper
@@ -205,8 +213,6 @@ namespace DynaAppX.WpfControls
 
                 cboRecord.ItemsSource = null;
                 cboRecord.ItemsSource = _records;
-                cboRecord.DisplayMemberPath = "RecordName";
-                cboRecord.SelectedValuePath = "Id";
             }
             catch (Exception ex)
             {
@@ -216,36 +222,13 @@ namespace DynaAppX.WpfControls
 
         private void SearchRecords(string searchText)
         {
-            if (cboEntity.SelectedItem is Entity entity)
+            if (cboEntity.SelectedItem is EntityWrapper entityWrapper)
             {
-                LoadRecords(entity);
+                LoadRecords(entityWrapper);
             }
         }
 
-        private string GetPrimaryNameAttribute(string entityName)
-        {
-            if (_service == null) return "name";
-
-            try
-            {
-                var query = new QueryExpression("entitydefinition")
-                {
-                    ColumnSet = new ColumnSet("PrimaryNameAttribute"),
-                    Criteria = new FilterExpression()
-                };
-                query.Criteria.AddCondition("LogicalName", ConditionOperator.Equal, entityName);
-
-                var results = _service.RetrieveMultiple(query);
-                if (results.Entities.Count > 0)
-                {
-                    return results.Entities[0].GetAttributeValue<string>("PrimaryNameAttribute") ?? "name";
-                }
-            }
-            catch { }
-            return "name";
-        }
-
-        private void LoadUserRoles(Entity user)
+        private void LoadUserRoles(UserWrapper user)
         {
             if (_service == null) return;
 
@@ -253,16 +236,19 @@ namespace DynaAppX.WpfControls
             {
                 var userId = user.Id;
 
-                var query = new QueryExpression("role")
-                {
-                    ColumnSet = new ColumnSet("roleid", "name")
-                };
+                var fetchXml = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='true'>
+                    <entity name='role'>
+                        <attribute name='roleid'/>
+                        <attribute name='name'/>
+                        <link-entity name='systemuserroles' from='roleid' to='roleid' visible='false' intersect='true'>
+                            <filter type='and'>
+                                <condition attribute='systemuserid' operator='eq' value='{userId}'/>
+                            </filter>
+                        </link-entity>
+                    </entity>
+                </fetch>";
 
-                var link = new LinkEntity("role", "systemuserroles", "roleid", "roleid", JoinOperator.Inner);
-                link.LinkCriteria.AddCondition("systemuserid", ConditionOperator.Equal, userId);
-                query.LinkEntities.Add(link);
-
-                var results = _service.RetrieveMultiple(query);
+                var results = _service.RetrieveMultiple(new FetchExpression(fetchXml));
                 lstRoles.ItemsSource = results.Entities;
             }
             catch (Exception ex)
@@ -271,7 +257,7 @@ namespace DynaAppX.WpfControls
             }
         }
 
-        private void LoadUserTeams(Entity user)
+        private void LoadUserTeams(UserWrapper user)
         {
             if (_service == null) return;
 
@@ -279,16 +265,19 @@ namespace DynaAppX.WpfControls
             {
                 var userId = user.Id;
 
-                var query = new QueryExpression("team")
-                {
-                    ColumnSet = new ColumnSet("teamid", "name")
-                };
+                var fetchXml = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='true'>
+                    <entity name='team'>
+                        <attribute name='teamid'/>
+                        <attribute name='name'/>
+                        <link-entity name='teammembership' from='teamid' to='teamid' visible='false' intersect='true'>
+                            <filter type='and'>
+                                <condition attribute='systemuserid' operator='eq' value='{userId}'/>
+                            </filter>
+                        </link-entity>
+                    </entity>
+                </fetch>";
 
-                var link = new LinkEntity("team", "teammembership", "teamid", "teamid", JoinOperator.Inner);
-                link.LinkCriteria.AddCondition("systemuserid", ConditionOperator.Equal, userId);
-                query.LinkEntities.Add(link);
-
-                var results = _service.RetrieveMultiple(query);
+                var results = _service.RetrieveMultiple(new FetchExpression(fetchXml));
                 lstTeams.ItemsSource = results.Entities;
             }
             catch (Exception ex)
@@ -309,11 +298,12 @@ namespace DynaAppX.WpfControls
 
             try
             {
-                var userId = (cboUser.SelectedItem as Entity).Id;
+                var userId = (cboUser.SelectedItem as UserWrapper).Id;
                 var recordWrapper = cboRecord.SelectedItem as RecordWrapper;
                 var recordId = recordWrapper?.Id ?? Guid.Empty;
-                var entityName = (cboEntity.SelectedItem as Entity).GetAttributeValue<string>("LogicalName");
-                var entitySetName = (cboEntity.SelectedItem as Entity).GetAttributeValue<string>("EntitySetName");
+                var entityWrapper = cboEntity.SelectedItem as EntityWrapper;
+                var entityName = entityWrapper.LogicalName;
+                var entitySetName = entityWrapper.EntitySetName;
 
                 var accessRights = new List<AccessRightInfo>
                 {
@@ -347,7 +337,6 @@ namespace DynaAppX.WpfControls
 
             try
             {
-                // Check access via principalobjectaccess table
                 var query = new QueryExpression("principalobjectaccess")
                 {
                     ColumnSet = new ColumnSet("accessrights"),
@@ -363,7 +352,6 @@ namespace DynaAppX.WpfControls
                     return (rights & GetAccessRightMask(accessRight)) != 0;
                 }
 
-                // Fallback: try to retrieve the record as the user would
                 try
                 {
                     _service.Retrieve(entityName, recordId, new ColumnSet());
@@ -413,10 +401,24 @@ namespace DynaAppX.WpfControls
         }
     }
 
-    public class AccessRightInfo
+    public class UserWrapper
     {
-        public string RightName { get; set; }
-        public bool HasAccess { get; set; }
+        public Guid Id { get; set; }
+        public string FullName { get; set; }
+        public string DomainName { get; set; }
+        public string DisplayName => FullName;
+        public Entity Entity { get; set; }
+    }
+
+    public class EntityWrapper
+    {
+        public string LogicalName { get; set; }
+        public string DisplayName { get; set; }
+        public string EntityDisplayName => DisplayName;
+        public string EntitySetName { get; set; }
+        public string PrimaryIdAttribute { get; set; }
+        public string PrimaryNameAttribute { get; set; }
+        public Entity Entity { get; set; }
     }
 
     public class RecordWrapper
@@ -424,5 +426,11 @@ namespace DynaAppX.WpfControls
         public Guid Id { get; set; }
         public string RecordName { get; set; }
         public Entity Entity { get; set; }
+    }
+
+    public class AccessRightInfo
+    {
+        public string RightName { get; set; }
+        public bool HasAccess { get; set; }
     }
 }

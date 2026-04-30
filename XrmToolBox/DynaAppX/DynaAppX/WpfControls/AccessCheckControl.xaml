@@ -27,12 +27,12 @@
         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="10" HorizontalAlignment="Center">
             <TextBlock Text="User:" VerticalAlignment="Center" Width="80" Margin="0,0,5,0"/>
             <ComboBox x:Name="cboUser" Width="250" Margin="0,0,20,0" IsEditable="True"
-                      DisplayMemberPath="FullName" SelectedValuePath="Id"
+                      DisplayMemberPath="DisplayName" SelectedValuePath="Id"
                       SelectionChanged="cboUser_SelectionChanged"
                       DropDownOpened="cboUser_DropDownOpened"/>
             <TextBlock Text="Entity:" VerticalAlignment="Center" Width="80" Margin="0,0,5,0"/>
             <ComboBox x:Name="cboEntity" Width="200" Margin="0,0,20,0"
-                      DisplayMemberPath="DisplayName"
+                      DisplayMemberPath="EntityDisplayName"
                       SelectionChanged="cboEntity_SelectionChanged"
                       DropDownOpened="cboEntity_DropDownOpened"/>
             <TextBlock Text="Record:" VerticalAlignment="Center" Width="80" Margin="0,0,5,0"/>
