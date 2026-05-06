@@ -18,6 +18,8 @@ namespace DynaAppX.WpfControls
         private List<RecordWrapper> _records = new List<RecordWrapper>();
         private List<EntityWrapper> _allEntities = new List<EntityWrapper>();
         private List<EntityWrapper> _entities = new List<EntityWrapper>();
+        // Cache for entity metadata to avoid redundant RetrieveEntityRequest calls
+        private readonly Dictionary<string, EntityMetadata> _entityMetadataCache = new Dictionary<string, EntityMetadata>();
 
         public event Action<string> OpenRecordRequested;
 
@@ -61,6 +63,8 @@ namespace DynaAppX.WpfControls
 
                 _allEntities.Clear();
                 _entities.Clear();
+                _entityMetadataCache.Clear(); // Clear cache when reloading
+
                 foreach (var entity in response.EntityMetadata)
                 {
                     if (entity.IsIntersect == true) continue;
@@ -77,6 +81,12 @@ namespace DynaAppX.WpfControls
                     };
                     _allEntities.Add(wrapper);
                     _entities.Add(wrapper);
+
+                    // Pre-cache entity metadata for privilege checks
+                    if (!string.IsNullOrEmpty(entity.LogicalName))
+                    {
+                        _entityMetadataCache[entity.LogicalName] = entity;
+                    }
                 }
 
                 cboEntity.ItemsSource = null;
@@ -450,6 +460,14 @@ namespace DynaAppX.WpfControls
             if (_service == null || string.IsNullOrEmpty(entityName)) return false;
             try
             {
+                // Check cache first
+                if (_entityMetadataCache.TryGetValue(entityName, out var cachedMeta))
+                {
+                    var updatePriv = cachedMeta.Privileges?.FirstOrDefault(p => p.PrivilegeType == PrivilegeType.Update);
+                    if (updatePriv == null) return false;
+                    return updatePriv.CanBeBasic || updatePriv.CanBeDeep || updatePriv.CanBeGlobal;
+                }
+
                 // Use RetrieveEntity to check Update privilege for the entity
                 var req = new RetrieveEntityRequest
                 {
@@ -457,10 +475,13 @@ namespace DynaAppX.WpfControls
                     EntityFilters = EntityFilters.Privileges
                 };
                 var resp = (RetrieveEntityResponse)_service.Execute(req);
-                var updatePriv = resp.EntityMetadata.Privileges?.FirstOrDefault(p => p.PrivilegeType == PrivilegeType.Update);
-                if (updatePriv == null) return false;
-                // Check privilege depth - at least Basic required for write access
-                return updatePriv.CanBeBasic || updatePriv.CanBeDeep || updatePriv.CanBeGlobal;
+                // Cache the result
+                if (resp.EntityMetadata != null)
+                    _entityMetadataCache[entityName] = resp.EntityMetadata;
+
+                var updatePriv2 = resp.EntityMetadata.Privileges?.FirstOrDefault(p => p.PrivilegeType == PrivilegeType.Update);
+                if (updatePriv2 == null) return false;
+                return updatePriv2.CanBeBasic || updatePriv2.CanBeDeep || updatePriv2.CanBeGlobal;
             }
             catch
             {
@@ -473,6 +494,14 @@ namespace DynaAppX.WpfControls
             if (_service == null || string.IsNullOrEmpty(entityName)) return false;
             try
             {
+                // Check cache first
+                if (_entityMetadataCache.TryGetValue(entityName, out var cachedMeta))
+                {
+                    var deletePriv = cachedMeta.Privileges?.FirstOrDefault(p => p.PrivilegeType == PrivilegeType.Delete);
+                    if (deletePriv == null) return false;
+                    return deletePriv.CanBeBasic || deletePriv.CanBeDeep || deletePriv.CanBeGlobal;
+                }
+
                 // Use RetrieveEntity to check Delete privilege for the entity
                 var req = new RetrieveEntityRequest
                 {
@@ -480,10 +509,13 @@ namespace DynaAppX.WpfControls
                     EntityFilters = EntityFilters.Privileges
                 };
                 var resp = (RetrieveEntityResponse)_service.Execute(req);
-                var deletePriv = resp.EntityMetadata.Privileges?.FirstOrDefault(p => p.PrivilegeType == PrivilegeType.Delete);
-                if (deletePriv == null) return false;
-                // Check privilege depth - at least Basic required
-                return deletePriv.CanBeBasic || deletePriv.CanBeDeep || deletePriv.CanBeGlobal;
+                // Cache the result
+                if (resp.EntityMetadata != null)
+                    _entityMetadataCache[entityName] = resp.EntityMetadata;
+
+                var deletePriv2 = resp.EntityMetadata.Privileges?.FirstOrDefault(p => p.PrivilegeType == PrivilegeType.Delete);
+                if (deletePriv2 == null) return false;
+                return deletePriv2.CanBeBasic || deletePriv2.CanBeDeep || deletePriv2.CanBeGlobal;
             }
             catch
             {
