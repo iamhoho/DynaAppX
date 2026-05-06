@@ -120,17 +120,15 @@ namespace DynaAppX.WpfControls
             _entities.Clear();
             if (string.IsNullOrEmpty(searchText))
             {
-                foreach (var entity in _allEntities)
-                {
-                    _entities.Add(entity);
-                }
+                _entities.AddRange(_allEntities);
             }
             else
             {
+                var lower = searchText.ToLower();
                 foreach (var entity in _allEntities)
                 {
-                    if (entity.LogicalName.ToLower().Contains(searchText) ||
-                        entity.DisplayName.ToLower().Contains(searchText))
+                    if ((entity.LogicalName?.ToLower().Contains(lower) ?? false) ||
+                        (entity.DisplayName?.ToLower().Contains(lower) ?? false))
                     {
                         _entities.Add(entity);
                     }

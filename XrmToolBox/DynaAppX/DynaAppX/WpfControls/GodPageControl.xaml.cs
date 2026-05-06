@@ -455,7 +455,7 @@ namespace DynaAppX.WpfControls
 
         private void LoadLookupOptions(AttributeInfo info, string entityName)
         {
-            if (_service == null) return;
+            if (_service == null || string.IsNullOrEmpty(entityName)) return;
 
             try
             {
@@ -463,11 +463,16 @@ namespace DynaAppX.WpfControls
                 var primaryNameAttr = entityMeta?.PrimaryNameAttribute ?? "name";
                 var primaryIdAttr = entityMeta?.PrimaryIdAttribute ?? entityName + "id";
 
+                // Escape FetchXML values
+                var safeEntityName = System.Security.SecurityElement.Escape(entityName) ?? entityName;
+                var safePrimaryNameAttr = System.Security.SecurityElement.Escape(primaryNameAttr) ?? primaryNameAttr;
+                var safePrimaryIdAttr = System.Security.SecurityElement.Escape(primaryIdAttr) ?? primaryIdAttr;
+
                 var fetchXml = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' top='30'>
-                    <entity name='{entityName}'>
-                        <attribute name='{primaryIdAttr}'/>
-                        <attribute name='{primaryNameAttr}'/>
-                        <order attribute='{primaryNameAttr}' descending='false'/>
+                    <entity name='{safeEntityName}'>
+                        <attribute name='{safePrimaryIdAttr}'/>
+                        <attribute name='{safePrimaryNameAttr}'/>
+                        <order attribute='{safePrimaryNameAttr}' descending='false'/>
                     </entity>
                 </fetch>";
 
@@ -486,10 +491,12 @@ namespace DynaAppX.WpfControls
                 }
 
                 info.LookupOptions = options;
+                info.FilteredLookupOptions = options.ToList();
             }
             catch
             {
                 info.LookupOptions = new List<RecordWrapper>();
+                info.FilteredLookupOptions = new List<RecordWrapper>();
             }
         }
 
@@ -623,11 +630,17 @@ namespace DynaAppX.WpfControls
 
         private void DetectChanges()
         {
+            _changedData.Clear();
+            if (_originalEntity == null) return;
+
             foreach (var info in _attributes)
             {
                 if (!info.IsEditable) continue;
 
-                var oldValue = _originalEntity.Contains(info.LogicalName) ? _originalEntity[info.LogicalName] : null;
+                var logicalName = info.LogicalName;
+                if (string.IsNullOrEmpty(logicalName)) continue;
+
+                var oldValue = _originalEntity.Contains(logicalName) ? _originalEntity[logicalName] : null;
                 object newValue = null;
                 string updateAttrName = null;
                 object updateValue = null;
@@ -641,11 +654,11 @@ namespace DynaAppX.WpfControls
                         if (newIntVal.HasValue)
                         {
                             var origVal = oldValue is OptionSetValue osv2 ? osv2.Value : (oldValue as int?);
-                            if (origVal != newIntVal.Value)
+                            if (!origVal.HasValue || origVal.Value != newIntVal.Value)
                             {
                                 newValue = $"{GetOptionLabel(info, newIntVal.Value)} ({newIntVal.Value})";
-                                updateAttrName = info.LogicalName;
-                                updateValue = newIntVal.Value;  // for update, use int directly
+                                updateAttrName = logicalName;
+                                updateValue = newIntVal.Value; // for update, use int directly
                             }
                         }
                         break;
@@ -657,7 +670,7 @@ namespace DynaAppX.WpfControls
                             if (origBool != boolVal)
                             {
                                 newValue = boolVal.ToString();
-                                updateAttrName = info.LogicalName;
+                                updateAttrName = logicalName;
                                 updateValue = boolVal;
                             }
                         }
@@ -665,8 +678,9 @@ namespace DynaAppX.WpfControls
 
                     case AttributeTypeCode.Lookup:
                     case AttributeTypeCode.Owner:
-                        var lookupAttrName = GetLookupAttributeName(info.LogicalName);
-                        var origRef = _originalEntity.Contains(lookupAttrName) ? _originalEntity.GetAttributeValue<EntityReference>(lookupAttrName) : null;
+                        var lookupAttrName = GetLookupAttributeName(logicalName);
+                        var origRef = _originalEntity.Contains(lookupAttrName) 
+                            ? _originalEntity.GetAttributeValue<EntityReference>(lookupAttrName) : null;
                         var newRefId = info.LookupId;
                         var newRefName = info.LookupName;
 
@@ -684,27 +698,26 @@ namespace DynaAppX.WpfControls
                                 {
                                     var targetMeta = GetEntityMetadata(targetEntity);
                                     var entitySetName = targetMeta?.EntitySetName ?? targetEntity + "s";
-                                    updateAttrName = info.LogicalName + "@odata.bind";
+                                    updateAttrName = logicalName + "@odata.bind";
                                     updateValue = $"/{entitySetName}({newRefId})";
                                 }
                             }
                             else
                             {
-                                // Deleting the reference - track for separate delete
-                                updateAttrName = info.LogicalName + "@odata.bind";
+                                updateAttrName = logicalName + "@odata.bind";
                                 updateValue = null; // null means remove the reference
                             }
 
                             _changedData.Add(new ChangeInfo
                             {
                                 DisplayName = info.DisplayName,
-                                AttributeName = info.LogicalName,
+                                AttributeName = logicalName,
                                 OldValue = oldDisplay,
                                 NewValue = newDisplay,
                                 UpdateAttributeName = updateAttrName,
                                 UpdateValue = updateValue,
                                 IsLookup = true,
-                                OldLookupId = origRef?.Id,
+                                OldLookupId = origRef?.Id ?? Guid.Empty,
                                 NewLookupId = newRefId
                             });
                             continue;
@@ -717,21 +730,21 @@ namespace DynaAppX.WpfControls
                             if (origDt != newDt)
                             {
                                 newValue = newDt.ToString("o");
-                                updateAttrName = info.LogicalName;
+                                updateAttrName = logicalName;
                                 updateValue = newDt;
                             }
                         }
                         else if (oldValue == null && info.Value != null)
                         {
                             newValue = ((DateTime)info.Value).ToString("o");
-                            updateAttrName = info.LogicalName;
+                            updateAttrName = logicalName;
                             updateValue = info.Value;
                         }
                         else if (oldValue != null && info.Value == null)
                         {
                             // Clearing a date
                             newValue = null;
-                            updateAttrName = info.LogicalName;
+                            updateAttrName = logicalName;
                             updateValue = null;
                         }
                         break;
@@ -746,7 +759,7 @@ namespace DynaAppX.WpfControls
                         if (!Equals(oldValue, info.Value))
                         {
                             newValue = info.Value?.ToString();
-                            updateAttrName = info.LogicalName;
+                            updateAttrName = logicalName;
                             updateValue = info.Value;
                         }
                         break;
@@ -757,7 +770,7 @@ namespace DynaAppX.WpfControls
                     _changedData.Add(new ChangeInfo
                     {
                         DisplayName = info.DisplayName,
-                        AttributeName = info.LogicalName,
+                        AttributeName = logicalName,
                         OldValue = oldValue?.ToString(),
                         NewValue = newValue,
                         UpdateAttributeName = updateAttrName,
