@@ -18,8 +18,8 @@ namespace DynaAppX.WpfControls
         private IOrganizationService _service;
         private List<FlowWrapper> _allFlows = new List<FlowWrapper>();
         private List<FlowWrapper> _flows = new List<FlowWrapper>();
-        private List<RecordWrapper> _allRecords = new List<RecordWrapper>();
-        private List<RecordWrapper> _records = new List<RecordWrapper>();
+        private List<FlowRecordWrapper> _allRecords = new List<FlowRecordWrapper>();
+        private List<FlowRecordWrapper> _records = new List<FlowRecordWrapper>();
         private List<FlowParameterInfo> _paramControls = new List<FlowParameterInfo>();
 
         public InvokeFlowControl()
@@ -274,7 +274,7 @@ namespace DynaAppX.WpfControls
                 foreach (var record in result.Entities)
                 {
                     var recordName = record.GetAttributeValue<string>(primaryNameAttr) ?? "(No name)";
-                    var wrapper = new RecordWrapper
+                    var wrapper = new FlowRecordWrapper
                     {
                         Id = record.Id,
                         RecordName = recordName,
@@ -379,7 +379,7 @@ namespace DynaAppX.WpfControls
         {
             try
             {
-                var recordId = (cboRecord.SelectedItem as RecordWrapper)?.Id;
+                var recordId = (cboRecord.SelectedItem as FlowRecordWrapper)?.Id;
                 if (recordId == null)
                 {
                     txtStatus.Text = "Please select a target record";
@@ -431,7 +431,7 @@ namespace DynaAppX.WpfControls
             {
                 if (!string.IsNullOrEmpty(flow.PrimaryEntity) && flow.PrimaryEntity != "none")
                 {
-                    var record = cboRecord.SelectedItem as RecordWrapper;
+                    var record = cboRecord.SelectedItem as FlowRecordWrapper;
                     if (record == null)
                     {
                         txtStatus.Text = "Please select a target record";
@@ -601,7 +601,7 @@ namespace DynaAppX.WpfControls
         public string DisplayName { get; set; }
     }
 
-    public class RecordWrapper
+    public class FlowRecordWrapper
     {
         public Guid Id { get; set; }
         public string RecordName { get; set; }
