@@ -8,9 +8,6 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Xml.Linq;
-using System.Net.Http;
-using System.Text;
-using System.IO;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
@@ -19,7 +16,6 @@ namespace DynaAppX.WpfControls
     public partial class InvokeFlowControl : UserControl
     {
         private IOrganizationService _service;
-        private string _webApiUrl = "";
         private List<FlowWrapper> _allFlows = new List<FlowWrapper>();
         private List<FlowWrapper> _flows = new List<FlowWrapper>();
         private List<RecordWrapper> _allRecords = new List<RecordWrapper>();

@@ -910,7 +910,10 @@ namespace DynaAppX.WpfControls
         private string FormatValue(object value)
         {
             if (value == null) return "(null)";
-            return value.ToString();
+            if (value is EntityReference er) return $"{er.Name} ({er.Id})";
+            if (value is Entity e) return $"{e.LogicalName} ({e.Id})";
+            var str = value.ToString();
+            return string.IsNullOrEmpty(str) ? "(empty)" : str;
         }
     }
 
