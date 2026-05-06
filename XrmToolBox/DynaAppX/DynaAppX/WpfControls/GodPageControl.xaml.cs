@@ -203,14 +203,14 @@ namespace DynaAppX.WpfControls
 
             var editableAttrs = _selectedEntity.Attributes
                 .Where(a => a.AttributeOf == null &&
-                           !a.IsPrimaryId &&
+                           a.IsPrimaryId != true &&
                            !IsInArray(HiddenAttributes, a.LogicalName) &&
                            !IsInArray(DisabledAttributes, a.LogicalName))
                 .ToList();
 
             var disabledAttrs = _selectedEntity.Attributes
                 .Where(a => a.AttributeOf == null &&
-                           !a.IsPrimaryId &&
+                           a.IsPrimaryId != true &&
                            !IsInArray(HiddenAttributes, a.LogicalName) &&
                            IsInArray(DisabledAttributes, a.LogicalName))
                 .ToList();
@@ -220,13 +220,13 @@ namespace DynaAppX.WpfControls
                 var displayName = attr.DisplayName != null && attr.DisplayName.UserLocalizedLabel != null
                     ? attr.DisplayName.UserLocalizedLabel.Label
                     : attr.LogicalName;
-                var value = GetAttributeValue(_originalData, attr.LogicalName, attr.AttributeType);
+                var value = GetAttributeValue(_originalData, attr.LogicalName, attr.AttributeType ?? AttributeTypeCode.String);
 
                 _attributes.Add(new AttributeItem
                 {
                     LogicalName = attr.LogicalName,
                     DisplayName = displayName,
-                    AttributeType = attr.AttributeType.ToString(),
+                    AttributeType = (attr.AttributeType ?? AttributeTypeCode.String).ToString(),
                     Value = value,
                     IsEnabled = !IsInArray(DisabledAttributes, attr.LogicalName)
                 });
@@ -336,7 +336,7 @@ namespace DynaAppX.WpfControls
                         : null;
                     if (attrMeta == null) continue;
 
-                    var newValue = ParseValue(change.NewValue, attrMeta.AttributeType);
+                    var newValue = ParseValue(change.NewValue, attrMeta.AttributeType ?? AttributeTypeCode.String);
                     updateEntity[change.AttributeName] = newValue;
                 }
 
