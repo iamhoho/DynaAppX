@@ -98,7 +98,7 @@ namespace DynaAppX.WpfControls
                         Xaml = xaml,
                         DisplayName = $"[{GetCategoryLabel(category)}] {name}"
                     });
-                    _flows.Add(wrapper);
+                    _flows.Add(_allFlows.Last());
                 }
 
                 cboFlow.ItemsSource = null;
@@ -201,8 +201,13 @@ namespace DynaAppX.WpfControls
             try
             {
                 var doc = XDocument.Parse(xaml);
+                var nsManager = new XmlNamespaceManager(new NameTable());
+                nsManager.AddNamespace("mxsw", "http://schemas.microsoft.com/xrm/2011/workflow/strategies");
+                nsManager.AddNamespace("x", "http://schemas.microsoft.com/winfx/2006/xaml");
+
+                // Find Members elements within Activity that have.arguments.children
                 var members = doc.Descendants()
-                    .Where(x => x.Name.LocalName == "Members" && x.Name.NamespaceName.Contains("microsoft"))
+                    .Where(x => x.Name.LocalName == "Members")
                     .ToList();
 
                 if (members.Any())
@@ -216,10 +221,10 @@ namespace DynaAppX.WpfControls
                         if (name == "InputEntities" || name == "CreatedEntities" || name == "Target") continue;
                         if (!type.Contains("InArgument")) continue;
 
-                        // Check required attribute
+                        // Check required attribute - could be in ArgumentRequiredAttribute or similar
                         var requiredAttr = member.Elements()
-                            .FirstOrDefault(x => x.Name.LocalName == "ArgumentRequiredAttribute" &&
-                                                 x.Name.NamespaceName.Contains("mxsw"));
+                            .FirstOrDefault(x => x.Name.LocalName == "ArgumentRequired" &&
+                                                 x.Name.NamespaceName.Contains("microsoft"));
                         var required = requiredAttr?.Attribute("Value")?.Value == "true";
 
                         _paramControls.Add(new FlowParameterInfo
@@ -418,11 +423,11 @@ namespace DynaAppX.WpfControls
 
         private void InvokeAction(FlowWrapper flow)
         {
+            string path = "";
+            string requestBody = "";
+
             try
             {
-                string path;
-                string requestBody;
-
                 if (!string.IsNullOrEmpty(flow.PrimaryEntity) && flow.PrimaryEntity != "none")
                 {
                     var record = cboRecord.SelectedItem as RecordWrapper;
@@ -455,59 +460,86 @@ namespace DynaAppX.WpfControls
                 {
                     try
                     {
-                        var jsonParams = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(requestBody);
-                        foreach (var kvp in jsonParams)
+                        using var jsonDoc = System.Text.Json.JsonDocument.Parse(requestBody);
+                        foreach (var kvp in jsonDoc.RootElement.EnumerateObject())
                         {
-                            // Handle EntityReference OData format: {"@odata.type":"Microsoft.Dynamics.CRM.EntityReference","logicalname":"account","id":"{guid}"}
-                            if (kvp.Value is System.Text.Json.JsonElement je)
+                            var value = kvp.Value;
+                            if (value.ValueKind == System.Text.Json.JsonValueKind.Object)
                             {
-                                if (je.ValueKind == System.Text.Json.JsonValueKind.Object)
+                                if (value.TryGetProperty("@odata.type", out var typeEl) &&
+                                    typeEl.GetString() == "Microsoft.Dynamics.CRM.EntityReference")
                                 {
-                                    var type = je.GetProperty("@odata.type").GetString();
-                                    if (type == "Microsoft.Dynamics.CRM.EntityReference")
+                                    var logicalName = value.GetProperty("logicalname").GetString();
+                                    var idStr = value.GetProperty("id").GetString();
+                                    if (Guid.TryParse(idStr, out var guid))
                                     {
-                                        var logicalName = je.GetProperty("logicalname").GetString();
-                                        var idStr = je.GetProperty("id").GetString();
-                                        if (Guid.TryParse(idStr, out var guid))
-                                        {
-                                            orgRequest.Parameters[kvp.Key] = new Microsoft.Xrm.Sdk.EntityReference(logicalName, guid);
-                                        }
+                                        orgRequest.Parameters[kvp.Key] = new Microsoft.Xrm.Sdk.EntityReference(logicalName, guid);
                                     }
                                 }
-                                else if (je.ValueKind == System.Text.Json.JsonValueKind.String)
+                                else if (value.TryGetProperty("logicalname", out var lnEl))
                                 {
-                                    orgRequest.Parameters[kvp.Key] = je.GetString();
+                                    // Might be EntityReference without @odata.type
+                                    var logicalName = lnEl.GetString();
+                                    if (value.TryGetProperty("id", out var idEl) &&
+                                        Guid.TryParse(idEl.GetString(), out var guid))
+                                    {
+                                        orgRequest.Parameters[kvp.Key] = new Microsoft.Xrm.Sdk.EntityReference(logicalName, guid);
+                                    }
                                 }
-                                else if (je.ValueKind == System.Text.Json.JsonValueKind.Number)
+                                else
                                 {
-                                    orgRequest.Parameters[kvp.Key] = je.GetInt32();
-                                }
-                                else if (je.ValueKind == System.Text.Json.JsonValueKind.True || je.ValueKind == System.Text.Json.JsonValueKind.False)
-                                {
-                                    orgRequest.Parameters[kvp.Key] = je.GetBoolean();
+                                    orgRequest.Parameters[kvp.Key] = value.ToString();
                                 }
                             }
-                            else
+                            else if (value.ValueKind == System.Text.Json.JsonValueKind.String)
                             {
-                                orgRequest.Parameters[kvp.Key] = kvp.Value;
+                                orgRequest.Parameters[kvp.Key] = value.GetString();
+                            }
+                            else if (value.ValueKind == System.Text.Json.JsonValueKind.Number)
+                            {
+                                if (value.TryGetInt32(out var intVal))
+                                    orgRequest.Parameters[kvp.Key] = intVal;
+                                else
+                                    orgRequest.Parameters[kvp.Key] = value.GetDouble();
+                            }
+                            else if (value.ValueKind == System.Text.Json.JsonValueKind.True || value.ValueKind == System.Text.Json.JsonValueKind.False)
+                            {
+                                orgRequest.Parameters[kvp.Key] = value.GetBoolean();
+                            }
+                            else if (value.ValueKind == System.Text.Json.JsonValueKind.Null)
+                            {
+                                orgRequest.Parameters[kvp.Key] = null;
                             }
                         }
                     }
-                    catch
+                    catch (System.Text.Json.JsonException ex)
                     {
-                        // If parsing fails, proceed without parameters
+                        txtStatus.Text = $"Invalid JSON parameters: {ex.Message}";
+                        return;
                     }
                 }
 
                 var response = _service.Execute(orgRequest);
 
+                // Format response results for display
+                string responseText = "Action executed successfully.";
+                if (response?.Results != null && response.Results.Count > 0)
+                {
+                    var resultParts = response.Results
+                        .Take(5)
+                        .Select(p => $"{p.Key}={FormatResponseValue(p.Value)}");
+                    responseText = string.Join("; ", resultParts);
+                    if (response.Results.Count > 5)
+                        responseText += $" (+{response.Results.Count - 5} more)";
+                }
+
                 AddHistoryEntry(new InvokeHistoryEntry
                 {
                     Name = flow.Name,
                     Url = path,
-                    RequestBody = requestBody,
+                    RequestBody = requestBody.Length > 500 ? requestBody.Substring(0, 500) + "..." : requestBody,
                     StatusCode = 200,
-                    Response = $"Action executed successfully. Response: {response?.Results?.ToString() ?? "OK"}",
+                    Response = responseText,
                     InvokeDate = DateTime.Now
                 });
 
@@ -519,13 +551,23 @@ namespace DynaAppX.WpfControls
                 {
                     Name = flow.Name,
                     Url = path,
-                    RequestBody = requestBody,
+                    RequestBody = requestBody.Length > 500 ? requestBody.Substring(0, 500) + "..." : requestBody,
                     StatusCode = 500,
                     Response = ex.Message,
                     InvokeDate = DateTime.Now
                 });
                 txtStatus.Text = $"Error invoking action: {ex.Message}";
             }
+        }
+
+        private string FormatResponseValue(object value)
+        {
+            if (value == null) return "null";
+            if (value is EntityReference er) return $"EntityReference({er.LogicalName},{er.Id})";
+            if (value is Entity e) return $"Entity({e.LogicalName},{e.Id})";
+            if (value is Guid g) return g.ToString();
+            if (value is string s && s.Length > 50) return s.Substring(0, 50) + "...";
+            return value.ToString();
         }
 
         private string BuildParameterJson()
