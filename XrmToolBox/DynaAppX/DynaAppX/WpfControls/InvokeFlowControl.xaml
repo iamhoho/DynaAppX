@@ -86,12 +86,12 @@
                                     <DatePicker x:Name="dtParam" Width="280" Margin="0,0,10,0"
                                                 SelectedDate="{Binding Value, Mode=TwoWay}"
                                                 Visibility="{Binding IsDateTime, Converter={StaticResource BoolToVisibilityConverter}}"/>
-                                    <!-- EntityReference -->
-                                    <ComboBox x:Name="cboEntityRef" Width="280" Margin="0,0,10,0"
-                                              DisplayMemberPath="DisplayName" SelectedValuePath="Id"
-                                              ItemsSource="{Binding EntityRefOptions}"
-                                              SelectedValue="{Binding Value, Mode=TwoWay}"
-                                              Visibility="{Binding IsEntityReference, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                    <!-- EntityReference - raw OData JSON input -->
+                                    <TextBox Width="280" Margin="0,0,10,0"
+                                             FontFamily="Consolas" FontSize="10"
+                                             ToolTip="Enter EntityReference as JSON, e.g.:&#x0a;{&quot;@odata.type&quot;:&quot;Microsoft.Dynamics.CRM.EntityReference&quot;,&quot;logicalname&quot;:&quot;account&quot;,&quot;id&quot;:&quot;{guid}&quot;}"
+                                             Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                             Visibility="{Binding IsEntityReference, Converter={StaticResource BoolToVisibilityConverter}}"/>
                                     <!-- Unsupported -->
                                     <TextBlock Text="{Binding UnsupportedInfo}" Foreground="Red" Width="280"
                                                Visibility="{Binding IsUnsupported, Converter={StaticResource BoolToVisibilityConverter}}"/>

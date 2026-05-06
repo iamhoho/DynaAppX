@@ -98,7 +98,7 @@ namespace DynaAppX.WpfControls
                         Xaml = xaml,
                         DisplayName = $"[{GetCategoryLabel(category)}] {name}"
                     });
-                    _flows.Add(_allFlows.Last());
+                    _flows.Add(wrapper);
                 }
 
                 cboFlow.ItemsSource = null;
@@ -447,14 +447,84 @@ namespace DynaAppX.WpfControls
                     requestBody = BuildParameterJson();
                 }
 
-                // Use ExecuteCrmMessageRequest or organization service channel
-                // For actions we use OrganizationRequest with the action name
-                var orgRequest = new CreateRequest(); // placeholder - we'll use Http way
-                txtStatus.Text = $"Action URL: {path}, Body: {requestBody}";
+                // Execute the action using OrganizationRequest
+                var orgRequest = new OrganizationRequest(flow.UniqueName);
+
+                // Parse requestBody JSON and add parameters to orgRequest
+                if (!string.IsNullOrWhiteSpace(requestBody))
+                {
+                    try
+                    {
+                        var jsonParams = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(requestBody);
+                        foreach (var kvp in jsonParams)
+                        {
+                            // Handle EntityReference OData format: {"@odata.type":"Microsoft.Dynamics.CRM.EntityReference","logicalname":"account","id":"{guid}"}
+                            if (kvp.Value is System.Text.Json.JsonElement je)
+                            {
+                                if (je.ValueKind == System.Text.Json.JsonValueKind.Object)
+                                {
+                                    var type = je.GetProperty("@odata.type").GetString();
+                                    if (type == "Microsoft.Dynamics.CRM.EntityReference")
+                                    {
+                                        var logicalName = je.GetProperty("logicalname").GetString();
+                                        var idStr = je.GetProperty("id").GetString();
+                                        if (Guid.TryParse(idStr, out var guid))
+                                        {
+                                            orgRequest.Parameters[kvp.Key] = new Microsoft.Xrm.Sdk.EntityReference(logicalName, guid);
+                                        }
+                                    }
+                                }
+                                else if (je.ValueKind == System.Text.Json.JsonValueKind.String)
+                                {
+                                    orgRequest.Parameters[kvp.Key] = je.GetString();
+                                }
+                                else if (je.ValueKind == System.Text.Json.JsonValueKind.Number)
+                                {
+                                    orgRequest.Parameters[kvp.Key] = je.GetInt32();
+                                }
+                                else if (je.ValueKind == System.Text.Json.JsonValueKind.True || je.ValueKind == System.Text.Json.JsonValueKind.False)
+                                {
+                                    orgRequest.Parameters[kvp.Key] = je.GetBoolean();
+                                }
+                            }
+                            else
+                            {
+                                orgRequest.Parameters[kvp.Key] = kvp.Value;
+                            }
+                        }
+                    }
+                    catch
+                    {
+                        // If parsing fails, proceed without parameters
+                    }
+                }
+
+                var response = _service.Execute(orgRequest);
+
+                AddHistoryEntry(new InvokeHistoryEntry
+                {
+                    Name = flow.Name,
+                    Url = path,
+                    RequestBody = requestBody,
+                    StatusCode = 200,
+                    Response = $"Action executed successfully. Response: {response?.Results?.ToString() ?? "OK"}",
+                    InvokeDate = DateTime.Now
+                });
+
+                txtStatus.Text = "Action invoked successfully";
             }
             catch (Exception ex)
             {
-                txtStatus.Text = $"Error: {ex.Message}";
+                AddHistoryEntry(new InvokeHistoryEntry
+                {
+                    Name = flow.Name,
+                    Url = path,
+                    RequestBody = requestBody,
+                    StatusCode = 500,
+                    Response = ex.Message,
+                    InvokeDate = DateTime.Now
+                });
+                txtStatus.Text = $"Error invoking action: {ex.Message}";
             }
         }
 

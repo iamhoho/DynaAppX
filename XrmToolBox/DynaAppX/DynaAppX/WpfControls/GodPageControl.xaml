@@ -12,8 +12,8 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <!-- Header -->
@@ -55,6 +55,7 @@
                         <Border Margin="5" Padding="10" BorderBrush="#cccccc" BorderThickness="1" CornerRadius="4"
                                 MinWidth="400" MaxWidth="420">
                             <StackPanel>
+                                <!-- Label row -->
                                 <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
                                     <TextBlock Text="{Binding DisplayName}" FontWeight="Bold" VerticalAlignment="Center"
                                                Width="120" TextWrapping="Wrap"/>
@@ -64,48 +65,68 @@
                                                Visibility="{Binding IsRequired, Converter={StaticResource BoolToVisibilityConverter}}"
                                                VerticalAlignment="Center" Margin="2,0,0,0"/>
                                 </StackPanel>
+
                                 <!-- Picklist / Boolean / State / Status -->
                                 <ComboBox ItemsSource="{Binding Options}" DisplayMemberPath="Label"
                                           SelectedValuePath="Value"
-                                          SelectedValue="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                          SelectedValue="{Binding IntValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                           IsEnabled="{Binding IsEditable}"
                                           Visibility="{Binding IsPicklistType, Converter={StaticResource BoolToVisibilityConverter}}"
                                           Width="280"/>
+
                                 <!-- Boolean Checkbox -->
-                                <CheckBox IsChecked="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                <CheckBox IsChecked="{Binding BoolValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                           IsEnabled="{Binding IsEditable}"
                                           Visibility="{Binding IsBooleanType, Converter={StaticResource BoolToVisibilityConverter}}"
                                           Content="{Binding DisplayName}" Margin="120,0,0,0"/>
+
                                 <!-- Number / Money / Decimal / Integer -->
                                 <TextBox Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                          IsEnabled="{Binding IsEditable}"
                                          Visibility="{Binding IsNumberType, Converter={StaticResource BoolToVisibilityConverter}}"
                                          Width="280"/>
+
                                 <!-- DateTime -->
-                                <DatePicker SelectedDate="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                <DatePicker SelectedDate="{Binding DateTimeValue, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                             IsEnabled="{Binding IsEditable}"
                                             Visibility="{Binding IsDateTimeType, Converter={StaticResource BoolToVisibilityConverter}}"
                                             Width="280"/>
-                                <!-- String / Memo -->
+
+                                <!-- String -->
                                 <TextBox Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                          IsEnabled="{Binding IsEditable}"
                                          Visibility="{Binding IsStringType, Converter={StaticResource BoolToVisibilityConverter}}"
-                                         Width="280" Height="{Binding IsMemoType, Converter={StaticResource BoolToVisibilityConverter}}"
-                                         TextWrapping="Wrap" AcceptsReturn="True" MaxHeight="100"/>
+                                         Width="280" Height="22"/>
+
+                                <!-- Memo (multiline text) -->
+                                <TextBox Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         IsEnabled="{Binding IsEditable}"
+                                         Visibility="{Binding IsMemoType, Converter={StaticResource BoolToVisibilityConverter}}"
+                                         Width="280" Height="80" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
+
                                 <!-- Lookup / Owner -->
-                                <ComboBox ItemsSource="{Binding LookupOptions}" DisplayMemberPath="DisplayName"
-                                          SelectedValuePath="Id"
-                                          SelectedValue="{Binding LookupId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                                          IsEnabled="{Binding IsEditable}"
-                                          Visibility="{Binding IsLookupType, Converter={StaticResource BoolToVisibilityConverter}}"
-                                          Width="280" IsEditable="True" TextBoxBase.TextChanged="cboLookup_TextChanged"/>
+                                <StackPanel Orientation="Horizontal" Visibility="{Binding IsLookupType, Converter={StaticResource BoolToVisibilityConverter}}">
+                                    <ComboBox x:Name="cboLookup" Width="200"
+                                              ItemsSource="{Binding LookupOptions}" DisplayMemberPath="RecordName"
+                                              SelectedValuePath="Id"
+                                              SelectedValue="{Binding LookupId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                              IsEnabled="{Binding IsEditable}"
+                                              IsEditable="True"
+                                              TextBoxBase.TextChanged="cboLookup_TextChanged"
+                                              DropDownOpened="cboLookup_DropDownOpened"/>
+                                    <Button Content="Clear" Width="60" Margin="10,0,0,0"
+                                            IsEnabled="{Binding IsEditable}"
+                                            Click="btnClearLookup_Click" Tag="{Binding LogicalName}"/>
+                                </StackPanel>
+
                                 <!-- Unsupported -->
                                 <TextBlock Text="Unsupported attribute type" Foreground="Red"
                                            Visibility="{Binding IsUnsupportedType, Converter={StaticResource BoolToVisibilityConverter}}"/>
-                                <!-- Disabled indicator -->
+
+                                <!-- Disabled / System field indicator -->
                                 <TextBlock Text="(System field - read only)" Foreground="Gray" FontStyle="Italic"
                                            Visibility="{Binding IsSystemField, Converter={StaticResource BoolToVisibilityConverter}}"
-                                           Margin="120,2,0,0"/>
+                                           Margin="0,2,0,0"/>
                             </StackPanel>
                         </Border>
                     </DataTemplate>
