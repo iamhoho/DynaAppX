@@ -17,7 +17,7 @@ namespace DynaAppX
         private GodPageControl godPageControl;
         private MetadataBrowserControl metadataBrowserControl;
         private IOrganizationService currentService;
-        private UserControl _currentWpfControl;
+        private System.Windows.UIElement _currentWpfControl;
 
         public MyPluginControl()
         {
@@ -43,7 +43,7 @@ namespace DynaAppX
             btnAccessCheck.PerformClick();
         }
 
-        private void ShowControl(UserControl control)
+        private void ShowControl(System.Windows.UIElement control)
         {
             if (_currentWpfControl == control) return;
             _currentWpfControl = control;
