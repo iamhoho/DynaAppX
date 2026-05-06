@@ -169,6 +169,10 @@ namespace DynaAppX.WpfControls
 
             try
             {
+                // Escape XML special characters in searchText to prevent FetchXML injection
+                var escapedSearch = string.IsNullOrEmpty(searchText) ? "" 
+                    : System.Security.SecurityElement.Escape(searchText);
+
                 var fetchXml = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' top='30'>
                     <entity name='systemuser'>
                         <attribute name='systemuserid'/>
@@ -177,7 +181,7 @@ namespace DynaAppX.WpfControls
                         <order attribute='fullname' descending='false'/>
                         <filter type='and'>
                             <condition attribute='isdisabled' operator='eq' value='0'/>
-                            {(!string.IsNullOrEmpty(searchText) ? $"<condition attribute='fullname' operator='like' value='*{searchText}*'/>" : "")}
+                            {(string.IsNullOrEmpty(escapedSearch) ? "" : $"<condition attribute='fullname' operator='like' value='*{escapedSearch}*'/>")}
                         </filter>
                     </entity>
                 </fetch>";
@@ -216,13 +220,17 @@ namespace DynaAppX.WpfControls
             try
             {
                 var entityName = entityWrapper.LogicalName;
-                var primaryNameAttr = entityWrapper.PrimaryNameAttribute ?? "name";
+                var primaryNameAttr = entityWrapper.PrimaryNameAttribute;
+                if (string.IsNullOrEmpty(primaryNameAttr)) primaryNameAttr = "name";
+
+                // Safely escape the primary name attribute for XML
+                var safeAttrName = System.Security.SecurityElement.Escape(primaryNameAttr) ?? "name";
 
                 var fetchXml = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' top='30'>
-                    <entity name='{entityName}'>
-                        <attribute name='{entityWrapper.PrimaryIdAttribute}'/>
-                        <attribute name='{primaryNameAttr}'/>
-                        <order attribute='{primaryNameAttr}' descending='false'/>
+                    <entity name='{System.Security.SecurityElement.Escape(entityName)}'>
+                        <attribute name='{System.Security.SecurityElement.Escape(entityWrapper.PrimaryIdAttribute ?? entityName + "id")}'/>
+                        <attribute name='{safeAttrName}'/>
+                        <order attribute='{safeAttrName}' descending='false'/>
                     </entity>
                 </fetch>";
 
@@ -425,6 +433,7 @@ namespace DynaAppX.WpfControls
 
         private bool HasReadAccess(string entityName, Guid recordId)
         {
+            if (_service == null || string.IsNullOrEmpty(entityName) || recordId == Guid.Empty) return false;
             try
             {
                 _service.Retrieve(entityName, recordId, new ColumnSet());
@@ -438,6 +447,7 @@ namespace DynaAppX.WpfControls
 
         private bool HasWriteAccess(string entityName, Guid recordId)
         {
+            if (_service == null || string.IsNullOrEmpty(entityName)) return false;
             try
             {
                 // Use RetrieveEntity to check Update privilege for the entity
@@ -460,13 +470,10 @@ namespace DynaAppX.WpfControls
 
         private bool HasDeleteAccess(string entityName, Guid recordId)
         {
+            if (_service == null || string.IsNullOrEmpty(entityName)) return false;
             try
             {
-                // Try to retrieve the record - if we can read it, we have delete access
-                _service.Retrieve(entityName, recordId, new ColumnSet());
-                // For activities that are closed, delete access may require special privileges
-                // Use a minimal Update to statecode=0 and see if it sticks (then revert, but we can't revert)
-                // Better approach: check entity privileges via RetrieveEntityRequest
+                // Use RetrieveEntity to check Delete privilege for the entity
                 var req = new RetrieveEntityRequest
                 {
                     LogicalName = entityName,
@@ -486,24 +493,21 @@ namespace DynaAppX.WpfControls
 
         private bool HasCreateAccess(string entitySetName)
         {
+            if (_service == null || string.IsNullOrEmpty(entitySetName)) return false;
             try
             {
-                // Try to retrieve metadata for the entity - if we can see it, we can probably create
+                // Derive logical name: "accounts" -> "account", "contacts" -> "contact"
+                var logicalName = entitySetName;
+                if (logicalName.EndsWith("s") && !logicalName.EndsWith("ss"))
+                    logicalName = logicalName.Substring(0, logicalName.Length - 1);
+
                 var req = new RetrieveEntityRequest
                 {
-                    LogicalName = entitySetName.Replace("Set", ""),
+                    LogicalName = logicalName,
                     EntityFilters = EntityFilters.Entity
                 };
-                try
-                {
-                    _service.Execute(req);
-                    return true;
-                }
-                catch
-                {
-                    // Fallback: assume create access if we can query the entity
-                    return true;
-                }
+                _service.Execute(req);
+                return true;
             }
             catch
             {
