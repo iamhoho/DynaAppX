@@ -1,0 +1,137 @@
+<UserControl x:Class="DynaAppX.WpfControls.InvokeFlowControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:Converters="clr-namespace:DynaAppX.Converters"
+             mc:Ignorable="d"
+             d:DesignHeight="600" d:DesignWidth="900">
+    <UserControl.Resources>
+        <Converters:InvokeStatusColorConverter x:Key="InvokeStatusColorConverter"/>
+        <Converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <Converters:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter"/>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10" HorizontalAlignment="Center">
+            <TextBlock Text="Invoke Flow (Action / Workflow)" FontSize="18" FontWeight="Bold" VerticalAlignment="Center"/>
+        </StackPanel>
+
+        <!-- Flow + Record Selection Row -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="10" HorizontalAlignment="Center">
+            <TextBlock Text="Flow:" VerticalAlignment="Center" Width="80" Margin="0,0,5,0"/>
+            <ComboBox x:Name="cboFlow" Width="300" Margin="0,0,20,0"
+                      DisplayMemberPath="DisplayName"
+                      SelectionChanged="cboFlow_SelectionChanged"
+                      DropDownOpened="cboFlow_DropDownOpened"
+                      IsEditable="True"
+                      TextBoxBase.TextChanged="cboFlow_TextChanged"/>
+            <TextBlock x:Name="lblRecord" Text="Record:" VerticalAlignment="Center" Width="80" Margin="0,0,5,0"
+                       Visibility="Collapsed"/>
+            <ComboBox x:Name="cboRecord" Width="300" Margin="0,0,20,0"
+                      DisplayMemberPath="RecordName" SelectedValuePath="Id"
+                      SelectionChanged="cboRecord_SelectionChanged"
+                      DropDownOpened="cboRecord_DropDownOpened"
+                      IsEditable="True"
+                      TextBoxBase.TextChanged="cboRecord_TextChanged"
+                      Visibility="Collapsed"/>
+            <ToggleButton x:Name="tglRawMode" Width="140" Height="28" Margin="0,0,10,0"
+                          Content="Field Model" Click="tglRawMode_Click"
+                          Background="#13ce66" Foreground="White" BorderBrush="#13ce66"/>
+            <Button x:Name="btnInvoke" Content="Invoke" Width="80" Height="28"
+                    Background="#5cb85c" Foreground="White" BorderBrush="#5cb85c"
+                    Click="btnInvoke_Click" IsEnabled="False"/>
+        </StackPanel>
+
+        <!-- Parameters Section -->
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+            <StackPanel x:Name="pnlParameters" Margin="10">
+                <!-- Raw Model Text Area -->
+                <StackPanel x:Name="pnlRawModel" Visibility="Collapsed">
+                    <TextBlock Text="Parameters (Raw JSON):" FontWeight="Bold" Margin="0,0,0,5"/>
+                    <TextBox x:Name="txtRawParams" Height="200" AcceptsReturn="True"
+                             TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
+                             FontFamily="Consolas" FontSize="12"/>
+                </StackPanel>
+
+                <!-- Field Model: Dynamic Parameters -->
+                <StackPanel x:Name="pnlFieldModel">
+                    <TextBlock Text="Flow Parameters:" FontWeight="Bold" Margin="0,0,0,5"/>
+                    <ItemsControl x:Name="ctrlParams">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" Margin="0,4">
+                                    <TextBlock Text="{Binding Name}" Width="180"
+                                               VerticalAlignment="Center" FontWeight="SemiBold"/>
+                                    <!-- String -->
+                                    <TextBox x:Name="txtParam" Width="280" Margin="0,0,10,0"
+                                             Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                             Visibility="{Binding IsString, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                    <!-- Boolean -->
+                                    <CheckBox x:Name="chkParam" Width="280" Margin="0,0,10,0"
+                                              IsChecked="{Binding Value, Mode=TwoWay}"
+                                              Visibility="{Binding IsBoolean, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                    <!-- Number -->
+                                    <TextBox x:Name="numParam" Width="280" Margin="0,0,10,0"
+                                             Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                             Visibility="{Binding IsNumber, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                    <!-- DateTime -->
+                                    <DatePicker x:Name="dtParam" Width="280" Margin="0,0,10,0"
+                                                SelectedDate="{Binding Value, Mode=TwoWay}"
+                                                Visibility="{Binding IsDateTime, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                    <!-- EntityReference -->
+                                    <ComboBox x:Name="cboEntityRef" Width="280" Margin="0,0,10,0"
+                                              DisplayMemberPath="DisplayName" SelectedValuePath="Id"
+                                              ItemsSource="{Binding EntityRefOptions}"
+                                              SelectedValue="{Binding Value, Mode=TwoWay}"
+                                              Visibility="{Binding IsEntityReference, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                    <!-- Unsupported -->
+                                    <TextBlock Text="{Binding UnsupportedInfo}" Foreground="Red" Width="280"
+                                               Visibility="{Binding IsUnsupported, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                    <TextBlock Text="*" Foreground="Red" FontWeight="Bold"
+                                               Visibility="{Binding Required, Converter={StaticResource BoolToVisibilityConverter}}"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Invoke History -->
+        <GroupBox Grid.Row="3" Header="Invoke History" Margin="10" Padding="10" MaxHeight="300">
+            <DataGrid x:Name="dgHistory" AutoGenerateColumns="False" IsReadOnly="True"
+                      CanUserAddRows="False" CanUserDeleteRows="False"
+                      GridLinesVisibility="Horizontal"
+                      HeadersVisibility="Column">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="InvokeDate" Binding="{Binding InvokeDate, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}'}" Width="130"/>
+                    <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="150"/>
+                    <DataGridTextColumn Header="URL" Binding="{Binding Url}" Width="200"/>
+                    <DataGridTextColumn Header="StatusCode" Binding="{Binding StatusCode}" Width="80">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Foreground" Value="{Binding StatusCode, Converter={StaticResource InvokeStatusColorConverter}}"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="RequestBody" Binding="{Binding RequestBody}" Width="280"/>
+                    <DataGridTextColumn Header="Response" Binding="{Binding Response}" Width="300"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </GroupBox>
+
+        <!-- Status -->
+        <TextBlock Grid.Row="0" x:Name="txtStatus" Margin="10" VerticalAlignment="Bottom"
+                   HorizontalAlignment="Left"/>
+    </Grid>
+</UserControl>
