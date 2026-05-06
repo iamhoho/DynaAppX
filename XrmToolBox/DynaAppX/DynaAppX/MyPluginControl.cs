@@ -326,6 +326,41 @@ namespace DynaAppX
             }
         }
 
+        // Draw × close button on each tab (except Welcome)
+        private void tcMain_DrawItem(object sender, DrawItemEventArgs e)
+        {
+            var tc = sender as TabControl;
+            if (tc == null) return;
+
+            e.DrawBackground();
+            var tab = tc.TabPages[e.Index];
+            var rect = e.Bounds;
+
+            // Draw tab title
+            using (var brush = new System.Drawing.SolidBrush(
+                tc.SelectedIndex == e.Index
+                    ? System.Drawing.Color.FromArgb(31, 78, 121)
+                    : System.Drawing.Color.FromArgb(80, 80, 80)))
+            {
+                var textRect = new System.Drawing.RectangleF(rect.X + 6, rect.Y + 4, rect.Width - 28, rect.Height - 4);
+                e.Graphics.DrawString(tab.Text, e.Font ?? tc.Font, brush, textRect);
+            }
+
+            // Draw × on every tab except Welcome tab
+            if (tab != _welcomeTab)
+            {
+                var xRect = new System.Drawing.RectangleF(rect.Right - 22, rect.Y + 3, 18, 18);
+                using (var brush = new System.Drawing.SolidBrush(System.Drawing.Color.FromArgb(150, 150, 150)))
+                {
+                    e.Graphics.FillRectangle(brush, xRect);
+                    e.Graphics.DrawString("×", new System.Drawing.Font("Segoe UI", 10, System.Drawing.FontStyle.Bold),
+                        System.Drawing.Brushes.White, new System.Drawing.PointF(xRect.X + 2, xRect.Y - 1));
+                }
+            }
+
+            e.DrawFocusRectangle();
+        }
+
         // Handle tab close button (×) on MouseDown
         private void tcMain_MouseDown(object sender, MouseEventArgs e)
         {
@@ -344,7 +379,18 @@ namespace DynaAppX
                         {
                             return;
                         }
+                        // Dispose ElementHost and WPF control to release resources
+                        foreach (var ctrl in tab.Controls)
+                        {
+                            if (ctrl is ElementHost eh)
+                            {
+                                eh.Child = null;
+                                eh.Dispose();
+                            }
+                        }
+                        tab.Controls.Clear();
                         tcMain.TabPages.RemoveAt(i);
+                        tab.Dispose();
                         return;
                     }
                 }

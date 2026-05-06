@@ -102,7 +102,9 @@ namespace DynaAppX
             this.tcMain.SelectedIndex = 0;
             this.tcMain.Size = new System.Drawing.Size(839, 431);
             this.tcMain.TabIndex = 5;
+            this.tcMain.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawFixed;
             this.tcMain.MouseDown += new System.Windows.Forms.MouseEventHandler(this.tcMain_MouseDown);
+            this.tcMain.DrawItem += new System.Windows.Forms.DrawItemEventHandler(this.tcMain_DrawItem);
             //
             // MyPluginControl
             //
