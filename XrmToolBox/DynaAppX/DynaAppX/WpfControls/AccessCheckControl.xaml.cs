@@ -440,34 +440,17 @@ namespace DynaAppX.WpfControls
         {
             try
             {
-                // Try to retrieve first to get the record
-                var record = _service.Retrieve(entityName, recordId, new ColumnSet("statecode", "statuscode"));
-                var stateCode = record.GetAttributeValue<OptionSetValue>("statecode")?.Value ?? 0;
-                var statusCode = record.GetAttributeValue<OptionSetValue>("statuscode")?.Value ?? 0;
-
-                // For activity entities, use SetState instead of Update
-                if (entityName == "task" || entityName == "phonecall" || entityName == "email" ||
-                    entityName == "appointment" || entityName == "serviceappointment")
+                // Use RetrieveEntity to check Update privilege for the entity
+                var req = new RetrieveEntityRequest
                 {
-                    // Try setting state to check write access
-                    var stateReq = new Microsoft.Crm.Sdk.Messages.SetStateRequest
-                    {
-                        EntityMoniker = new EntityReference(entityName, recordId),
-                        State = new OptionSetValue(stateCode),
-                        Status = new OptionSetValue(statusCode)
-                    };
-                    _service.Execute(stateReq);
-                }
-                else
-                {
-                    // For normal entities, try a minimal update
-                    var updateEntity = new Entity(entityName) { Id = recordId };
-                    // Just re-set existing values - if this succeeds, write access exists
-                    updateEntity["statecode"] = new OptionSetValue(stateCode);
-                    updateEntity["statuscode"] = new OptionSetValue(statusCode);
-                    _service.Update(updateEntity);
-                }
-                return true;
+                    LogicalName = entityName,
+                    EntityFilters = EntityFilters.Privileges
+                };
+                var resp = (RetrieveEntityResponse)_service.Execute(req);
+                var updatePriv = resp.EntityMetadata.Privileges?.FirstOrDefault(p => p.PrivilegeType == PrivilegeType.Update);
+                if (updatePriv == null) return false;
+                // Check privilege depth - at least Basic required for write access
+                return updatePriv.CanBeBasic || updatePriv.CanBeDeep || updatePriv.CanBeGlobal;
             }
             catch
             {
@@ -479,16 +462,24 @@ namespace DynaAppX.WpfControls
         {
             try
             {
-                _service.Delete(entityName, recordId);
-                return false; // If delete succeeded, record is gone - but we still want to report no access for subsequent checks
-            }
-            catch (Microsoft.Xrm.Sdk.InvalidPluginExecutionException)
-            {
-                return false; // Access denied
+                // Try to retrieve the record - if we can read it, we have delete access
+                _service.Retrieve(entityName, recordId, new ColumnSet());
+                // For activities that are closed, delete access may require special privileges
+                // Use a minimal Update to statecode=0 and see if it sticks (then revert, but we can't revert)
+                // Better approach: check entity privileges via RetrieveEntityRequest
+                var req = new RetrieveEntityRequest
+                {
+                    LogicalName = entityName,
+                    EntityFilters = EntityFilters.Privileges
+                };
+                var resp = (RetrieveEntityResponse)_service.Execute(req);
+                var deletePriv = resp.EntityMetadata.Privileges?.FirstOrDefault(p => p.PrivilegeType == PrivilegeType.Delete);
+                if (deletePriv == null) return false;
+                // Check privilege depth - at least Basic required
+                return deletePriv.CanBeBasic || deletePriv.CanBeDeep || deletePriv.CanBeGlobal;
             }
             catch
             {
-                // Could be already deleted or no access
                 return false;
             }
         }
