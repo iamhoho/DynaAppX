@@ -12,6 +12,8 @@ namespace DynaAppX.WpfControls
         private IOrganizationService _service;
         private string _crmUrl = "";
 
+        public event Action<string> CrmUrlRequest;
+
         public MetadataBrowserControl()
         {
             InitializeComponent();
@@ -21,12 +23,12 @@ namespace DynaAppX.WpfControls
         public void SetService(IOrganizationService service)
         {
             _service = service;
-            ResolveCrmUrl();
+            // Request URL from parent
+            CrmUrlRequest?.Invoke(this);
         }
 
-        public void SetService(IOrganizationService service, string crmUrl)
+        public void SetCrmUrl(string crmUrl)
         {
-            _service = service;
             _crmUrl = crmUrl.TrimEnd('/');
             txtStatus.Text = string.IsNullOrEmpty(_crmUrl)
                 ? "CRM URL not available. Connect to CRM first."
@@ -38,31 +40,6 @@ namespace DynaAppX.WpfControls
             if (string.IsNullOrEmpty(_crmUrl))
             {
                 txtStatus.Text = "Waiting for CRM connection...";
-            }
-        }
-
-        private void ResolveCrmUrl()
-        {
-            if (_service == null)
-            {
-                txtStatus.Text = "Error: Service not initialized";
-                return;
-            }
-
-            try
-            {
-                var whoAmI = (WhoAmIResponse)_service.Execute(new WhoAmIRequest());
-                // WhoAmIResponse contains:
-                // - OrganizationId
-                // - UserId
-                // - BusinessUnitId
-                // But not the URL directly. We need the server URL.
-                // The caller should use SetService(service, crmUrl) instead.
-                txtStatus.Text = "CRM connected. Please provide the CRM URL to enable the buttons.";
-            }
-            catch (Exception ex)
-            {
-                txtStatus.Text = $"Error: {ex.Message}";
             }
         }
 
