@@ -15,12 +15,12 @@ namespace DynaAppX.WpfControls
     public partial class GodPageControl : UserControl
     {
         private IOrganizationService _service;
-        private List<EntityWrapper> _allEntities = new List<EntityWrapper>();
-        private List<EntityWrapper> _entities = new List<EntityWrapper>();
-        private List<RecordWrapper> _allRecords = new List<RecordWrapper>();
-        private List<RecordWrapper> _records = new List<RecordWrapper>();
-        private EntityWrapper _selectedEntity;
-        private RecordWrapper _selectedRecord;
+        private List<GodEntityWrapper> _allEntities = new List<GodEntityWrapper>();
+        private List<GodEntityWrapper> _entities = new List<GodEntityWrapper>();
+        private List<GodRecordWrapper> _allRecords = new List<GodRecordWrapper>();
+        private List<GodRecordWrapper> _records = new List<GodRecordWrapper>();
+        private GodEntityWrapper _selectedEntity;
+        private GodRecordWrapper _selectedRecord;
         private Entity _originalEntity;
         private List<AttributeInfo> _attributes = new List<AttributeInfo>();
         private List<ChangeInfo> _changedData = new List<ChangeInfo>();
@@ -83,7 +83,7 @@ namespace DynaAppX.WpfControls
                     if (string.IsNullOrEmpty(entity.LogicalName)) continue;
 
                     var displayName = entity.DisplayName?.UserLocalizedLabel?.Label ?? entity.LogicalName;
-                    var wrapper = new EntityWrapper
+                    var wrapper = new GodEntityWrapper
                     {
                         LogicalName = entity.LogicalName,
                         DisplayName = displayName,
@@ -142,7 +142,7 @@ namespace DynaAppX.WpfControls
             _selectedRecord = null;
             _originalEntity = null;
 
-            _selectedEntity = cboEntity.SelectedItem as EntityWrapper;
+            _selectedEntity = cboEntity.SelectedItem as GodEntityWrapper;
             btnSave.IsEnabled = false;
 
             if (_selectedEntity != null)
@@ -151,7 +151,7 @@ namespace DynaAppX.WpfControls
             }
         }
 
-        private void LoadRecords(EntityWrapper entityWrapper)
+        private void LoadRecords(GodEntityWrapper entityWrapper)
         {
             if (_service == null) return;
 
@@ -179,7 +179,7 @@ namespace DynaAppX.WpfControls
                 foreach (var record in result.Entities)
                 {
                     var recordName = record.GetAttributeValue<string>(primaryNameAttr) ?? "(No name)";
-                    _allRecords.Add(new RecordWrapper
+                    _allRecords.Add(new GodRecordWrapper
                     {
                         Id = record.Id,
                         RecordName = recordName,
@@ -228,7 +228,7 @@ namespace DynaAppX.WpfControls
 
         private void cboRecord_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            _selectedRecord = cboRecord.SelectedItem as RecordWrapper;
+            _selectedRecord = cboRecord.SelectedItem as GodRecordWrapper;
             if (_selectedRecord != null && _selectedEntity != null)
             {
                 LoadSelectedRecordData();
@@ -275,14 +275,14 @@ namespace DynaAppX.WpfControls
 
             // Editable attributes first
             var editableAttrs = meta.Attributes
-                .Where(a => a.AttributeOf == null && !a.IsPrimaryId
+                .Where(a => a.AttributeOf == null && a.IsPrimaryId != true
                     && !HiddenAttributes.Contains(a.LogicalName)
                     && !DisabledAttributes.Contains(a.LogicalName))
                 .ToList();
 
             // Disabled attributes at the end
             var disabledAttrs = meta.Attributes
-                .Where(a => a.AttributeOf == null && !a.IsPrimaryId
+                .Where(a => a.AttributeOf == null && a.IsPrimaryId != true
                     && !HiddenAttributes.Contains(a.LogicalName)
                     && DisabledAttributes.Contains(a.LogicalName))
                 .ToList();
@@ -442,14 +442,14 @@ namespace DynaAppX.WpfControls
                 }
                 else
                 {
-                    info.LookupOptions = new List<RecordWrapper>();
-                    info.FilteredLookupOptions = new List<RecordWrapper>();
+                    info.LookupOptions = new List<GodRecordWrapper>();
+                    info.FilteredLookupOptions = new List<GodRecordWrapper>();
                 }
             }
             else
             {
-                info.LookupOptions = new List<RecordWrapper>();
-                info.FilteredLookupOptions = new List<RecordWrapper>();
+                info.LookupOptions = new List<GodRecordWrapper>();
+                info.FilteredLookupOptions = new List<GodRecordWrapper>();
             }
         }
 
@@ -477,12 +477,12 @@ namespace DynaAppX.WpfControls
                 </fetch>";
 
                 var result = _service.RetrieveMultiple(new FetchExpression(fetchXml));
-                var options = new List<RecordWrapper>();
+                var options = new List<GodRecordWrapper>();
 
                 foreach (var record in result.Entities)
                 {
                     var recordName = record.GetAttributeValue<string>(primaryNameAttr) ?? "(No name)";
-                    options.Add(new RecordWrapper
+                    options.Add(new GodRecordWrapper
                     {
                         Id = record.Id,
                         RecordName = recordName,
@@ -495,8 +495,8 @@ namespace DynaAppX.WpfControls
             }
             catch
             {
-                info.LookupOptions = new List<RecordWrapper>();
-                info.FilteredLookupOptions = new List<RecordWrapper>();
+                info.LookupOptions = new List<GodRecordWrapper>();
+                info.FilteredLookupOptions = new List<GodRecordWrapper>();
             }
         }
 
@@ -772,7 +772,7 @@ namespace DynaAppX.WpfControls
                         DisplayName = info.DisplayName,
                         AttributeName = logicalName,
                         OldValue = oldValue?.ToString(),
-                        NewValue = newValue,
+                        NewValue = newValue?.ToString(),
                         UpdateAttributeName = updateAttrName,
                         UpdateValue = updateValue
                     });
@@ -917,7 +917,7 @@ namespace DynaAppX.WpfControls
         }
     }
 
-    public class EntityWrapper
+    public class GodEntityWrapper
     {
         public string LogicalName { get; set; }
         public string DisplayName { get; set; }
@@ -929,7 +929,7 @@ namespace DynaAppX.WpfControls
         public Entity Entity { get; set; }
     }
 
-    public class RecordWrapper
+    public class GodRecordWrapper
     {
         public Guid Id { get; set; }
         public string RecordName { get; set; }
@@ -980,8 +980,8 @@ namespace DynaAppX.WpfControls
         public bool IsUnsupportedType { get; set; }
 
         public List<OptionSetItem> Options { get; set; } = new List<OptionSetItem>();
-        public List<RecordWrapper> LookupOptions { get; set; } = new List<RecordWrapper>();
-        public List<RecordWrapper> FilteredLookupOptions { get; set; } = new List<RecordWrapper>();
+        public List<GodRecordWrapper> LookupOptions { get; set; } = new List<GodRecordWrapper>();
+        public List<GodRecordWrapper> FilteredLookupOptions { get; set; } = new List<GodRecordWrapper>();
 
         // Typed value accessors for specific attribute types
         public int? IntValue
