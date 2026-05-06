@@ -35,7 +35,7 @@ namespace DynaAppX.WpfControls
         {
             _service = service;
             txtStatus.Text = "Click 'Load Flows' to begin.";
-            btnLoadFlows.IsEnabled = false;
+            btnLoadFlows.IsEnabled = true;
         }
 
         private void InvokeFlowControl_Loaded(object sender, RoutedEventArgs e)

@@ -17,11 +17,7 @@ namespace DynaAppX
         private GodPageControl godPageControl;
         private MetadataBrowserControl metadataBrowserControl;
         private IOrganizationService currentService;
-        private TabControl tabControl;
-        private ElementHost elementHostAccessCheck;
-        private ElementHost elementHostInvokeFlow;
-        private ElementHost elementHostGodPage;
-        private ElementHost elementHostMetadata;
+        private UserControl _currentWpfControl;
 
         public MyPluginControl()
         {
@@ -31,54 +27,6 @@ namespace DynaAppX
         private void MyPluginControl_Load(object sender, EventArgs e)
         {
             ShowInfoNotification("DynaAppX - Access Check Tool", new Uri("https://github.com/iamhoho/DynaAppX"));
-
-            // Create TabControl to host all 4 WPF controls
-            tabControl = new TabControl();
-            tabControl.Dock = DockStyle.Fill;
-            tabControl.Visible = true;
-
-            // AccessCheck tab
-            var tabAccessCheck = new TabPage("🔑 AccessCheck");
-            accessCheckControl = new AccessCheckControl();
-            accessCheckControl.OpenRecordRequested += OnOpenRecordRequested;
-            accessCheckControl.SetService(currentService);
-            elementHostAccessCheck = new ElementHost { Dock = DockStyle.Fill, Child = accessCheckControl };
-            tabAccessCheck.Controls.Add(elementHostAccessCheck);
-
-            // InvokeFlow tab
-            var tabInvokeFlow = new TabPage("⚡ InvokeFlow");
-            invokeFlowControl = new InvokeFlowControl();
-            invokeFlowControl.SetService(currentService);
-            elementHostInvokeFlow = new ElementHost { Dock = DockStyle.Fill, Child = invokeFlowControl };
-            tabInvokeFlow.Controls.Add(elementHostInvokeFlow);
-
-            // GodPage tab
-            var tabGodPage = new TabPage("📝 GodPage");
-            godPageControl = new GodPageControl();
-            godPageControl.SetService(currentService);
-            elementHostGodPage = new ElementHost { Dock = DockStyle.Fill, Child = godPageControl };
-            tabGodPage.Controls.Add(elementHostGodPage);
-
-            // MetadataBrowser tab
-            var tabMetadata = new TabPage("🌐 Metadata");
-            metadataBrowserControl = new MetadataBrowserControl();
-            metadataBrowserControl.CrmUrlRequest += () =>
-            {
-                metadataBrowserControl.SetCrmUrl(mySettings?.LastUsedOrganizationWebappUrl ?? "");
-            };
-            metadataBrowserControl.SetService(currentService);
-            elementHostMetadata = new ElementHost { Dock = DockStyle.Fill, Child = metadataBrowserControl };
-            tabMetadata.Controls.Add(elementHostMetadata);
-
-            // Add all tabs
-            tabControl.TabPages.Add(tabAccessCheck);
-            tabControl.TabPages.Add(tabInvokeFlow);
-            tabControl.TabPages.Add(tabGodPage);
-            tabControl.TabPages.Add(tabMetadata);
-
-            // Insert tabControl below the toolStripMenu
-            this.Controls.Add(tabControl);
-            this.Controls.SetChildIndex(tabControl, this.Controls.IndexOf(toolStripMenu) + 1);
 
             // Loads or creates the settings for the plugin
             if (!SettingsManager.Instance.TryLoad(GetType(), out mySettings))
@@ -90,6 +38,61 @@ namespace DynaAppX
             {
                 LogInfo("Settings found and loaded");
             }
+
+            // Auto-click AccessCheck button to show it by default
+            btnAccessCheck.PerformClick();
+        }
+
+        private void ShowControl(UserControl control)
+        {
+            if (_currentWpfControl == control) return;
+            _currentWpfControl = control;
+            elementHostMain.Child = control;
+        }
+
+        private void btnAccessCheck_Click(object sender, EventArgs e)
+        {
+            if (accessCheckControl == null)
+            {
+                accessCheckControl = new AccessCheckControl();
+                accessCheckControl.OpenRecordRequested += OnOpenRecordRequested;
+                accessCheckControl.SetService(currentService);
+            }
+            ShowControl(accessCheckControl);
+        }
+
+        private void btnInvokeFlow_Click(object sender, EventArgs e)
+        {
+            if (invokeFlowControl == null)
+            {
+                invokeFlowControl = new InvokeFlowControl();
+                invokeFlowControl.SetService(currentService);
+            }
+            ShowControl(invokeFlowControl);
+        }
+
+        private void btnGodPage_Click(object sender, EventArgs e)
+        {
+            if (godPageControl == null)
+            {
+                godPageControl = new GodPageControl();
+                godPageControl.SetService(currentService);
+            }
+            ShowControl(godPageControl);
+        }
+
+        private void btnMetadata_Click(object sender, EventArgs e)
+        {
+            if (metadataBrowserControl == null)
+            {
+                metadataBrowserControl = new MetadataBrowserControl();
+                metadataBrowserControl.CrmUrlRequest += () =>
+                {
+                    metadataBrowserControl.SetCrmUrl(mySettings?.LastUsedOrganizationWebappUrl ?? "");
+                };
+                metadataBrowserControl.SetService(currentService);
+            }
+            ShowControl(metadataBrowserControl);
         }
 
         public override void UpdateConnection(IOrganizationService newService, ConnectionDetail detail, string actionName, object parameter)
