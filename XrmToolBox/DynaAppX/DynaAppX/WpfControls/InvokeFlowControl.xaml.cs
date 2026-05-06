@@ -23,6 +23,7 @@ namespace DynaAppX.WpfControls
         private List<FlowRecordWrapper> _allRecords = new List<FlowRecordWrapper>();
         private List<FlowRecordWrapper> _records = new List<FlowRecordWrapper>();
         private List<FlowParameterInfo> _paramControls = new List<FlowParameterInfo>();
+        private bool _flowsLoaded = false;
 
         public InvokeFlowControl()
         {
@@ -33,8 +34,8 @@ namespace DynaAppX.WpfControls
         public void SetService(IOrganizationService service)
         {
             _service = service;
-            txtStatus.Text = "Service connected. Ready.";
-            LoadFlows();
+            txtStatus.Text = "Click 'Load Flows' to begin.";
+            btnLoadFlows.IsEnabled = false;
         }
 
         private void InvokeFlowControl_Loaded(object sender, RoutedEventArgs e)
@@ -42,11 +43,24 @@ namespace DynaAppX.WpfControls
             txtStatus.Text = "Waiting for CRM connection...";
         }
 
+        private void btnLoadFlows_Click(object sender, RoutedEventArgs e)
+        {
+            LoadFlows();
+        }
+
         private void LoadFlows()
         {
             if (_service == null)
             {
                 txtStatus.Text = "Error: Service not initialized";
+                return;
+            }
+
+            if (_flowsLoaded)
+            {
+                cboFlow.ItemsSource = null;
+                cboFlow.ItemsSource = _flows;
+                txtStatus.Text = $"Loaded {_flows.Count} flows (cached)";
                 return;
             }
 
@@ -102,6 +116,7 @@ namespace DynaAppX.WpfControls
                 cboFlow.ItemsSource = null;
                 cboFlow.ItemsSource = _flows;
                 txtStatus.Text = $"Loaded {_flows.Count} flows";
+                _flowsLoaded = true;
             }
             catch (Exception ex)
             {

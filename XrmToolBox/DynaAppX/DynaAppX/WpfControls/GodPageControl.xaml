@@ -30,6 +30,8 @@
                       DropDownOpened="cboEntity_DropDownOpened"
                       IsEditable="True"
                       TextBoxBase.TextChanged="cboEntity_TextChanged"/>
+            <Button x:Name="btnLoadEntities" Content="Load Entities" Width="100" Height="28" Margin="0,0,20,0"
+                    Click="btnLoadEntities_Click"/>
             <TextBlock Text="Record:" VerticalAlignment="Center" Width="80" Margin="0,0,5,0"/>
             <ComboBox x:Name="cboRecord" Width="280" Margin="0,0,20,0"
                       DisplayMemberPath="RecordName" SelectedValuePath="Id"

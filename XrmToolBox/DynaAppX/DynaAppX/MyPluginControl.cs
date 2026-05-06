@@ -32,6 +32,7 @@ namespace DynaAppX
             // Create TabControl to host all 4 WPF controls
             tabControl = new TabControl();
             tabControl.Dock = DockStyle.Fill;
+            tabControl.Visible = true;
 
             // AccessCheck tab
             var tabAccessCheck = new TabPage("🔑 AccessCheck");

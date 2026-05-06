@@ -87,7 +87,8 @@ namespace DynaAppX.WpfControls
                         DisplayName = displayName,
                         EntitySetName = entity.EntitySetName,
                         PrimaryIdAttribute = entity.PrimaryIdAttribute,
-                        PrimaryNameAttribute = entity.PrimaryNameAttribute
+                        PrimaryNameAttribute = entity.PrimaryNameAttribute,
+                        Metadata = entity
                     };
                     _allEntities.Add(wrapper);
                     _entities.Add(wrapper);
@@ -247,14 +248,37 @@ namespace DynaAppX.WpfControls
                 var primaryNameAttr = entityWrapper.PrimaryNameAttribute;
                 if (string.IsNullOrEmpty(primaryNameAttr)) primaryNameAttr = "name";
 
-                // Safely escape the primary name attribute for XML
-                var safeAttrName = System.Security.SecurityElement.Escape(primaryNameAttr) ?? "name";
+                // Build query attributes (primary name + standard audit fields)
+                var queryAttrs = new List<string> { primaryNameAttr, "createdon", "modifiedon" };
+                // Also collect IsPrimaryName attributes and string attributes with name/code/number in the name
+                if (entityWrapper.Metadata?.Attributes != null)
+                {
+                    foreach (var attr in entityWrapper.Metadata.Attributes)
+                    {
+                        if (attr.IsPrimaryName == true && !queryAttrs.Contains(attr.LogicalName))
+                            queryAttrs.Add(attr.LogicalName);
+                        else if (attr.AttributeOf == null && attr.AttributeType == AttributeTypeCode.String)
+                        {
+                            var ln = attr.LogicalName?.ToLower() ?? "";
+                            if (ln.Contains("name") || ln.Contains("code") || ln.Contains("number"))
+                                if (!queryAttrs.Contains(attr.LogicalName))
+                                    queryAttrs.Add(attr.LogicalName);
+                        }
+                    }
+                }
+                entityWrapper.QueryAttributeNames = queryAttrs;
 
+                // Build attribute XML
+                var primaryIdAttr = entityWrapper.PrimaryIdAttribute ?? entityName + "id";
+                var safePrimaryIdAttr = System.Security.SecurityElement.Escape(primaryIdAttr) ?? primaryIdAttr;
+                var attrsXml = $"<attribute name='{safePrimaryIdAttr}'/>" +
+                               string.Join("", queryAttrs.Select(a => $"<attribute name='{System.Security.SecurityElement.Escape(a)}'/>"));
+
+                var safeEntityName = System.Security.SecurityElement.Escape(entityName);
                 var fetchXml = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' top='30'>
-                    <entity name='{System.Security.SecurityElement.Escape(entityName)}'>
-                        <attribute name='{System.Security.SecurityElement.Escape(entityWrapper.PrimaryIdAttribute ?? entityName + "id")}'/>
-                        <attribute name='{safeAttrName}'/>
-                        <order attribute='{safeAttrName}' descending='false'/>
+                    <entity name='{safeEntityName}'>
+                        {attrsXml}
+                        <order attribute='modifiedon' descending='true'/>
                     </entity>
                 </fetch>";
 
@@ -262,17 +286,31 @@ namespace DynaAppX.WpfControls
                 _records.Clear();
                 foreach (var record in result.Entities)
                 {
-                    var recordName = record.GetAttributeValue<string>(primaryNameAttr) ?? "(No name)";
+                    // Find display name: prefer primary name, fall back to first available query attr
+                    string recordName = null;
+                    foreach (var attr in queryAttrs)
+                    {
+                        if (attr == "createdon" || attr == "modifiedon") continue;
+                        var val = record.GetAttributeValue<string>(attr);
+                        if (!string.IsNullOrEmpty(val))
+                        {
+                            recordName = val;
+                            break;
+                        }
+                    }
+                    if (string.IsNullOrEmpty(recordName)) recordName = "(No name)";
                     _records.Add(new RecordWrapper
                     {
                         Id = record.Id,
                         RecordName = recordName,
-                        Entity = record
+                        Entity = record,
+                        QueryAttributes = queryAttrs
                     });
                 }
 
                 cboRecord.ItemsSource = null;
                 cboRecord.ItemsSource = _records;
+                txtStatus.Text = $"Loaded {_records.Count} records";
             }
             catch (Exception ex)
             {
@@ -291,8 +329,31 @@ namespace DynaAppX.WpfControls
                 }
                 else
                 {
-                    var filtered = _records.Where(r =>
-                        r.RecordName.ToLower().Contains(searchText.ToLower())).ToList();
+                    // Check if searchText is a GUID
+                    bool isGuid = Guid.TryParse(searchText.Trim(), out var guid);
+                    List<RecordWrapper> filtered;
+                    if (isGuid)
+                    {
+                        // Filter by GUID match
+                        filtered = _records.Where(r => r.Id == guid).ToList();
+                    }
+                    else
+                    {
+                        // Filter by matching any query attribute value (case-insensitive LIKE)
+                        var lower = searchText.ToLower();
+                        filtered = _records.Where(r =>
+                        {
+                            if (r.QueryAttributes == null || r.QueryAttributes.Count == 0) return false;
+                            foreach (var attr in r.QueryAttributes)
+                            {
+                                if (attr == "createdon" || attr == "modifiedon") continue;
+                                var val = r.Entity?.GetAttributeValue<string>(attr);
+                                if (!string.IsNullOrEmpty(val) && val.ToLower().Contains(lower))
+                                    return true;
+                            }
+                            return false;
+                        }).ToList();
+                    }
                     cboRecord.ItemsSource = null;
                     cboRecord.ItemsSource = filtered;
                 }
@@ -631,6 +692,8 @@ namespace DynaAppX.WpfControls
         public string EntitySetName { get; set; }
         public string PrimaryIdAttribute { get; set; }
         public string PrimaryNameAttribute { get; set; }
+        public EntityMetadata Metadata { get; set; }
+        public List<string> QueryAttributeNames { get; set; } = new List<string>();
         public Entity Entity { get; set; }
     }
 
@@ -639,6 +702,7 @@ namespace DynaAppX.WpfControls
         public Guid Id { get; set; }
         public string RecordName { get; set; }
         public Entity Entity { get; set; }
+        public List<string> QueryAttributes { get; set; } = new List<string>();
     }
 
     public class AccessRightInfo

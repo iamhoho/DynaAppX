@@ -19,6 +19,7 @@ namespace DynaAppX.WpfControls
         private List<GodEntityWrapper> _entities = new List<GodEntityWrapper>();
         private List<GodRecordWrapper> _allRecords = new List<GodRecordWrapper>();
         private List<GodRecordWrapper> _records = new List<GodRecordWrapper>();
+        private bool _entitiesLoaded = false;
         private GodEntityWrapper _selectedEntity;
         private GodRecordWrapper _selectedRecord;
         private Entity _originalEntity;
@@ -46,8 +47,8 @@ namespace DynaAppX.WpfControls
         public void SetService(IOrganizationService service)
         {
             _service = service;
-            txtStatus.Text = "Service connected. Ready.";
-            LoadEntities();
+            txtStatus.Text = "Click 'Load Entities' to begin.";
+            btnLoadEntities.IsEnabled = false;
         }
 
         private void GodPageControl_Loaded(object sender, RoutedEventArgs e)
@@ -55,11 +56,24 @@ namespace DynaAppX.WpfControls
             txtStatus.Text = "Waiting for CRM connection...";
         }
 
+        private void btnLoadEntities_Click(object sender, RoutedEventArgs e)
+        {
+            LoadEntities();
+        }
+
         private void LoadEntities()
         {
             if (_service == null)
             {
                 txtStatus.Text = "Error: Service not initialized";
+                return;
+            }
+
+            if (_entitiesLoaded)
+            {
+                cboEntity.ItemsSource = null;
+                cboEntity.ItemsSource = _entities;
+                txtStatus.Text = $"Loaded {_entities.Count} entities (cached)";
                 return;
             }
 
@@ -99,6 +113,7 @@ namespace DynaAppX.WpfControls
                 cboEntity.ItemsSource = null;
                 cboEntity.ItemsSource = _entities;
                 txtStatus.Text = $"Loaded {_entities.Count} entities";
+                _entitiesLoaded = true;
             }
             catch (Exception ex)
             {
