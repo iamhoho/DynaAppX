@@ -4,8 +4,10 @@ using Microsoft.Xrm.Sdk.Query;
 using Microsoft.Xrm.Sdk.Metadata;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using DynaAppX.Services;
 
 namespace DynaAppX.WpfControls
 {
@@ -16,6 +18,7 @@ namespace DynaAppX.WpfControls
         private List<RecordWrapper> _records = new List<RecordWrapper>();
         private List<EntityWrapper> _allEntities = new List<EntityWrapper>();
         private List<EntityWrapper> _entities = new List<EntityWrapper>();
+        private bool _entitiesLoaded = false;
 
         public event Action<string> OpenRecordRequested;
 
@@ -28,8 +31,7 @@ namespace DynaAppX.WpfControls
         public void SetService(IOrganizationService service)
         {
             _service = service;
-            txtStatus.Text = "Service connected. Ready.";
-            LoadEntities();
+            txtStatus.Text = "Service connected. Click 'Load Entities' to begin.";
         }
 
         private void AccessCheckControl_Loaded(object sender, RoutedEventArgs e)
@@ -37,7 +39,7 @@ namespace DynaAppX.WpfControls
             txtStatus.Text = "Waiting for CRM connection...";
         }
 
-        private void LoadEntities()
+        private async void btnLoadEntities_Click(object sender, RoutedEventArgs e)
         {
             if (_service == null)
             {
@@ -45,45 +47,33 @@ namespace DynaAppX.WpfControls
                 return;
             }
 
+            btnLoadEntities.IsEnabled = false;
+            txtStatus.Text = "Loading entities...";
+
             try
             {
-                txtStatus.Text = "Loading entities...";
+                var loadingDialog = new LoadingDialog("Loading entities...");
+                loadingDialog.Show();
 
-                var request = new RetrieveAllEntitiesRequest
-                {
-                    EntityFilters = EntityFilters.Entity,
-                    RetrieveAsIfPublished = true
-                };
+                await SharedMetadataCache.Instance.RefreshEntitiesAsync(_service);
 
-                var response = (RetrieveAllEntitiesResponse)_service.Execute(request);
-
-                _allEntities.Clear();
-                _entities.Clear();
-                foreach (var entity in response.EntityMetadata)
-                {
-                    if (entity.IsIntersect == true) continue;
-                    if (string.IsNullOrEmpty(entity.LogicalName)) continue;
-
-                    var displayName = entity.DisplayName?.UserLocalizedLabel?.Label ?? entity.LogicalName;
-                    var wrapper = new EntityWrapper
-                    {
-                        LogicalName = entity.LogicalName,
-                        DisplayName = displayName,
-                        EntitySetName = entity.EntitySetName,
-                        PrimaryIdAttribute = entity.PrimaryIdAttribute,
-                        PrimaryNameAttribute = entity.PrimaryNameAttribute
-                    };
-                    _allEntities.Add(wrapper);
-                    _entities.Add(wrapper);
-                }
+                _allEntities = SharedMetadataCache.Instance.GetAllEntities(_service);
+                _entities = new List<EntityWrapper>(_allEntities);
 
                 cboEntity.ItemsSource = null;
                 cboEntity.ItemsSource = _entities;
+                _entitiesLoaded = true;
+
+                loadingDialog.Close();
                 txtStatus.Text = $"Loaded {_entities.Count} entities";
             }
             catch (Exception ex)
             {
                 txtStatus.Text = $"Error loading entities: {ex.Message}";
+            }
+            finally
+            {
+                btnLoadEntities.IsEnabled = true;
             }
         }
 
@@ -93,12 +83,14 @@ namespace DynaAppX.WpfControls
             _records.Clear();
             if (cboEntity.SelectedItem is EntityWrapper entityWrapper)
             {
-                LoadRecords(entityWrapper);
+                SearchRecords("");
             }
         }
 
         private void cboEntity_DropDownOpened(object sender, EventArgs e)
         {
+            if (!_entitiesLoaded) return;
+
             var searchText = cboEntity.Text?.ToLower() ?? "";
             FilterEntities(searchText);
         }
@@ -108,37 +100,49 @@ namespace DynaAppX.WpfControls
             _entities.Clear();
             if (string.IsNullOrEmpty(searchText))
             {
-                foreach (var entity in _allEntities)
-                {
-                    _entities.Add(entity);
-                }
+                _entities.AddRange(_allEntities);
             }
             else
             {
-                foreach (var entity in _allEntities)
-                {
-                    if (entity.LogicalName.ToLower().Contains(searchText) ||
-                        entity.DisplayName.ToLower().Contains(searchText))
-                    {
-                        _entities.Add(entity);
-                    }
-                }
+                _entities.AddRange(_allEntities.Where(entity =>
+                    entity.LogicalName.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
+                    entity.DisplayName.Contains(searchText, StringComparison.OrdinalIgnoreCase)));
             }
             cboEntity.ItemsSource = null;
             cboEntity.ItemsSource = _entities;
         }
 
-        private void cboUser_DropDownOpened(object sender, EventArgs e)
+        private async void cboUser_DropDownOpened(object sender, EventArgs e)
         {
+            if (_service == null) return;
+
             var searchText = cboUser.Text ?? "";
-            SearchUsers(searchText);
+            try
+            {
+                _users = await SharedMetadataCache.Instance.SearchUsersAsync(_service, searchText);
+                cboUser.ItemsSource = null;
+                cboUser.ItemsSource = _users;
+                txtStatus.Text = $"Found {_users.Count} users";
+            }
+            catch (Exception ex)
+            {
+                txtStatus.Text = $"Error searching users: {ex.Message}";
+            }
         }
 
         private void cboRecord_DropDownOpened(object sender, EventArgs e)
         {
             if (cboRecord.IsEditable && cboEntity.SelectedItem != null)
             {
-                SearchRecords(cboRecord.Text);
+                SearchRecords(cboRecord.Text ?? "");
+            }
+        }
+
+        private void cboRecord_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (cboEntity.SelectedItem != null)
+            {
+                SearchRecords(cboRecord.Text ?? "");
             }
         }
 
@@ -157,74 +161,25 @@ namespace DynaAppX.WpfControls
             CheckAccessRights();
         }
 
-        private void SearchUsers(string searchText)
+        private void SearchRecords(string searchText)
         {
-            if (_service == null)
-            {
-                txtStatus.Text = "Error: Service not initialized";
-                return;
-            }
+            if (_service == null || !_entitiesLoaded) return;
 
-            try
+            if (!(cboEntity.SelectedItem is EntityWrapper entityWrapper))
             {
-                var fetchXml = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' top='30'>
-                    <entity name='systemuser'>
-                        <attribute name='systemuserid'/>
-                        <attribute name='fullname'/>
-                        <attribute name='domainname'/>
-                        <order attribute='fullname' descending='false'/>
-                        <filter type='and'>
-                            <condition attribute='isdisabled' operator='eq' value='0'/>
-                            {(!string.IsNullOrEmpty(searchText) ? $"<condition attribute='fullname' operator='like' value='%{searchText}%'/>" : "")}
-                        </filter>
-                    </entity>
-                </fetch>";
-
-                var result = _service.RetrieveMultiple(new FetchExpression(fetchXml));
-                _users.Clear();
-                foreach (var user in result.Entities)
-                {
-                    _users.Add(new UserWrapper
-                    {
-                        Id = user.Id,
-                        FullName = user.GetAttributeValue<string>("fullname") ?? "(No name)",
-                        DomainName = user.GetAttributeValue<string>("domainname"),
-                        Entity = user
-                    });
-                }
-
-                cboUser.ItemsSource = null;
-                cboUser.ItemsSource = _users;
-                txtStatus.Text = $"Found {_users.Count} users";
-            }
-            catch (Exception ex)
-            {
-                txtStatus.Text = $"Error searching users: {ex.Message}";
-            }
-        }
-
-        private void LoadRecords(EntityWrapper entityWrapper)
-        {
-            if (_service == null)
-            {
-                txtStatus.Text = "Error: Service not initialized";
+                txtStatus.Text = "Please select an entity first";
                 return;
             }
 
             try
             {
                 var entityName = entityWrapper.LogicalName;
+                var primaryIdAttr = entityWrapper.PrimaryIdAttribute;
                 var primaryNameAttr = entityWrapper.PrimaryNameAttribute ?? "name";
 
-                var fetchXml = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' top='30'>
-                    <entity name='{entityName}'>
-                        <attribute name='{entityWrapper.PrimaryIdAttribute}'/>
-                        <attribute name='{primaryNameAttr}'/>
-                        <order attribute='{primaryNameAttr}' descending='false'/>
-                    </entity>
-                </fetch>";
-
+                var fetchXml = BuildRecordSearchFetchXml(entityWrapper, searchText);
                 var result = _service.RetrieveMultiple(new FetchExpression(fetchXml));
+
                 _records.Clear();
                 foreach (var record in result.Entities)
                 {
@@ -242,16 +197,69 @@ namespace DynaAppX.WpfControls
             }
             catch (Exception ex)
             {
-                txtStatus.Text = $"Error loading records: {ex.Message}";
+                txtStatus.Text = $"Error searching records: {ex.Message}";
             }
         }
 
-        private void SearchRecords(string searchText)
+        private string BuildRecordSearchFetchXml(EntityWrapper entityWrapper, string searchText)
         {
-            if (cboEntity.SelectedItem is EntityWrapper entityWrapper)
+            var conditions = new List<string>();
+
+            // Check if search text is a GUID
+            if (IsGuid(searchText))
             {
-                LoadRecords(entityWrapper);
+                conditions.Add($"<condition attribute='{entityWrapper.PrimaryIdAttribute}' operator='eq' value='{searchText}'/>");
             }
+            else if (!string.IsNullOrWhiteSpace(searchText))
+            {
+                // Search by string attributes containing "code", "name", or "number"
+                if (entityWrapper.Attributes != null)
+                {
+                    var stringAttrs = entityWrapper.Attributes
+                        .Where(a => a.AttributeOf == null &&
+                                    a.AttributeType == AttributeTypeCode.String &&
+                                    (a.LogicalName.Contains("code", StringComparison.OrdinalIgnoreCase) ||
+                                     a.LogicalName.Contains("name", StringComparison.OrdinalIgnoreCase) ||
+                                     a.LogicalName.Contains("number", StringComparison.OrdinalIgnoreCase)))
+                        .ToList();
+
+                    foreach (var attr in stringAttrs)
+                    {
+                        conditions.Add($"<condition attribute='{attr.LogicalName}' operator='like' value='%{EscapeXml(searchText)}%'/>");
+                    }
+                }
+
+                // Also search by primary name
+                if (!string.IsNullOrEmpty(entityWrapper.PrimaryNameAttribute))
+                {
+                    conditions.Add($"<condition attribute='{entityWrapper.PrimaryNameAttribute}' operator='like' value='%{EscapeXml(searchText)}%'/>");
+                }
+            }
+
+            var conditionXml = conditions.Count > 0
+                ? $"<filter type='or'>{string.Join("", conditions)}</filter>"
+                : "";
+
+            return $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' top='30'>
+                <entity name='{entityWrapper.LogicalName}'>
+                    <attribute name='{entityWrapper.PrimaryIdAttribute}'/>
+                    <attribute name='{entityWrapper.PrimaryNameAttribute}'/>
+                    <order attribute='modifiedon' descending='true'/>
+                    {conditionXml}
+                </entity>
+            </fetch>";
+        }
+
+        private bool IsGuid(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return false;
+            return Guid.TryParse(value.Replace("{", "").Replace("}", ""), out _);
+        }
+
+        private string EscapeXml(string value)
+        {
+            if (string.IsNullOrEmpty(value)) return value;
+            return value.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("\"", "&quot;").Replace("'", "&apos;");
         }
 
         private void LoadUserRoles(UserWrapper user)
@@ -381,6 +389,7 @@ namespace DynaAppX.WpfControls
 
             try
             {
+                // Check user's direct access
                 var query = new QueryExpression("principalobjectaccess")
                 {
                     ColumnSet = new ColumnSet("accessrights"),
@@ -388,17 +397,24 @@ namespace DynaAppX.WpfControls
                 };
                 query.Criteria.AddCondition("principalid", ConditionOperator.Equal, userId);
                 query.Criteria.AddCondition("objectid", ConditionOperator.Equal, recordId);
+                query.Criteria.AddCondition("objecttypecode", ConditionOperator.Equal, entityName);
 
                 var results = _service.RetrieveMultiple(query);
                 if (results.Entities.Count > 0)
                 {
                     var rights = results.Entities[0].GetAttributeValue<OptionSetValue>("accessrights")?.Value ?? 0;
-                    return (rights & GetAccessRightMask(accessRight)) != 0;
+                    if ((rights & GetAccessRightMask(accessRight)) != 0)
+                        return true;
                 }
 
+                // Check team-based access
+                if (HasTeamAccess(userId, recordId, entityName, accessRight))
+                    return true;
+
+                // Fallback: check if user owns the record
                 try
                 {
-                    _service.Retrieve(entityName, recordId, new ColumnSet());
+                    _service.Retrieve(entityName, recordId, new ColumnSet("ownerid"));
                     return true;
                 }
                 catch
@@ -412,6 +428,52 @@ namespace DynaAppX.WpfControls
             }
         }
 
+        private bool HasTeamAccess(Guid userId, Guid recordId, string entityName, string accessRight)
+        {
+            try
+            {
+                // Get user's teams
+                var teamQuery = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='true'>
+                    <entity name='team'>
+                        <attribute name='teamid'/>
+                        <link-entity name='teammembership' from='teamid' to='teamid' visible='false' intersect='true'>
+                            <filter type='and'>
+                                <condition attribute='systemuserid' operator='eq' value='{userId}'/>
+                            </filter>
+                        </link-entity>
+                    </entity>
+                </fetch>";
+
+                var teamResults = _service.RetrieveMultiple(new FetchExpression(teamQuery));
+                foreach (var team in teamResults.Entities)
+                {
+                    var teamId = team.Id;
+
+                    var query = new QueryExpression("principalobjectaccess")
+                    {
+                        ColumnSet = new ColumnSet("accessrights"),
+                        Criteria = new FilterExpression()
+                    };
+                    query.Criteria.AddCondition("principalid", ConditionOperator.Equal, teamId);
+                    query.Criteria.AddCondition("objectid", ConditionOperator.Equal, recordId);
+                    query.Criteria.AddCondition("objecttypecode", ConditionOperator.Equal, entityName);
+
+                    var results = _service.RetrieveMultiple(query);
+                    if (results.Entities.Count > 0)
+                    {
+                        var rights = results.Entities[0].GetAttributeValue<OptionSetValue>("accessrights")?.Value ?? 0;
+                        if ((rights & GetAccessRightMask(accessRight)) != 0)
+                            return true;
+                    }
+                }
+            }
+            catch
+            {
+                // Ignore errors in team check
+            }
+            return false;
+        }
+
         private int GetAccessRightMask(string accessRight)
         {
             switch (accessRight)
@@ -419,7 +481,7 @@ namespace DynaAppX.WpfControls
                 case "ReadAccess": return 1;
                 case "WriteAccess": return 2;
                 case "DeleteAccess": return 4;
-                case "CreateAccess": return 16;
+                case "CreateAccess": return 1;  // Fixed: was 16, CRM CreateAccess = 1
                 case "ShareAccess": return 65536;
                 case "AssignAccess": return 32768;
                 case "AppendAccess": return 256;
@@ -445,15 +507,6 @@ namespace DynaAppX.WpfControls
         }
     }
 
-    public class UserWrapper
-    {
-        public Guid Id { get; set; }
-        public string FullName { get; set; }
-        public string DomainName { get; set; }
-        public string DisplayName => FullName;
-        public Entity Entity { get; set; }
-    }
-
     public class RoleWrapper
     {
         public Guid Id { get; set; }
@@ -464,17 +517,6 @@ namespace DynaAppX.WpfControls
     {
         public Guid Id { get; set; }
         public string Name { get; set; }
-    }
-
-    public class EntityWrapper
-    {
-        public string LogicalName { get; set; }
-        public string DisplayName { get; set; }
-        public string EntityDisplayName => DisplayName;
-        public string EntitySetName { get; set; }
-        public string PrimaryIdAttribute { get; set; }
-        public string PrimaryNameAttribute { get; set; }
-        public Entity Entity { get; set; }
     }
 
     public class RecordWrapper

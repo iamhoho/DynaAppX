@@ -1,0 +1,82 @@
+<UserControl x:Class="DynaAppX.WpfControls.GodPageControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="600" d:DesignWidth="900"
+             Background="#1E1E1E">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <TextBlock Grid.Row="0" Text="GodPage - Entity Record Editor" FontSize="20" FontWeight="Bold"
+                   Foreground="White" Margin="10"/>
+
+        <!-- Selection Row -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="10">
+            <TextBlock Text="Entity:" VerticalAlignment="Center" Width="80" Foreground="White"/>
+            <ComboBox x:Name="cboEntity" Width="200" DisplayMemberPath="DisplayName"
+                      SelectionChanged="cboEntity_SelectionChanged"
+                      DropDownOpened="cboEntity_DropDownOpened"/>
+            <TextBlock Text="Record:" VerticalAlignment="Center" Width="80" Margin="20,0,5,0" Foreground="White"/>
+            <ComboBox x:Name="cboRecord" Width="250" IsEditable="True"
+                      DisplayMemberPath="RecordName" SelectedValuePath="Id"
+                      SelectionChanged="cboRecord_SelectionChanged"
+                      DropDownOpened="cboRecord_DropDownOpened" TextChanged="cboRecord_TextChanged"/>
+            <Button x:Name="btnSave" Content="Save" Padding="15,5" Margin="20,0,0,0"
+                    Click="btnSave_Click" IsEnabled="False"/>
+            <TextBlock x:Name="txtStatus" Text="" Foreground="#888888" VerticalAlignment="Center" Margin="20,0,0,0"/>
+        </StackPanel>
+
+        <!-- Attributes Panel -->
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Margin="10">
+            <ItemsControl x:Name="lstAttributes">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Background="#2D2D30" CornerRadius="4" Margin="0,5" Padding="10">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding DisplayName}" Width="150" Foreground="White"
+                                           VerticalAlignment="Center" TextWrapping="Wrap"/>
+                                <TextBox x:Name="txtValue" Width="300"
+                                         Text="{Binding Value, Mode=TwoWay}"
+                                         IsEnabled="{Binding IsEnabled}"
+                                         LostFocus="txtValue_LostFocus"/>
+                                <TextBlock Text="{Binding AttributeType}" Foreground="#666666"
+                                           Margin="10,0,0,0" VerticalAlignment="Center" Width="100"/>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <!-- Save Confirmation Dialog -->
+        <Border x:Name="pnlSaveDialog" Grid.Row="0" Grid.RowSpan="3" Background="#80000000"
+                Visibility="Collapsed">
+            <Border Background="#2D2D30" CornerRadius="8" Padding="20"
+                    HorizontalAlignment="Center" VerticalAlignment="Center" MinWidth="400">
+                <StackPanel>
+                    <TextBlock Text="Changed Data" FontSize="18" FontWeight="Bold" Foreground="White" Margin="0,0,0,15"/>
+                    <DataGrid x:Name="dgChanges" AutoGenerateColumns="False" MaxHeight="300"
+                              Background="#1E1E1E" Foreground="White" BorderBrush="#3E3E42">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Display Name" Binding="{Binding DisplayName}" Width="150"/>
+                            <DataGridTextColumn Header="Attribute" Binding="{Binding AttributeName}" Width="150"/>
+                            <DataGridTextColumn Header="Old Value" Binding="{Binding OldValue}" Width="*"/>
+                            <DataGridTextColumn Header="New Value" Binding="{Binding NewValue}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+                        <Button Content="Cancel" Padding="15,5" Margin="0,0,10,0" Click="btnCancelSave_Click"/>
+                        <Button Content="Confirm" Padding="15,5" Background="#007ACC" Click="btnConfirmSave_Click"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Border>
+    </Grid>
+</UserControl>
