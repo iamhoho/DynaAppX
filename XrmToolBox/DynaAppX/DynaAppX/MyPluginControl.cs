@@ -59,7 +59,22 @@ namespace DynaAppX
 
         private Panel CreateWelcomePanel()
         {
-            var panel = new Panel { Dock = DockStyle.Fill };
+            var panel = new Panel { Dock = DockStyle.Fill, Padding = new Padding(20) };
+
+            // Use TableLayoutPanel for responsive layout
+            var layout = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 1,
+                RowCount = 5,
+                Padding = new Padding(10)
+            };
+            layout.RowStyles.Clear();
+            layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));       // title
+            layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));       // subtitle
+            layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));  // spacer
+            layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));       // buttons
+            layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));       // instructions
 
             // Title
             var lblTitle = new System.Windows.Forms.Label
@@ -67,112 +82,104 @@ namespace DynaAppX
                 Text = "DynaAppX - Dynamics CRM Assistant Tool",
                 Font = new System.Drawing.Font("Segoe UI", 18, System.Drawing.FontStyle.Bold),
                 ForeColor = System.Drawing.Color.FromArgb(31, 78, 121),
-                AutoSize = false,
+                AutoSize = true,
                 TextAlign = System.Drawing.ContentAlignment.MiddleCenter,
-                Location = new System.Drawing.Point(0, 40),
-                Size = new System.Drawing.Size(800, 40)
+                Dock = DockStyle.Top
             };
 
+            // Subtitle
             var lblSubtitle = new System.Windows.Forms.Label
             {
                 Text = "Welcome!",
                 Font = new System.Drawing.Font("Segoe UI", 13),
                 ForeColor = System.Drawing.Color.Gray,
-                AutoSize = false,
+                AutoSize = true,
                 TextAlign = System.Drawing.ContentAlignment.MiddleCenter,
-                Location = new System.Drawing.Point(0, 85),
-                Size = new System.Drawing.Size(800, 25)
+                Dock = DockStyle.Top,
+                Margin = new Padding(0, 5, 0, 0)
             };
 
-            // Instructions
+            // Buttons panel (FlowLayoutPanel centered)
+            var btnPanel = new FlowLayoutPanel
+            {
+                FlowDirection = FlowDirection.LeftToRight,
+                AutoSize = true,
+                WrapContents = true,
+                Dock = DockStyle.Top,
+                Margin = new Padding(0, 20, 0, 10),
+                MaximumSize = new System.Drawing.Size(0, 0)
+            };
+
+            Action<string, System.Drawing.Color, EventHandler> AddBtn = (text, backColor, click) =>
+            {
+                var btn = new Button
+                {
+                    Text = text,
+                    Size = new System.Drawing.Size(160, 55),
+                    FlatStyle = FlatStyle.Flat,
+                    BackColor = backColor,
+                    ForeColor = System.Drawing.Color.White,
+                    Font = new System.Drawing.Font("Segoe UI", 11, System.Drawing.FontStyle.Bold),
+                    Margin = new Padding(8)
+                };
+                btn.FlatAppearance.BorderSize = 0;
+                btn.Click += click;
+                btnPanel.Controls.Add(btn);
+            };
+
+            AddBtn("🔑 AccessCheck", System.Drawing.Color.FromArgb(92, 184, 92), btnAccessCheck_Click);
+            AddBtn("⚡ InvokeFlow",  System.Drawing.Color.FromArgb(19, 206, 102), btnInvokeFlow_Click);
+            AddBtn("📝 GodPage",     System.Drawing.Color.FromArgb(51, 122, 183), btnGodPage_Click);
+            AddBtn("🌐 Metadata",   System.Drawing.Color.FromArgb(46, 117, 182), btnMetadata_Click);
+
+            // Instructions panel
+            var instrPanel = new Panel { AutoSize = true, Dock = DockStyle.Top };
+
             var instructions = new System.Windows.Forms.Label
             {
-                Text = @"Instructions:
-🔑 AccessCheck - Check user/team access rights to CRM records
-⚡ InvokeFlow  - Execute CRM workflows and custom actions
-📝 GodPage    - View and edit entity record attributes
-🌐 Metadata   - Browse CRM entity metadata",
-                Font = new System.Drawing.Font("Segoe UI", 11),
-                AutoSize = false,
-                TextAlign = System.Drawing.ContentAlignment.TopLeft,
-                Location = new System.Drawing.Point(200, 130),
-                Size = new System.Drawing.Size(450, 120)
+                Text = "Instructions:",
+                Font = new System.Drawing.Font("Segoe UI", 11, System.Drawing.FontStyle.Bold),
+                AutoSize = true,
+                Dock = DockStyle.Top
+            };
+
+            var instrList = new System.Windows.Forms.Label
+            {
+                Text = "🔑 AccessCheck - Check user/team access rights to CRM records\n" +
+                       "⚡ InvokeFlow  - Execute CRM workflows and custom actions\n" +
+                       "📝 GodPage    - View and edit entity record attributes\n" +
+                       "🌐 Metadata   - Browse CRM entity metadata",
+                Font = new System.Drawing.Font("Segoe UI", 10),
+                AutoSize = true,
+                Dock = DockStyle.Top,
+                Margin = new Padding(0, 5, 0, 10)
             };
 
             var howToUse = new System.Windows.Forms.Label
             {
-                Text = @"How to use:
-1. Connect to your CRM using File → Connections
-2. Click a button above or in the toolbar to open a feature tab
-3. Each click opens a NEW instance of that feature
-4. You can have multiple instances of the same feature open
-5. Close tabs using the × button on each tab",
+                Text = "How to use:\n" +
+                       "1. Connect to your CRM using File → Connections\n" +
+                       "2. Click a button above or in the toolbar to open a feature tab\n" +
+                       "3. Each click opens a NEW instance of that feature\n" +
+                       "4. You can have multiple instances of the same feature open\n" +
+                       "5. Close tabs using the × button on each tab",
                 Font = new System.Drawing.Font("Segoe UI", 10),
                 ForeColor = System.Drawing.Color.FromArgb(102, 102, 102),
-                AutoSize = false,
-                TextAlign = System.Drawing.ContentAlignment.TopLeft,
-                Location = new System.Drawing.Point(200, 260),
-                Size = new System.Drawing.Size(450, 130)
+                AutoSize = true,
+                Dock = DockStyle.Top
             };
 
-            // Feature buttons
-            var btnAccess = new Button
-            {
-                Text = "🔑 AccessCheck",
-                Size = new System.Drawing.Size(200, 50),
-                Location = new System.Drawing.Point(80, 130),
-                FlatStyle = FlatStyle.Flat,
-                BackColor = System.Drawing.Color.FromArgb(92, 184, 92),
-                ForeColor = System.Drawing.Color.White,
-                Font = new System.Drawing.Font("Segoe UI", 12, System.Drawing.FontStyle.Bold)
-            };
-            btnAccess.FlatAppearance.BorderSize = 0;
-            btnAccess.Click += btnAccessCheck_Click;
+            instrPanel.Controls.Add(howToUse);
+            instrPanel.Controls.Add(instrList);
+            instrPanel.Controls.Add(instructions);
 
-            var btnInvoke = new Button
-            {
-                Text = "⚡ InvokeFlow",
-                Size = new System.Drawing.Size(200, 50),
-                Location = new System.Drawing.Point(320, 130),
-                FlatStyle = FlatStyle.Flat,
-                BackColor = System.Drawing.Color.FromArgb(19, 206, 102),
-                ForeColor = System.Drawing.Color.White,
-                Font = new System.Drawing.Font("Segoe UI", 12, System.Drawing.FontStyle.Bold)
-            };
-            btnInvoke.FlatAppearance.BorderSize = 0;
-            btnInvoke.Click += btnInvokeFlow_Click;
+            layout.Controls.Add(lblTitle);
+            layout.Controls.Add(lblSubtitle);
+            layout.Controls.Add(new Panel()); // spacer
+            layout.Controls.Add(btnPanel);
+            layout.Controls.Add(instrPanel);
 
-            var btnGod = new Button
-            {
-                Text = "📝 GodPage",
-                Size = new System.Drawing.Size(200, 50),
-                Location = new System.Drawing.Point(80, 200),
-                FlatStyle = FlatStyle.Flat,
-                BackColor = System.Drawing.Color.FromArgb(51, 122, 183),
-                ForeColor = System.Drawing.Color.White,
-                Font = new System.Drawing.Font("Segoe UI", 12, System.Drawing.FontStyle.Bold)
-            };
-            btnGod.FlatAppearance.BorderSize = 0;
-            btnGod.Click += btnGodPage_Click;
-
-            var btnMeta = new Button
-            {
-                Text = "🌐 Metadata",
-                Size = new System.Drawing.Size(200, 50),
-                Location = new System.Drawing.Point(320, 200),
-                FlatStyle = FlatStyle.Flat,
-                BackColor = System.Drawing.Color.FromArgb(46, 117, 182),
-                ForeColor = System.Drawing.Color.White,
-                Font = new System.Drawing.Font("Segoe UI", 12, System.Drawing.FontStyle.Bold)
-            };
-            btnMeta.FlatAppearance.BorderSize = 0;
-            btnMeta.Click += btnMetadata_Click;
-
-            panel.Controls.AddRange(new Control[] {
-                lblTitle, lblSubtitle, instructions, howToUse,
-                btnAccess, btnInvoke, btnGod, btnMeta
-            });
-
+            panel.Controls.Add(layout);
             return panel;
         }
 
