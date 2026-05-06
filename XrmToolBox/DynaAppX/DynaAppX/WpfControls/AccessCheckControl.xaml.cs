@@ -29,16 +29,23 @@ namespace DynaAppX.WpfControls
             this.Loaded += AccessCheckControl_Loaded;
         }
 
+        private bool _isLoadingEntities = false;
+
         public void SetService(IOrganizationService service)
         {
             _service = service;
-            txtStatus.Text = "Service connected. Ready.";
-            LoadEntities();
+            txtStatus.Text = "Click 'Load Entities' to begin.";
+            cboEntity.IsEnabled = false;
         }
 
         private void AccessCheckControl_Loaded(object sender, RoutedEventArgs e)
         {
             txtStatus.Text = "Waiting for CRM connection...";
+        }
+
+        private void btnLoadEntities_Click(object sender, RoutedEventArgs e)
+        {
+            LoadEntities();
         }
 
         private void LoadEntities()
@@ -51,6 +58,9 @@ namespace DynaAppX.WpfControls
 
             try
             {
+                _isLoadingEntities = true;
+                pnlLoading.Visibility = Visibility.Visible;
+                btnLoadEntities.IsEnabled = false;
                 txtStatus.Text = "Loading entities...";
 
                 var request = new RetrieveAllEntitiesRequest
@@ -89,12 +99,18 @@ namespace DynaAppX.WpfControls
                     }
                 }
 
-                cboEntity.ItemsSource = null;
                 cboEntity.ItemsSource = _entities;
+                cboEntity.IsEnabled = true;
+                btnLoadEntities.IsEnabled = true;
+                pnlLoading.Visibility = Visibility.Collapsed;
+                _isLoadingEntities = false;
                 txtStatus.Text = $"Loaded {_entities.Count} entities";
             }
             catch (Exception ex)
             {
+                btnLoadEntities.IsEnabled = true;
+                pnlLoading.Visibility = Visibility.Collapsed;
+                _isLoadingEntities = false;
                 txtStatus.Text = $"Error loading entities: {ex.Message}";
             }
         }
@@ -189,7 +205,7 @@ namespace DynaAppX.WpfControls
                         <order attribute='fullname' descending='false'/>
                         <filter type='and'>
                             <condition attribute='isdisabled' operator='eq' value='0'/>
-                            {(string.IsNullOrEmpty(escapedSearch) ? "" : $"<condition attribute='fullname' operator='like' value='*{escapedSearch}*'/>")}
+                            {(string.IsNullOrEmpty(escapedSearch) ? "" : $"<condition attribute='fullname' operator='like' value='%{escapedSearch}%'/>")}
                         </filter>
                     </entity>
                 </fetch>";

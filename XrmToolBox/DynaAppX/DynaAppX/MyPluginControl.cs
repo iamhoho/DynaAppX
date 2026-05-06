@@ -13,7 +13,12 @@ namespace DynaAppX
     {
         private Settings mySettings;
         private AccessCheckControl accessCheckControl;
+        private InvokeFlowControl invokeFlowControl;
+        private GodPageControl godPageControl;
+        private MetadataBrowserControl metadataBrowserControl;
         private IOrganizationService currentService;
+        private TabControl tabControl;
+        private ElementHost elementHostAccessCheck;
 
         public MyPluginControl()
         {
@@ -24,18 +29,48 @@ namespace DynaAppX
         {
             ShowInfoNotification("DynaAppX - Access Check Tool", new Uri("https://github.com/iamhoho/DynaAppX"));
 
-            // Initialize AccessCheck control
+            // Create TabControl to host all 4 WPF controls
+            tabControl = new TabControl();
+            tabControl.Dock = DockStyle.Fill;
+
+            // AccessCheck tab
+            var tabAccessCheck = new TabPage("🔑 AccessCheck");
             accessCheckControl = new AccessCheckControl();
             accessCheckControl.OpenRecordRequested += OnOpenRecordRequested;
             accessCheckControl.SetService(currentService);
+            elementHostAccessCheck = new ElementHost { Dock = DockStyle.Fill, Child = accessCheckControl };
+            tabAccessCheck.Controls.Add(elementHostAccessCheck);
 
-            var elementHost = new ElementHost
-            {
-                Dock = DockStyle.Fill,
-                Child = accessCheckControl
-            };
+            // InvokeFlow tab
+            var tabInvokeFlow = new TabPage("⚡ InvokeFlow");
+            invokeFlowControl = new InvokeFlowControl();
+            invokeFlowControl.SetService(currentService);
+            var elementHostInvokeFlow = new ElementHost { Dock = DockStyle.Fill, Child = invokeFlowControl };
+            tabInvokeFlow.Controls.Add(elementHostInvokeFlow);
 
-            this.Controls.Add(elementHost);
+            // GodPage tab
+            var tabGodPage = new TabPage("📝 GodPage");
+            godPageControl = new GodPageControl();
+            godPageControl.SetService(currentService);
+            var elementHostGodPage = new ElementHost { Dock = DockStyle.Fill, Child = godPageControl };
+            tabGodPage.Controls.Add(elementHostGodPage);
+
+            // MetadataBrowser tab
+            var tabMetadata = new TabPage("🌐 Metadata");
+            metadataBrowserControl = new MetadataBrowserControl();
+            metadataBrowserControl.SetService(currentService);
+            var elementHostMetadata = new ElementHost { Dock = DockStyle.Fill, Child = metadataBrowserControl };
+            tabMetadata.Controls.Add(elementHostMetadata);
+
+            // Add all tabs
+            tabControl.TabPages.Add(tabAccessCheck);
+            tabControl.TabPages.Add(tabInvokeFlow);
+            tabControl.TabPages.Add(tabGodPage);
+            tabControl.TabPages.Add(tabMetadata);
+
+            // Insert tabControl below the toolStripMenu
+            this.Controls.Add(tabControl);
+            this.Controls.SetChildIndex(tabControl, this.Controls.IndexOf(toolStripMenu) + 1);
 
             // Loads or creates the settings for the plugin
             if (!SettingsManager.Instance.TryLoad(GetType(), out mySettings))
@@ -61,10 +96,22 @@ namespace DynaAppX
             }
             currentService = newService;
 
-            // Pass service to the AccessCheck control
+            // Pass service to all WPF controls
             if (accessCheckControl != null && newService != null)
             {
                 accessCheckControl.SetService(newService);
+            }
+            if (invokeFlowControl != null && newService != null)
+            {
+                invokeFlowControl.SetService(newService);
+            }
+            if (godPageControl != null && newService != null)
+            {
+                godPageControl.SetService(newService);
+            }
+            if (metadataBrowserControl != null && newService != null)
+            {
+                metadataBrowserControl.SetService(newService);
             }
         }
 

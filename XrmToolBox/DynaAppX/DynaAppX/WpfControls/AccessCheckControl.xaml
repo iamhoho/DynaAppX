@@ -24,23 +24,44 @@
         </StackPanel>
 
         <!-- Selection Row -->
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="10" HorizontalAlignment="Center">
-            <TextBlock Text="User:" VerticalAlignment="Center" Width="80" Margin="0,0,5,0"/>
-            <ComboBox x:Name="cboUser" Width="250" Margin="0,0,20,0" IsEditable="True"
+        <Grid Grid.Row="1" Margin="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" Text="User:" VerticalAlignment="Center" Width="80" Margin="0,0,5,0"/>
+            <ComboBox Grid.Column="1" x:Name="cboUser" Width="250" Margin="0,0,20,0" IsEditable="True"
                       DisplayMemberPath="DisplayName" SelectedValuePath="Id"
                       SelectionChanged="cboUser_SelectionChanged"
                       DropDownOpened="cboUser_DropDownOpened"/>
-            <TextBlock Text="Entity:" VerticalAlignment="Center" Width="80" Margin="0,0,5,0"/>
-            <ComboBox x:Name="cboEntity" Width="200" Margin="0,0,20,0"
-                      DisplayMemberPath="EntityDisplayName"
-                      SelectionChanged="cboEntity_SelectionChanged"
-                      DropDownOpened="cboEntity_DropDownOpened"/>
-            <TextBlock Text="Record:" VerticalAlignment="Center" Width="80" Margin="0,0,5,0"/>
-            <ComboBox x:Name="cboRecord" Width="250" IsEditable="True"
+
+            <TextBlock Grid.Column="2" Text="Entity:" VerticalAlignment="Center" Width="80" Margin="0,0,5,0"/>
+            <StackPanel Grid.Column="3" Orientation="Horizontal" Margin="0,0,20,0">
+                <ComboBox x:Name="cboEntity" Width="150"
+                          DisplayMemberPath="EntityDisplayName"
+                          SelectionChanged="cboEntity_SelectionChanged"
+                          DropDownOpened="cboEntity_DropDownOpened"
+                          IsEnabled="False"/>
+                <Button x:Name="btnLoadEntities" Content="Load Entities" Margin="5,0,0,0" Padding="10,2"
+                        Click="btnLoadEntities_Click"/>
+                <!-- Loading indicator -->
+                <StackPanel x:Name="pnlLoading" Orientation="Horizontal" Margin="10,0,0,0" Visibility="Collapsed" VerticalAlignment="Center">
+                    <TextBlock Text="Loading..." VerticalAlignment="Center" Foreground="Gray"/>
+                    <ProgressBar x:Name="prgLoading" Width="80" Height="14" Margin="5,0,0,0" IsIndeterminate="True"/>
+                </StackPanel>
+            </StackPanel>
+
+            <TextBlock Grid.Column="4" Text="Record:" VerticalAlignment="Center" Width="80" Margin="0,0,5,0"/>
+            <ComboBox Grid.Column="5" x:Name="cboRecord" Width="250" IsEditable="True"
                       DisplayMemberPath="RecordName" SelectedValuePath="Id"
                       SelectionChanged="cboRecord_SelectionChanged"
                       DropDownOpened="cboRecord_DropDownOpened"/>
-        </StackPanel>
+        </Grid>
 
         <!-- User Info Section -->
         <GroupBox Grid.Row="2" Header="User Info" Margin="10" Padding="10">
