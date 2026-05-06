@@ -30,10 +30,29 @@ namespace DynaAppX.WpfControls
         }
 
         private bool _isLoadingEntities = false;
+        private bool _entitiesLoadedForCurrentService = false;
 
         public void SetService(IOrganizationService service)
         {
             _service = service;
+            SharedMetadataCache.SetService(service);
+
+            // Check if we already have cached entities for this service
+            var cached = SharedMetadataCache.GetEntities(service);
+            if (cached != null && cached.Count > 0)
+            {
+                _allEntities.Clear();
+                _entities.Clear();
+                _allEntities.AddRange(cached);
+                _entities.AddRange(cached);
+                cboEntity.ItemsSource = _entities;
+                cboEntity.IsEnabled = true;
+                txtStatus.Text = $"Loaded {_entities.Count} entities (cached)";
+                _entitiesLoadedForCurrentService = true;
+                return;
+            }
+
+            _entitiesLoadedForCurrentService = false;
             txtStatus.Text = "Click 'Load Entities' to begin.";
             cboEntity.IsEnabled = false;
         }
@@ -53,6 +72,15 @@ namespace DynaAppX.WpfControls
             if (_service == null)
             {
                 txtStatus.Text = "Error: Service not initialized";
+                return;
+            }
+
+            if (_entitiesLoadedForCurrentService)
+            {
+                // Already loaded for this service, just refresh UI
+                cboEntity.ItemsSource = null;
+                cboEntity.ItemsSource = _entities;
+                txtStatus.Text = $"{_entities.Count} entities available (cached)";
                 return;
             }
 
@@ -105,6 +133,11 @@ namespace DynaAppX.WpfControls
                 btnLoadEntities.IsEnabled = true;
                 pnlLoading.Visibility = Visibility.Collapsed;
                 _isLoadingEntities = false;
+                _entitiesLoadedForCurrentService = true;
+
+                // Store in shared cache for other instances/tabs
+                SharedMetadataCache.SetEntities(_service, new List<EntityWrapper>(_allEntities));
+                SharedMetadataCache.SetMetadataCache(_service, new Dictionary<string, Microsoft.Xrm.Sdk.Metadata.EntityMetadata>(_entityMetadataCache));
                 txtStatus.Text = $"Loaded {_entities.Count} entities";
             }
             catch (Exception ex)

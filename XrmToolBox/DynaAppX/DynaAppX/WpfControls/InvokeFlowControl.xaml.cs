@@ -34,6 +34,23 @@ namespace DynaAppX.WpfControls
         public void SetService(IOrganizationService service)
         {
             _service = service;
+            SharedMetadataCache.SetService(service);
+
+            // Check if we already have cached flows for this service
+            var cached = SharedMetadataCache.GetFlows(service);
+            if (cached != null && cached.Count > 0)
+            {
+                _allFlows.Clear();
+                _flows.Clear();
+                _allFlows.AddRange(cached);
+                _flows.AddRange(cached);
+                cboFlow.ItemsSource = _flows;
+                txtStatus.Text = $"Loaded {_flows.Count} flows (cached)";
+                _flowsLoaded = true;
+                return;
+            }
+
+            _flowsLoaded = false;
             txtStatus.Text = "Click 'Load Flows' to begin.";
             btnLoadFlows.IsEnabled = true;
         }
@@ -117,6 +134,7 @@ namespace DynaAppX.WpfControls
                 cboFlow.ItemsSource = _flows;
                 txtStatus.Text = $"Loaded {_flows.Count} flows";
                 _flowsLoaded = true;
+                SharedMetadataCache.SetFlows(_service, new List<FlowWrapper>(_allFlows));
             }
             catch (Exception ex)
             {

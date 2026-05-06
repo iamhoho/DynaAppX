@@ -255,6 +255,7 @@
     <Compile Include="Settings.cs" />
     <Compile Include="Converters\AccessColorConverter.cs" />
     <Compile Include="Converters\InvokeFlowConverters.cs" />
+    <Compile Include="WpfControls\SharedMetadataCache.cs" />
     <Compile Include="WpfControls\AccessCheckControl.xaml.cs">
       <DependentUpon>AccessCheckControl.xaml</DependentUpon>
     </Compile>

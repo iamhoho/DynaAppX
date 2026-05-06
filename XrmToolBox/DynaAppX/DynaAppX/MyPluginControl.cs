@@ -252,6 +252,9 @@ namespace DynaAppX
             }
             currentService = newService;
 
+            // Clear shared metadata cache when CRM connection changes
+            SharedMetadataCache.Clear();
+
             // Pass service to all open WPF controls via their ElementHosts
             // We refresh controls that are already open by re-finding them through the tab pages
             RefreshServiceOnAllControls(newService);
