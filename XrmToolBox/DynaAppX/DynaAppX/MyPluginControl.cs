@@ -19,6 +19,9 @@ namespace DynaAppX
         private IOrganizationService currentService;
         private TabControl tabControl;
         private ElementHost elementHostAccessCheck;
+        private ElementHost elementHostInvokeFlow;
+        private ElementHost elementHostGodPage;
+        private ElementHost elementHostMetadata;
 
         public MyPluginControl()
         {
@@ -46,14 +49,14 @@ namespace DynaAppX
             var tabInvokeFlow = new TabPage("⚡ InvokeFlow");
             invokeFlowControl = new InvokeFlowControl();
             invokeFlowControl.SetService(currentService);
-            var elementHostInvokeFlow = new ElementHost { Dock = DockStyle.Fill, Child = invokeFlowControl };
+            elementHostInvokeFlow = new ElementHost { Dock = DockStyle.Fill, Child = invokeFlowControl };
             tabInvokeFlow.Controls.Add(elementHostInvokeFlow);
 
             // GodPage tab
             var tabGodPage = new TabPage("📝 GodPage");
             godPageControl = new GodPageControl();
             godPageControl.SetService(currentService);
-            var elementHostGodPage = new ElementHost { Dock = DockStyle.Fill, Child = godPageControl };
+            elementHostGodPage = new ElementHost { Dock = DockStyle.Fill, Child = godPageControl };
             tabGodPage.Controls.Add(elementHostGodPage);
 
             // MetadataBrowser tab
@@ -64,7 +67,7 @@ namespace DynaAppX
                 metadataBrowserControl.SetCrmUrl(mySettings?.LastUsedOrganizationWebappUrl ?? "");
             };
             metadataBrowserControl.SetService(currentService);
-            var elementHostMetadata = new ElementHost { Dock = DockStyle.Fill, Child = metadataBrowserControl };
+            elementHostMetadata = new ElementHost { Dock = DockStyle.Fill, Child = metadataBrowserControl };
             tabMetadata.Controls.Add(elementHostMetadata);
 
             // Add all tabs
