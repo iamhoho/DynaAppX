@@ -65,17 +65,6 @@ namespace DynaAppX
             if (accessCheckControl != null && newService != null)
             {
                 accessCheckControl.SetService(newService);
-
-                // Pass CRM URL to MetadataBrowserControl if present
-                if (detail?.WebApplicationUrl != null)
-                {
-                    // Find MetadataBrowserControl if it exists in controls hierarchy
-                    var host = this.Controls[0] as ElementHost;
-                    if (host?.Child is AccessCheckControl acc)
-                    {
-                        // MetadataBrowserControl URL would be set via its own SetService pattern
-                    }
-                }
             }
         }
 
@@ -95,10 +84,24 @@ namespace DynaAppX
 
         private void OpenRecordInCRM(string entityName, Guid recordId)
         {
+            if (mySettings?.LastUsedOrganizationWebappUrl == null)
+            {
+                MessageBox.Show("No CRM connection URL available. Please connect first.",
+                    "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
             try
             {
-                var url = $"{mySettings.LastUsedOrganizationWebappUrl}/main.aspx?etn={entityName}&id={recordId}&pagetype=entityrecord";
-                System.Diagnostics.Process.Start(url);
+                // Escape entity name and record ID for URL
+                var safeEntityName = Uri.EscapeDataString(entityName);
+                var safeRecordId = Uri.EscapeDataString(recordId.ToString());
+                var url = $"{mySettings.LastUsedOrganizationWebappUrl}/main.aspx?etn={safeEntityName}&id={safeRecordId}&pagetype=entityrecord";
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = url,
+                    UseShellExecute = true
+                });
             }
             catch (Exception ex)
             {
