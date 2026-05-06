@@ -172,6 +172,10 @@ namespace DynaAppX.WpfControls
                 _allRecords.Clear();
                 _records.Clear();
 
+                // Get entity set name for reference
+                var entityMeta = GetEntityMetadata(entityName);
+                var entitySetName = entityMeta?.EntitySetName ?? entityName + "s";
+
                 foreach (var record in result.Entities)
                 {
                     var recordName = record.GetAttributeValue<string>(primaryNameAttr) ?? "(No name)";
@@ -179,6 +183,7 @@ namespace DynaAppX.WpfControls
                     {
                         Id = record.Id,
                         RecordName = recordName,
+                        EntitySetName = entitySetName,
                         Entity = record
                     });
                     _records.Add(_allRecords.Last());
@@ -367,40 +372,49 @@ namespace DynaAppX.WpfControls
         {
             var options = new List<OptionSetItem>();
 
-            if (attr is PicklistAttributeMetadata picklist)
+            if (attr is PicklistAttributeMetadata picklist && picklist.OptionSet?.Options != null)
             {
                 foreach (var opt in picklist.OptionSet.Options)
                 {
-                    var label = opt.Label?.UserLocalizedLabel?.Label ?? opt.Value?.ToString() ?? "(No label)";
-                    options.Add(new OptionSetItem
+                    if (opt.Value.HasValue)
                     {
-                        Label = $"{label} ({opt.Value})",
-                        Value = opt.Value ?? 0
-                    });
+                        var label = opt.Label?.UserLocalizedLabel?.Label ?? opt.Value.Value.ToString();
+                        options.Add(new OptionSetItem
+                        {
+                            Label = $"{label} ({opt.Value.Value})",
+                            Value = opt.Value.Value
+                        });
+                    }
                 }
             }
-            else if (attr is StateAttributeMetadata state)
+            else if (attr is StateAttributeMetadata state && state.OptionSet?.Options != null)
             {
                 foreach (var opt in state.OptionSet.Options)
                 {
-                    var label = opt.Label?.UserLocalizedLabel?.Label ?? "(No label)";
-                    options.Add(new OptionSetItem
+                    if (opt.Value.HasValue)
                     {
-                        Label = label,
-                        Value = opt.Value ?? 0
-                    });
+                        var label = opt.Label?.UserLocalizedLabel?.Label ?? "(No label)";
+                        options.Add(new OptionSetItem
+                        {
+                            Label = label,
+                            Value = opt.Value.Value
+                        });
+                    }
                 }
             }
-            else if (attr is StatusAttributeMetadata status)
+            else if (attr is StatusAttributeMetadata status && status.OptionSet?.Options != null)
             {
                 foreach (var opt in status.OptionSet.Options)
                 {
-                    var label = opt.Label?.UserLocalizedLabel?.Label ?? "(No label)";
-                    options.Add(new OptionSetItem
+                    if (opt.Value.HasValue)
                     {
-                        Label = label,
-                        Value = opt.Value ?? 0
-                    });
+                        var label = opt.Label?.UserLocalizedLabel?.Label ?? "(No label)";
+                        options.Add(new OptionSetItem
+                        {
+                            Label = label,
+                            Value = opt.Value.Value
+                        });
+                    }
                 }
             }
 
@@ -419,13 +433,23 @@ namespace DynaAppX.WpfControls
 
         private void BuildLookupOptions(AttributeInfo info, AttributeMetadata attr)
         {
-            if (attr is LookupAttributeMetadata lookup)
+            if (attr is LookupAttributeMetadata lookup && lookup.Targets != null)
             {
-                info.TargetEntities = lookup.Targets?.ToList() ?? new List<string>();
-                if (info.TargetEntities.Any())
+                info.TargetEntities = lookup.Targets.ToList();
+                if (info.TargetEntities.Count > 0)
                 {
-                    LoadLookupOptions(info, info.TargetEntities.First());
+                    LoadLookupOptions(info, info.TargetEntities[0]);
                 }
+                else
+                {
+                    info.LookupOptions = new List<RecordWrapper>();
+                    info.FilteredLookupOptions = new List<RecordWrapper>();
+                }
+            }
+            else
+            {
+                info.LookupOptions = new List<RecordWrapper>();
+                info.FilteredLookupOptions = new List<RecordWrapper>();
             }
         }
 
@@ -538,6 +562,19 @@ namespace DynaAppX.WpfControls
                 {
                     info.LookupId = Guid.Empty;
                     info.LookupName = null;
+                    // Null out the original entity so DetectChanges sees a change from previous value to null
+                    if (_originalEntity != null)
+                    {
+                        var lookupAttrName = GetLookupAttributeName(attrName);
+                        if (_originalEntity.Contains(lookupAttrName))
+                        {
+                            _originalEntity[lookupAttrName] = null;
+                        }
+                        else
+                        {
+                            _originalEntity.Attributes[attrName] = null;
+                        }
+                    }
                 }
             }
         }
@@ -745,10 +782,14 @@ namespace DynaAppX.WpfControls
                     _selectedRecord.Id,
                     new ColumnSet("versionnumber"));
 
-                var versionNum = currentVersion.GetAttributeValue<long>("versionnumber");
-                var origVersion = _originalEntity.GetAttributeValue<long>("versionnumber");
-
-                return versionNum != origVersion;
+                // Check versionnumber attribute for external change detection
+                if (_originalEntity.Contains("versionnumber") && currentVersion.Contains("versionnumber"))
+                {
+                    var versionNum = currentVersion.GetAttributeValue<long>("versionnumber");
+                    var origVersion = _originalEntity.GetAttributeValue<long>("versionnumber");
+                    return versionNum != origVersion;
+                }
+                return false;
             }
             catch
             {
@@ -764,7 +805,9 @@ namespace DynaAppX.WpfControls
             bool hasUpdate = false;
 
             // Collect update values (excluding lookups which need special handling)
-            var lookupDeletes = new List<string>();
+            // Lookups need special handling - collect them separately
+            var lookupUpdates = new List<ChangeInfo>();
+            var lookupClears = new List<string>();
 
             foreach (var change in _changedData)
             {
@@ -772,14 +815,13 @@ namespace DynaAppX.WpfControls
                 {
                     if (change.NewLookupId == Guid.Empty)
                     {
-                        // Delete the lookup reference
-                        lookupDeletes.Add($"{_selectedEntity.EntitySetName}({_selectedRecord.Id})/{change.AttributeName}/$ref");
+                        // Clear the lookup reference
+                        lookupClears.Add(change.AttributeName);
                     }
                     else
                     {
-                        // Setting a lookup - use @odata.bind
-                        updateEntity[change.UpdateAttributeName] = change.UpdateValue;
-                        hasUpdate = true;
+                        // Setting a lookup - use @odata.bind format
+                        lookupUpdates.Add(change);
                     }
                 }
                 else
@@ -792,7 +834,7 @@ namespace DynaAppX.WpfControls
             bool hasError = false;
             string lastError = null;
 
-            // Update entity
+            // Update entity (non-lookup fields)
             if (hasUpdate)
             {
                 try
@@ -802,26 +844,41 @@ namespace DynaAppX.WpfControls
                 catch (Exception ex)
                 {
                     hasError = true;
-                    lastError = ex.Message;
+                    lastError = $"Update failed: {ex.Message}";
                 }
             }
 
-            // Delete lookup references
-            if (!hasError)
+            // Handle lookup updates (set new references) - each as separate Update call
+            foreach (var change in lookupUpdates)
             {
-                foreach (var path in lookupDeletes)
+                if (hasError) break;
+                try
                 {
-                    try
-                    {
-                        // Lookup clearing requires disassociate via AssociateRequest
-                        // Skip the broken null-update approach; user must re-associate manually
-                        // or implement proper disassociate with AssociateRequest(null, deleteNavProperty)
-                        // For now, silently skip - the UI already cleared the local reference
-                    }
-                    catch (Exception ex)
-                    {
-                        // Silently ignore disassociate errors for now
-                    }
+                    var lookupEntity = new Entity(_selectedEntity.LogicalName) { Id = _selectedRecord.Id };
+                    lookupEntity[change.UpdateAttributeName] = change.UpdateValue;
+                    _service.Update(lookupEntity);
+                }
+                catch (Exception ex)
+                {
+                    hasError = true;
+                    lastError = $"Failed to set lookup '{change.DisplayName}': {ex.Message}";
+                }
+            }
+
+            // Handle lookup clears (set to null) - each as separate Update call
+            foreach (var attrName in lookupClears)
+            {
+                if (hasError) break;
+                try
+                {
+                    var clearEntity = new Entity(_selectedEntity.LogicalName) { Id = _selectedRecord.Id };
+                    clearEntity[attrName] = null;
+                    _service.Update(clearEntity);
+                }
+                catch (Exception ex)
+                {
+                    hasError = true;
+                    lastError = $"Failed to clear lookup '{attrName}': {ex.Message}";
                 }
             }
 
@@ -860,6 +917,7 @@ namespace DynaAppX.WpfControls
     {
         public Guid Id { get; set; }
         public string RecordName { get; set; }
+        public string EntitySetName { get; set; }
         public Entity Entity { get; set; }
     }
 
