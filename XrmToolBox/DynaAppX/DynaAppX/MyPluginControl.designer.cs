@@ -34,7 +34,7 @@ namespace DynaAppX
             this.btnInvokeFlow = new System.Windows.Forms.ToolStripButton();
             this.btnGodPage = new System.Windows.Forms.ToolStripButton();
             this.btnMetadata = new System.Windows.Forms.ToolStripButton();
-            this.elementHostMain = new System.Windows.Forms.Integration.ElementHost();
+            this.tcMain = new System.Windows.Forms.TabControl();
             this.toolStripMenu.SuspendLayout();
             this.SuspendLayout();
             //
@@ -94,20 +94,21 @@ namespace DynaAppX
             this.btnMetadata.Text = "🌐 Metadata";
             this.btnMetadata.Click += new System.EventHandler(this.btnMetadata_Click);
             //
-            // elementHostMain
+            // tcMain
             //
-            this.elementHostMain.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.elementHostMain.Location = new System.Drawing.Point(0, 31);
-            this.elementHostMain.Name = "elementHostMain";
-            this.elementHostMain.Size = new System.Drawing.Size(839, 431);
-            this.elementHostMain.TabIndex = 5;
-            this.elementHostMain.Visible = true;
+            this.tcMain.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tcMain.Location = new System.Drawing.Point(0, 31);
+            this.tcMain.Name = "tcMain";
+            this.tcMain.SelectedIndex = 0;
+            this.tcMain.Size = new System.Drawing.Size(839, 431);
+            this.tcMain.TabIndex = 5;
+            this.tcMain.MouseDown += new System.Windows.Forms.MouseEventHandler(this.tcMain_MouseDown);
             //
             // MyPluginControl
             //
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Controls.Add(this.elementHostMain);
+            this.Controls.Add(this.tcMain);
             this.Controls.Add(this.toolStripMenu);
             this.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.Name = "DynaAppX";
@@ -126,6 +127,6 @@ namespace DynaAppX
         private System.Windows.Forms.ToolStripButton btnInvokeFlow;
         private System.Windows.Forms.ToolStripButton btnGodPage;
         private System.Windows.Forms.ToolStripButton btnMetadata;
-        private System.Windows.Forms.Integration.ElementHost elementHostMain;
+        private System.Windows.Forms.TabControl tcMain;
     }
 }

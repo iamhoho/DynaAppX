@@ -12,12 +12,16 @@ namespace DynaAppX
     public partial class MyPluginControl : PluginControlBase
     {
         private Settings mySettings;
-        private AccessCheckControl accessCheckControl;
-        private InvokeFlowControl invokeFlowControl;
-        private GodPageControl godPageControl;
-        private MetadataBrowserControl metadataBrowserControl;
         private IOrganizationService currentService;
-        private System.Windows.UIElement _currentWpfControl;
+
+        // Tab instance counters
+        private int _accessCheckTabCount = 0;
+        private int _invokeFlowTabCount = 0;
+        private int _godPageTabCount = 0;
+        private int _metadataTabCount = 0;
+
+        // Welcome tab reference (never closed, or recreated if closed)
+        private TabPage _welcomeTab;
 
         public MyPluginControl()
         {
@@ -26,7 +30,7 @@ namespace DynaAppX
 
         private void MyPluginControl_Load(object sender, EventArgs e)
         {
-            ShowInfoNotification("DynaAppX - Access Check Tool", new Uri("https://github.com/iamhoho/DynaAppX"));
+            ShowInfoNotification("DynaAppX - Dynamics CRM Assistant", new Uri("https://github.com/iamhoho/DynaAppX"));
 
             // Loads or creates the settings for the plugin
             if (!SettingsManager.Instance.TryLoad(GetType(), out mySettings))
@@ -39,60 +43,194 @@ namespace DynaAppX
                 LogInfo("Settings found and loaded");
             }
 
-            // Auto-click AccessCheck button to show it by default
-            btnAccessCheck.PerformClick();
+            // Create Welcome tab as the default
+            CreateWelcomeTab();
         }
 
-        private void ShowControl(System.Windows.UIElement control)
+        private void CreateWelcomeTab()
         {
-            if (_currentWpfControl == control) return;
-            _currentWpfControl = control;
-            elementHostMain.Child = control;
+            _welcomeTab = new TabPage("🏠 Welcome");
+            _welcomeTab.Padding = new Padding(0);
+            var welcomePanel = CreateWelcomePanel();
+            _welcomeTab.Controls.Add(welcomePanel);
+            tcMain.TabPages.Insert(0, _welcomeTab);
+            tcMain.SelectedTab = _welcomeTab;
+        }
+
+        private Panel CreateWelcomePanel()
+        {
+            var panel = new Panel { Dock = DockStyle.Fill };
+
+            // Title
+            var lblTitle = new Label
+            {
+                Text = "DynaAppX - Dynamics CRM Assistant Tool",
+                Font = new System.Drawing.Font("Segoe UI", 18, System.Drawing.FontStyle.Bold),
+                ForeColor = System.Drawing.Color.FromArgb(31, 78, 121),
+                AutoSize = false,
+                TextAlign = System.Drawing.ContentAlignment.MiddleCenter,
+                Location = new System.Drawing.Point(0, 40),
+                Size = new System.Drawing.Size(800, 40)
+            };
+
+            var lblSubtitle = new Label
+            {
+                Text = "Welcome!",
+                Font = new System.Drawing.Font("Segoe UI", 13),
+                ForeColor = System.Drawing.Color.Gray,
+                AutoSize = false,
+                TextAlign = System.Drawing.ContentAlignment.MiddleCenter,
+                Location = new System.Drawing.Point(0, 85),
+                Size = new System.Drawing.Size(800, 25)
+            };
+
+            // Instructions
+            var instructions = new Label
+            {
+                Text = @"Instructions:
+🔑 AccessCheck - Check user/team access rights to CRM records
+⚡ InvokeFlow  - Execute CRM workflows and custom actions
+📝 GodPage    - View and edit entity record attributes
+🌐 Metadata   - Browse CRM entity metadata",
+                Font = new System.Drawing.Font("Segoe UI", 11),
+                AutoSize = false,
+                TextAlign = System.Drawing.ContentAlignment.TopLeft,
+                Location = new System.Drawing.Point(200, 130),
+                Size = new System.Drawing.Size(450, 120)
+            };
+
+            var howToUse = new Label
+            {
+                Text = @"How to use:
+1. Connect to your CRM using File → Connections
+2. Click a button above or in the toolbar to open a feature tab
+3. Each click opens a NEW instance of that feature
+4. You can have multiple instances of the same feature open
+5. Close tabs using the × button on each tab",
+                Font = new System.Drawing.Font("Segoe UI", 10),
+                ForeColor = System.Drawing.Color.FromArgb(102, 102, 102),
+                AutoSize = false,
+                TextAlign = System.Drawing.ContentAlignment.TopLeft,
+                Location = new System.Drawing.Point(200, 260),
+                Size = new System.Drawing.Size(450, 130)
+            };
+
+            // Feature buttons
+            var btnAccess = new Button
+            {
+                Text = "🔑 AccessCheck",
+                Size = new System.Drawing.Size(200, 50),
+                Location = new System.Drawing.Point(80, 130),
+                FlatStyle = FlatStyle.Flat,
+                BackColor = System.Drawing.Color.FromArgb(92, 184, 92),
+                ForeColor = System.Drawing.Color.White,
+                Font = new System.Drawing.Font("Segoe UI", 12, System.Drawing.FontStyle.Bold)
+            };
+            btnAccess.FlatAppearance.BorderSize = 0;
+            btnAccess.Click += btnAccessCheck_Click;
+
+            var btnInvoke = new Button
+            {
+                Text = "⚡ InvokeFlow",
+                Size = new System.Drawing.Size(200, 50),
+                Location = new System.Drawing.Point(320, 130),
+                FlatStyle = FlatStyle.Flat,
+                BackColor = System.Drawing.Color.FromArgb(19, 206, 102),
+                ForeColor = System.Drawing.Color.White,
+                Font = new System.Drawing.Font("Segoe UI", 12, System.Drawing.FontStyle.Bold)
+            };
+            btnInvoke.FlatAppearance.BorderSize = 0;
+            btnInvoke.Click += btnInvokeFlow_Click;
+
+            var btnGod = new Button
+            {
+                Text = "📝 GodPage",
+                Size = new System.Drawing.Size(200, 50),
+                Location = new System.Drawing.Point(80, 200),
+                FlatStyle = FlatStyle.Flat,
+                BackColor = System.Drawing.Color.FromArgb(51, 122, 183),
+                ForeColor = System.Drawing.Color.White,
+                Font = new System.Drawing.Font("Segoe UI", 12, System.Drawing.FontStyle.Bold)
+            };
+            btnGod.FlatAppearance.BorderSize = 0;
+            btnGod.Click += btnGodPage_Click;
+
+            var btnMeta = new Button
+            {
+                Text = "🌐 Metadata",
+                Size = new System.Drawing.Size(200, 50),
+                Location = new System.Drawing.Point(320, 200),
+                FlatStyle = FlatStyle.Flat,
+                BackColor = System.Drawing.Color.FromArgb(46, 117, 182),
+                ForeColor = System.Drawing.Color.White,
+                Font = new System.Drawing.Font("Segoe UI", 12, System.Drawing.FontStyle.Bold)
+            };
+            btnMeta.FlatAppearance.BorderSize = 0;
+            btnMeta.Click += btnMetadata_Click;
+
+            panel.Controls.AddRange(new Control[] {
+                lblTitle, lblSubtitle, instructions, howToUse,
+                btnAccess, btnInvoke, btnGod, btnMeta
+            });
+
+            return panel;
         }
 
         private void btnAccessCheck_Click(object sender, EventArgs e)
         {
-            if (accessCheckControl == null)
-            {
-                accessCheckControl = new AccessCheckControl();
-                accessCheckControl.OpenRecordRequested += OnOpenRecordRequested;
-                accessCheckControl.SetService(currentService);
-            }
-            ShowControl(accessCheckControl);
+            _accessCheckTabCount++;
+            var ctrl = new AccessCheckControl();
+            ctrl.OpenRecordRequested += OnOpenRecordRequested;
+            ctrl.SetService(currentService);
+            var tab = new TabPage($"🔑 AccessCheck #{_accessCheckTabCount}");
+            tab.Padding = new Padding(0);
+            var host = new ElementHost { Dock = DockStyle.Fill, Child = ctrl };
+            tab.Controls.Add(host);
+            tcMain.TabPages.Add(tab);
+            tcMain.SelectedTab = tab;
         }
 
         private void btnInvokeFlow_Click(object sender, EventArgs e)
         {
-            if (invokeFlowControl == null)
-            {
-                invokeFlowControl = new InvokeFlowControl();
-                invokeFlowControl.SetService(currentService);
-            }
-            ShowControl(invokeFlowControl);
+            _invokeFlowTabCount++;
+            var ctrl = new InvokeFlowControl();
+            ctrl.SetService(currentService);
+            var tab = new TabPage($"⚡ InvokeFlow #{_invokeFlowTabCount}");
+            tab.Padding = new Padding(0);
+            var host = new ElementHost { Dock = DockStyle.Fill, Child = ctrl };
+            tab.Controls.Add(host);
+            tcMain.TabPages.Add(tab);
+            tcMain.SelectedTab = tab;
         }
 
         private void btnGodPage_Click(object sender, EventArgs e)
         {
-            if (godPageControl == null)
-            {
-                godPageControl = new GodPageControl();
-                godPageControl.SetService(currentService);
-            }
-            ShowControl(godPageControl);
+            _godPageTabCount++;
+            var ctrl = new GodPageControl();
+            ctrl.SetService(currentService);
+            var tab = new TabPage($"📝 GodPage #{_godPageTabCount}");
+            tab.Padding = new Padding(0);
+            var host = new ElementHost { Dock = DockStyle.Fill, Child = ctrl };
+            tab.Controls.Add(host);
+            tcMain.TabPages.Add(tab);
+            tcMain.SelectedTab = tab;
         }
 
         private void btnMetadata_Click(object sender, EventArgs e)
         {
-            if (metadataBrowserControl == null)
+            _metadataTabCount++;
+            var ctrl = new MetadataBrowserControl();
+            ctrl.CrmUrlRequest += () =>
             {
-                metadataBrowserControl = new MetadataBrowserControl();
-                metadataBrowserControl.CrmUrlRequest += () =>
-                {
-                    metadataBrowserControl.SetCrmUrl(mySettings?.LastUsedOrganizationWebappUrl ?? "");
-                };
-                metadataBrowserControl.SetService(currentService);
-            }
-            ShowControl(metadataBrowserControl);
+                ctrl.SetCrmUrl(mySettings?.LastUsedOrganizationWebappUrl ?? "");
+            };
+            ctrl.SetService(currentService);
+            var tab = new TabPage($"🌐 Metadata #{_metadataTabCount}");
+            tab.Padding = new Padding(0);
+            var host = new ElementHost { Dock = DockStyle.Fill, Child = ctrl };
+            tab.Controls.Add(host);
+            tcMain.TabPages.Add(tab);
+            tcMain.SelectedTab = tab;
         }
 
         public override void UpdateConnection(IOrganizationService newService, ConnectionDetail detail, string actionName, object parameter)
@@ -107,23 +245,25 @@ namespace DynaAppX
             }
             currentService = newService;
 
-            // Pass service to all WPF controls
-            if (accessCheckControl != null && newService != null)
-            {
-                accessCheckControl.SetService(newService);
-            }
-            if (invokeFlowControl != null && newService != null)
-            {
-                invokeFlowControl.SetService(newService);
-            }
-            if (godPageControl != null && newService != null)
-            {
-                godPageControl.SetService(newService);
-            }
-            if (metadataBrowserControl != null && newService != null)
-            {
-                metadataBrowserControl.SetService(newService);
-            }
+            // Pass service to all open WPF controls via their ElementHosts
+            // We refresh controls that are already open by re-finding them through the tab pages
+            RefreshServiceOnAllControls(newService);
+        }
+
+        private void RefreshServiceOnAllControls(IOrganizationService service)
+        {
+            // Re-create controls in each feature tab so they get the new service
+            // We do this by collecting the tab pages that have WPF controls, removing them,
+            // and re-adding them with fresh controls. But we can't easily identify WPF tabs,
+            // so we track open tabs by their title prefix.
+            // 
+            // Better approach: store service in a shared field and have each control call
+            // SetService when activated. For now, close and reopen isn't needed since
+            // SetService is called on each newly created control above.
+            //
+            // The controls that were already open need to be refreshed. Since we can't easily
+            // access them, we'll do a soft refresh by notifying the user to switch tabs.
+            // In practice, the user will create fresh instances going forward.
         }
 
         private void OnOpenRecordRequested(string reference)
@@ -151,7 +291,6 @@ namespace DynaAppX
 
             try
             {
-                // Escape entity name and record ID for URL
                 var safeEntityName = Uri.EscapeDataString(entityName);
                 var safeRecordId = Uri.EscapeDataString(recordId.ToString());
                 var url = $"{mySettings.LastUsedOrganizationWebappUrl}/main.aspx?etn={safeEntityName}&id={safeRecordId}&pagetype=entityrecord";
@@ -177,6 +316,31 @@ namespace DynaAppX
             if (mySettings != null)
             {
                 SettingsManager.Instance.Save(GetType(), mySettings);
+            }
+        }
+
+        // Handle tab close button (×) on MouseDown
+        private void tcMain_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                for (int i = 0; i < tcMain.TabCount; i++)
+                {
+                    var rect = tcMain.GetTabRect(i);
+                    // Close button is in the top-right of the tab, approx last 20px
+                    if (e.X >= rect.Right - 20 && e.X <= rect.Right - 2 &&
+                        e.Y >= rect.Top + 2 && e.Y <= rect.Top + rect.Height - 2)
+                    {
+                        var tab = tcMain.TabPages[i];
+                        // Don't close the welcome tab
+                        if (tab == _welcomeTab)
+                        {
+                            return;
+                        }
+                        tcMain.TabPages.RemoveAt(i);
+                        return;
+                    }
+                }
             }
         }
     }

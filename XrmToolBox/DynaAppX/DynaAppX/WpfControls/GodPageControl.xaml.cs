@@ -48,7 +48,6 @@ namespace DynaAppX.WpfControls
         {
             _service = service;
             txtStatus.Text = "Click 'Load Entities' to begin.";
-            btnLoadEntities.IsEnabled = false;
         }
 
         private void GodPageControl_Loaded(object sender, RoutedEventArgs e)
