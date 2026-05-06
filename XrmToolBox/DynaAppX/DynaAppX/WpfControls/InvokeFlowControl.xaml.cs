@@ -165,7 +165,7 @@ namespace DynaAppX.WpfControls
             }
         }
 
-        private void cboRecord_DropDownOpened(object sender, RoutedEventArgs e)
+        private void cboRecord_DropDownOpened(object sender, EventArgs e)
         {
             if (_selectedFlow == null || string.IsNullOrEmpty(_selectedFlow.PrimaryEntity) || _selectedFlow.Category == 3)
                 return;
@@ -237,9 +237,9 @@ namespace DynaAppX.WpfControls
                     var stringAttrs = entityWrapper.Attributes
                         .Where(a => a.AttributeOf == null &&
                                     a.AttributeType == Microsoft.Xrm.Sdk.Metadata.AttributeTypeCode.String &&
-                                    (a.LogicalName.Contains("code", StringComparison.OrdinalIgnoreCase) ||
-                                     a.LogicalName.Contains("name", StringComparison.OrdinalIgnoreCase) ||
-                                     a.LogicalName.Contains("number", StringComparison.OrdinalIgnoreCase)))
+                                    (a.LogicalName.ToLowerInvariant().Contains("code") ||
+                                     a.LogicalName.ToLowerInvariant().Contains("name") ||
+                                     a.LogicalName.ToLowerInvariant().Contains("number")))
                         .ToList();
 
                     foreach (var attr in stringAttrs)

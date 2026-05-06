@@ -118,9 +118,9 @@ namespace DynaAppX.WpfControls
                     var stringAttrs = entityWrapper.Attributes
                         .Where(a => a.AttributeOf == null &&
                                     a.AttributeType == AttributeTypeCode.String &&
-                                    (a.LogicalName.Contains("code", StringComparison.OrdinalIgnoreCase) ||
-                                     a.LogicalName.Contains("name", StringComparison.OrdinalIgnoreCase) ||
-                                     a.LogicalName.Contains("number", StringComparison.OrdinalIgnoreCase)))
+                                    (a.LogicalName.ToLowerInvariant().Contains("code") ||
+                                     a.LogicalName.ToLowerInvariant().Contains("name") ||
+                                     a.LogicalName.ToLowerInvariant().Contains("number")))
                         .ToList();
 
                     foreach (var attr in stringAttrs)
@@ -204,20 +204,22 @@ namespace DynaAppX.WpfControls
             var editableAttrs = _selectedEntity.Attributes
                 .Where(a => a.AttributeOf == null &&
                            !a.IsPrimaryId &&
-                           !HiddenAttributes.Contains(a.LogicalName) &&
-                           !DisabledAttributes.Contains(a.LogicalName))
+                           !IsInArray(HiddenAttributes, a.LogicalName) &&
+                           !IsInArray(DisabledAttributes, a.LogicalName))
                 .ToList();
 
             var disabledAttrs = _selectedEntity.Attributes
                 .Where(a => a.AttributeOf == null &&
                            !a.IsPrimaryId &&
-                           !HiddenAttributes.Contains(a.LogicalName) &&
-                           DisabledAttributes.Contains(a.LogicalName))
+                           !IsInArray(HiddenAttributes, a.LogicalName) &&
+                           IsInArray(DisabledAttributes, a.LogicalName))
                 .ToList();
 
             foreach (var attr in editableAttrs.Concat(disabledAttrs))
             {
-                var displayName = attr.DisplayName?.UserLocalizedLabel?.Label ?? attr.LogicalName;
+                var displayName = attr.DisplayName != null && attr.DisplayName.UserLocalizedLabel != null
+                    ? attr.DisplayName.UserLocalizedLabel.Label
+                    : attr.LogicalName;
                 var value = GetAttributeValue(_originalData, attr.LogicalName, attr.AttributeType);
 
                 _attributes.Add(new AttributeItem
@@ -226,7 +228,7 @@ namespace DynaAppX.WpfControls
                     DisplayName = displayName,
                     AttributeType = attr.AttributeType.ToString(),
                     Value = value,
-                    IsEnabled = !DisabledAttributes.Contains(attr.LogicalName)
+                    IsEnabled = !IsInArray(DisabledAttributes, attr.LogicalName)
                 });
             }
 
@@ -234,25 +236,45 @@ namespace DynaAppX.WpfControls
             lstAttributes.ItemsSource = _attributes;
         }
 
+        private bool IsInArray(string[] array, string value)
+        {
+            return array.Contains(value);
+        }
+
         private string GetAttributeValue(Entity entity, string logicalName, AttributeTypeCode type)
         {
             var value = entity.GetAttributeValue<object>(logicalName);
             if (value == null) return "";
 
-            return type switch
+            if (type == AttributeTypeCode.Picklist || type == AttributeTypeCode.Status || type == AttributeTypeCode.State)
             {
-                AttributeTypeCode.Picklist or AttributeTypeCode.Status or AttributeTypeCode.State
-                    => value is OptionSetValue ov ? ov.Value.ToString() : value.ToString(),
-                AttributeTypeCode.Lookup or AttributeTypeCode.Owner
-                    => entity.GetAttributeValue<EntityReference>(logicalName)?.Name ?? "",
-                AttributeTypeCode.Money
-                    => entity.GetAttributeValue<Money>(logicalName)?.Value.ToString() ?? "",
-                AttributeTypeCode.Boolean
-                    => entity.GetAttributeValue<bool>(logicalName).ToString(),
-                AttributeTypeCode.DateTime
-                    => entity.GetAttributeValue<DateTime>(logicalName).ToString("yyyy-MM-dd HH:mm:ss"),
-                _ => value.ToString()
-            };
+                if (value is OptionSetValue)
+                {
+                    return ((OptionSetValue)value).Value.ToString();
+                }
+                return value.ToString();
+            }
+            if (type == AttributeTypeCode.Lookup || type == AttributeTypeCode.Owner)
+            {
+                var refValue = entity.GetAttributeValue<EntityReference>(logicalName);
+                return refValue != null ? refValue.Name : "";
+            }
+            if (type == AttributeTypeCode.Money)
+            {
+                var moneyValue = entity.GetAttributeValue<Money>(logicalName);
+                return moneyValue != null ? moneyValue.Value.ToString() : "";
+            }
+            if (type == AttributeTypeCode.Boolean)
+            {
+                var boolValue = entity.GetAttributeValue<bool>(logicalName);
+                return boolValue.ToString();
+            }
+            if (type == AttributeTypeCode.DateTime)
+            {
+                var dateValue = entity.GetAttributeValue<DateTime>(logicalName);
+                return dateValue.ToString("yyyy-MM-dd HH:mm:ss");
+            }
+            return value.ToString();
         }
 
         private void txtValue_LostFocus(object sender, RoutedEventArgs e)
@@ -267,8 +289,8 @@ namespace DynaAppX.WpfControls
             _changes.Clear();
             foreach (var attr in _attributes)
             {
-                var originalValue = GetAttributeValue(_originalData, attr.LogicalName,
-                    Enum.Parse<AttributeTypeCode>(attr.AttributeType));
+                var attrType = (AttributeTypeCode)Enum.Parse(typeof(AttributeTypeCode), attr.AttributeType);
+                var originalValue = GetAttributeValue(_originalData, attr.LogicalName, attrType);
 
                 if (attr.Value != originalValue)
                 {
@@ -309,7 +331,9 @@ namespace DynaAppX.WpfControls
 
                 foreach (var change in _changes)
                 {
-                    var attrMeta = _selectedEntity.Attributes?.FirstOrDefault(a => a.LogicalName == change.AttributeName);
+                    var attrMeta = _selectedEntity.Attributes != null
+                        ? _selectedEntity.Attributes.FirstOrDefault(a => a.LogicalName == change.AttributeName)
+                        : null;
                     if (attrMeta == null) continue;
 
                     var newValue = ParseValue(change.NewValue, attrMeta.AttributeType);
@@ -320,7 +344,6 @@ namespace DynaAppX.WpfControls
                 pnlSaveDialog.Visibility = Visibility.Collapsed;
                 txtStatus.Text = "Record saved successfully!";
 
-                // Reload the record
                 LoadRecordData();
             }
             catch (Exception ex)
@@ -333,20 +356,59 @@ namespace DynaAppX.WpfControls
         {
             if (string.IsNullOrEmpty(value)) return null;
 
-            return type switch
+            if (type == AttributeTypeCode.String || type == AttributeTypeCode.Memo)
             {
-                AttributeTypeCode.String or AttributeTypeCode.Memo => value,
-                AttributeTypeCode.Integer => int.TryParse(value, out var i) ? i : value,
-                AttributeTypeCode.BigInt => long.TryParse(value, out var l) ? l : value,
-                AttributeTypeCode.Decimal or AttributeTypeCode.Double => decimal.TryParse(value, out var d) ? d : value,
-                AttributeTypeCode.Boolean => bool.TryParse(value, out var b) && b,
-                AttributeTypeCode.DateTime => DateTime.TryParse(value, out var dt) ? dt : value,
-                AttributeTypeCode.Picklist or AttributeTypeCode.Status or AttributeTypeCode.State
-                    => int.TryParse(value, out var opt) ? new OptionSetValue(opt) : value,
-                AttributeTypeCode.Uniqueidentifier => Guid.TryParse(value, out var g) ? g : value,
-                AttributeTypeCode.Money => decimal.TryParse(value, out var m) ? new Money(m) : value,
-                _ => value
-            };
+                return value;
+            }
+            if (type == AttributeTypeCode.Integer)
+            {
+                int intVal;
+                if (int.TryParse(value, out intVal)) return intVal;
+                return value;
+            }
+            if (type == AttributeTypeCode.BigInt)
+            {
+                long longVal;
+                if (long.TryParse(value, out longVal)) return longVal;
+                return value;
+            }
+            if (type == AttributeTypeCode.Decimal || type == AttributeTypeCode.Double)
+            {
+                decimal decimalVal;
+                if (decimal.TryParse(value, out decimalVal)) return decimalVal;
+                return value;
+            }
+            if (type == AttributeTypeCode.Boolean)
+            {
+                bool boolVal;
+                if (bool.TryParse(value, out boolVal)) return boolVal;
+                return value;
+            }
+            if (type == AttributeTypeCode.DateTime)
+            {
+                DateTime dateVal;
+                if (DateTime.TryParse(value, out dateVal)) return dateVal;
+                return value;
+            }
+            if (type == AttributeTypeCode.Picklist || type == AttributeTypeCode.Status || type == AttributeTypeCode.State)
+            {
+                int optVal;
+                if (int.TryParse(value, out optVal)) return new OptionSetValue(optVal);
+                return value;
+            }
+            if (type == AttributeTypeCode.Uniqueidentifier)
+            {
+                Guid guidVal;
+                if (Guid.TryParse(value, out guidVal)) return guidVal;
+                return value;
+            }
+            if (type == AttributeTypeCode.Money)
+            {
+                decimal moneyVal;
+                if (decimal.TryParse(value, out moneyVal)) return new Money(moneyVal);
+                return value;
+            }
+            return value;
         }
     }
 
@@ -360,7 +422,7 @@ namespace DynaAppX.WpfControls
         private string _value;
         public string Value
         {
-            get => _value;
+            get { return _value; }
             set
             {
                 if (_value != value)

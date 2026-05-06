@@ -28,7 +28,10 @@ namespace DynaAppX.Services
                 {
                     lock (_lock)
                     {
-                        _instance ??= new SharedMetadataCache();
+                        if (_instance == null)
+                        {
+                            _instance = new SharedMetadataCache();
+                        }
                     }
                 }
                 return _instance;
@@ -168,9 +171,10 @@ namespace DynaAppX.Services
             if (string.IsNullOrEmpty(searchText))
                 return allEntities;
 
+            var searchLower = searchText.ToLowerInvariant();
             return allEntities.Where(e =>
-                e.LogicalName.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
-                e.DisplayName.Contains(searchText, StringComparison.OrdinalIgnoreCase)
+                e.LogicalName.ToLowerInvariant().Contains(searchLower) ||
+                e.DisplayName.ToLowerInvariant().Contains(searchLower)
             ).ToList();
         }
 

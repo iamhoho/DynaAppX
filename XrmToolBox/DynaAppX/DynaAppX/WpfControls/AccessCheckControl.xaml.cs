@@ -104,9 +104,10 @@ namespace DynaAppX.WpfControls
             }
             else
             {
+                var searchLower = searchText.ToLowerInvariant();
                 _entities.AddRange(_allEntities.Where(entity =>
-                    entity.LogicalName.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
-                    entity.DisplayName.Contains(searchText, StringComparison.OrdinalIgnoreCase)));
+                    entity.LogicalName.ToLowerInvariant().Contains(searchLower) ||
+                    entity.DisplayName.ToLowerInvariant().Contains(searchLower)));
             }
             cboEntity.ItemsSource = null;
             cboEntity.ItemsSource = _entities;
@@ -218,9 +219,9 @@ namespace DynaAppX.WpfControls
                     var stringAttrs = entityWrapper.Attributes
                         .Where(a => a.AttributeOf == null &&
                                     a.AttributeType == AttributeTypeCode.String &&
-                                    (a.LogicalName.Contains("code", StringComparison.OrdinalIgnoreCase) ||
-                                     a.LogicalName.Contains("name", StringComparison.OrdinalIgnoreCase) ||
-                                     a.LogicalName.Contains("number", StringComparison.OrdinalIgnoreCase)))
+                                    (a.LogicalName.ToLowerInvariant().Contains("code") ||
+                                     a.LogicalName.ToLowerInvariant().Contains("name") ||
+                                     a.LogicalName.ToLowerInvariant().Contains("number")))
                         .ToList();
 
                     foreach (var attr in stringAttrs)
