@@ -1,0 +1,120 @@
+<UserControl x:Class="DynaAppX.WpfControls.GodPageControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:Converters="clr-namespace:DynaAppX.Converters"
+             mc:Ignorable="d"
+             d:DesignHeight="800" d:DesignWidth="900">
+    <UserControl.Resources>
+        <Converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10" HorizontalAlignment="Center">
+            <TextBlock Text="God Page - Entity Record Editor" FontSize="20" FontWeight="Bold" VerticalAlignment="Center"/>
+        </StackPanel>
+
+        <!-- Entity + Record Selection Row -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="10,5,10,10" HorizontalAlignment="Center" VerticalAlignment="Top">
+            <TextBlock Text="Entity:" VerticalAlignment="Center" Width="80" Margin="0,0,5,0"/>
+            <ComboBox x:Name="cboEntity" Width="280" Margin="0,0,20,0"
+                      DisplayMemberPath="DisplayName"
+                      SelectionChanged="cboEntity_SelectionChanged"
+                      DropDownOpened="cboEntity_DropDownOpened"
+                      IsEditable="True"
+                      TextBoxBase.TextChanged="cboEntity_TextChanged"/>
+            <TextBlock Text="Record:" VerticalAlignment="Center" Width="80" Margin="0,0,5,0"/>
+            <ComboBox x:Name="cboRecord" Width="280" Margin="0,0,20,0"
+                      DisplayMemberPath="RecordName" SelectedValuePath="Id"
+                      SelectionChanged="cboRecord_SelectionChanged"
+                      DropDownOpened="cboRecord_DropDownOpened"
+                      IsEditable="True"
+                      TextBoxBase.TextChanged="cboRecord_TextChanged"/>
+            <Button x:Name="btnSave" Content="Save" Width="80" Height="28"
+                    Background="#5cb85c" Foreground="White" BorderBrush="#5cb85c"
+                    Click="btnSave_Click" IsEnabled="False"/>
+        </StackPanel>
+
+        <!-- Attributes Panel -->
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Margin="10,0,10,10">
+            <ItemsControl x:Name="ctrlAttributes">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Margin="5" Padding="10" BorderBrush="#cccccc" BorderThickness="1" CornerRadius="4"
+                                MinWidth="400" MaxWidth="420">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+                                    <TextBlock Text="{Binding DisplayName}" FontWeight="Bold" VerticalAlignment="Center"
+                                               Width="120" TextWrapping="Wrap"/>
+                                    <TextBlock Text="{Binding AttributeName}" FontStyle="Italic" FontSize="11"
+                                               Foreground="Gray" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                                    <TextBlock Text="*" Foreground="Red" FontWeight="Bold"
+                                               Visibility="{Binding IsRequired, Converter={StaticResource BoolToVisibilityConverter}}"
+                                               VerticalAlignment="Center" Margin="2,0,0,0"/>
+                                </StackPanel>
+                                <!-- Picklist / Boolean / State / Status -->
+                                <ComboBox ItemsSource="{Binding Options}" DisplayMemberPath="Label"
+                                          SelectedValuePath="Value"
+                                          SelectedValue="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                          IsEnabled="{Binding IsEditable}"
+                                          Visibility="{Binding IsPicklistType, Converter={StaticResource BoolToVisibilityConverter}}"
+                                          Width="280"/>
+                                <!-- Boolean Checkbox -->
+                                <CheckBox IsChecked="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                          IsEnabled="{Binding IsEditable}"
+                                          Visibility="{Binding IsBooleanType, Converter={StaticResource BoolToVisibilityConverter}}"
+                                          Content="{Binding DisplayName}" Margin="120,0,0,0"/>
+                                <!-- Number / Money / Decimal / Integer -->
+                                <TextBox Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         IsEnabled="{Binding IsEditable}"
+                                         Visibility="{Binding IsNumberType, Converter={StaticResource BoolToVisibilityConverter}}"
+                                         Width="280"/>
+                                <!-- DateTime -->
+                                <DatePicker SelectedDate="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                            IsEnabled="{Binding IsEditable}"
+                                            Visibility="{Binding IsDateTimeType, Converter={StaticResource BoolToVisibilityConverter}}"
+                                            Width="280"/>
+                                <!-- String / Memo -->
+                                <TextBox Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                         IsEnabled="{Binding IsEditable}"
+                                         Visibility="{Binding IsStringType, Converter={StaticResource BoolToVisibilityConverter}}"
+                                         Width="280" Height="{Binding IsMemoType, Converter={StaticResource BoolToVisibilityConverter}}"
+                                         TextWrapping="Wrap" AcceptsReturn="True" MaxHeight="100"/>
+                                <!-- Lookup / Owner -->
+                                <ComboBox ItemsSource="{Binding LookupOptions}" DisplayMemberPath="DisplayName"
+                                          SelectedValuePath="Id"
+                                          SelectedValue="{Binding LookupId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                          IsEnabled="{Binding IsEditable}"
+                                          Visibility="{Binding IsLookupType, Converter={StaticResource BoolToVisibilityConverter}}"
+                                          Width="280" IsEditable="True" TextBoxBase.TextChanged="cboLookup_TextChanged"/>
+                                <!-- Unsupported -->
+                                <TextBlock Text="Unsupported attribute type" Foreground="Red"
+                                           Visibility="{Binding IsUnsupportedType, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                                <!-- Disabled indicator -->
+                                <TextBlock Text="(System field - read only)" Foreground="Gray" FontStyle="Italic"
+                                           Visibility="{Binding IsSystemField, Converter={StaticResource BoolToVisibilityConverter}}"
+                                           Margin="120,2,0,0"/>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <!-- Status -->
+        <TextBlock Grid.Row="0" x:Name="txtStatus" Margin="10" VerticalAlignment="Bottom"
+                   HorizontalAlignment="Left"/>
+    </Grid>
+</UserControl>

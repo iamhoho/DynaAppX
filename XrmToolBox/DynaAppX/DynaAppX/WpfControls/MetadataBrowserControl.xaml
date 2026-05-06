@@ -1,0 +1,115 @@
+<UserControl x:Class="DynaAppX.WpfControls.MetadataBrowserControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="500" d:DesignWidth="800"
+             Background="White">
+    <Grid>
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Orientation="Vertical" Margin="20">
+
+                <!-- Title -->
+                <TextBlock Text="Metadata Browser Tool"
+                           FontSize="22" FontWeight="Bold"
+                           Foreground="#1F4E79"
+                           Margin="0,0,0,10"/>
+
+                <!-- Description -->
+                <TextBlock Text="The Metadata Browser has two pages: Metadata Browser and Entity Metadata Browser."
+                           FontSize="13" TextWrapping="Wrap"
+                           Margin="0,0,0,20"/>
+
+                <!-- Separator -->
+                <Border BorderBrush="#D0D0D0" BorderThickness="0,1,0,0" Margin="0,0,0,20"/>
+
+                <!-- Metadata Browser Section -->
+                <TextBlock Text="Metadata Browser"
+                           FontSize="16" FontWeight="SemiBold"
+                           Foreground="#2E75B6"
+                           Margin="0,0,0,8"/>
+
+                <TextBlock TextWrapping="Wrap" FontSize="12" Margin="0,0,0,8">
+                    <Run FontWeight="SemiBold">Metadata Browser</Run>
+                    <Run>displays a master/detail view of all the entities in the system.</Run>
+                </TextBlock>
+
+                <Button x:Name="btnOpenMetadataBrowser"
+                        Content="Open Metadata Browser"
+                        FontSize="13" Padding="15,8"
+                        Background="#2E75B6" Foreground="White"
+                        BorderThickness="0"
+                        Cursor="Hand"
+                        Click="BtnOpenMetadataBrowser_Click"
+                        HorizontalAlignment="Left"
+                        Margin="0,0,0,10"/>
+
+                <TextBlock Text="With this page you can:" FontSize="12" Margin="0,0,0,5"/>
+                <StackPanel Margin="20,0,0,15">
+                    <TextBlock Text="Select an entity to view using the Entity Metadata Browser" FontSize="12" Margin="0,2"/>
+                    <TextBlock Text="Open the selected entity form in the default organization if supported" FontSize="12" Margin="0,2"/>
+                    <TextBlock Text="Perform a text search to filter displayed entities by SchemaName, LogicalName, DisplayName, ObjectTypeCode, or MetadataId" FontSize="12" Margin="0,2" TextWrapping="Wrap"/>
+                    <TextBlock Text="Filter entities by any entity property values" FontSize="12" Margin="0,2"/>
+                    <TextBlock Text="Filter the properties displayed for the selected entity" FontSize="12" Margin="0,2"/>
+                </StackPanel>
+
+                <!-- Separator -->
+                <Border BorderBrush="#D0D0D0" BorderThickness="0,1,0,0" Margin="0,0,0,20"/>
+
+                <!-- Entity Metadata Browser Section -->
+                <TextBlock Text="Entity Metadata Browser"
+                           FontSize="16" FontWeight="SemiBold"
+                           Foreground="#2E75B6"
+                           Margin="0,0,0,8"/>
+
+                <TextBlock TextWrapping="Wrap" FontSize="12" Margin="0,0,0,8">
+                    <Run FontWeight="SemiBold">Entity Metadata Browser</Run>
+                    <Run>displays details about a selected entity.</Run>
+                </TextBlock>
+
+                <Button x:Name="btnOpenEntityMetadataBrowser"
+                        Content="Open Entity Metadata Browser"
+                        FontSize="13" Padding="15,8"
+                        Background="#2E75B6" Foreground="White"
+                        BorderThickness="0"
+                        Cursor="Hand"
+                        Click="BtnOpenEntityMetadataBrowser_Click"
+                        HorizontalAlignment="Left"
+                        Margin="0,0,0,10"/>
+
+                <TextBlock Text="With this page you can:" FontSize="12" Margin="0,0,0,5"/>
+                <StackPanel Margin="20,0,0,15">
+                    <TextBlock Text="View all the properties for the entity and filter the properties displayed" FontSize="12" Margin="0,2"/>
+                    <TextBlock Text="Open the selected entity edit form in the default organization if supported" FontSize="12" Margin="0,2"/>
+                    <TextBlock Text="Change the entity that you want to view" FontSize="12" Margin="0,2"/>
+                    <TextBlock Text="View the entity attributes in a master/detail view" FontSize="12" Margin="0,2" TextWrapping="Wrap"/>
+                    <TextBlock Text="View the entity alternate keys in a master/detail view" FontSize="12" Margin="0,2"/>
+                    <TextBlock Text="View entity relationships" FontSize="12" Margin="0,2"/>
+                    <TextBlock Text="View entity privileges" FontSize="12" Margin="0,2"/>
+                </StackPanel>
+
+                <!-- Separator -->
+                <Border BorderBrush="#D0D0D0" BorderThickness="0,1,0,0" Margin="0,0,0,20"/>
+
+                <!-- Note -->
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                    <TextBlock Text="Note: " FontSize="11" FontWeight="SemiBold" FontStyle="Italic"/>
+                    <TextBlock Text="Both of these pages require Internet Explorer 9, 10, or 11. "
+                               FontSize="11" FontStyle="Italic"/>
+                    <TextBlock Text="Recent publicly released versions of Google Chrome and Mozilla Firefox also work."
+                               FontSize="11" FontStyle="Italic" TextWrapping="Wrap"/>
+                </StackPanel>
+
+                <!-- Status bar -->
+                <Border Background="#F3F3F3" BorderBrush="#D0D0D0" BorderThickness="1"
+                        CornerRadius="3" Padding="10,6" Margin="0,10,0,0">
+                    <TextBlock x:Name="txtStatus"
+                               Text="Waiting for CRM connection..."
+                               FontSize="11" Foreground="#666666"/>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>
