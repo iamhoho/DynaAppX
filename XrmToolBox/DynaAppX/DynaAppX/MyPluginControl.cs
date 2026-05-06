@@ -53,8 +53,9 @@ namespace DynaAppX
         {
             base.UpdateConnection(newService, detail, actionName, parameter);
 
-            if (mySettings != null && detail != null)
+            if (detail != null)
             {
+                if (mySettings == null) mySettings = new Settings();
                 mySettings.LastUsedOrganizationWebappUrl = detail.WebApplicationUrl;
                 LogInfo("Connection has changed to: {0}", detail.WebApplicationUrl);
             }
@@ -64,6 +65,17 @@ namespace DynaAppX
             if (accessCheckControl != null && newService != null)
             {
                 accessCheckControl.SetService(newService);
+
+                // Pass CRM URL to MetadataBrowserControl if present
+                if (detail?.WebApplicationUrl != null)
+                {
+                    // Find MetadataBrowserControl if it exists in controls hierarchy
+                    var host = this.Controls[0] as ElementHost;
+                    if (host?.Child is AccessCheckControl acc)
+                    {
+                        // MetadataBrowserControl URL would be set via its own SetService pattern
+                    }
+                }
             }
         }
 
@@ -101,7 +113,10 @@ namespace DynaAppX
 
         private void MyPluginControl_OnCloseTool(object sender, EventArgs e)
         {
-            SettingsManager.Instance.Save(GetType(), mySettings);
+            if (mySettings != null)
+            {
+                SettingsManager.Instance.Save(GetType(), mySettings);
+            }
         }
     }
 }

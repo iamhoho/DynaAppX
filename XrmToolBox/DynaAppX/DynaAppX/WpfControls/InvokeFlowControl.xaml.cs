@@ -250,7 +250,7 @@ namespace DynaAppX.WpfControls
 
         private void LoadRecords(string entityName)
         {
-            if (_service == null) return;
+            if (_service == null || string.IsNullOrEmpty(entityName)) return;
 
             try
             {
@@ -258,11 +258,16 @@ namespace DynaAppX.WpfControls
                 var primaryNameAttr = entityMeta?.PrimaryNameAttribute ?? "name";
                 var primaryIdAttr = entityMeta?.PrimaryIdAttribute ?? entityName + "id";
 
+                // Escape dynamic values in FetchXML
+                var safeEntityName = System.Security.SecurityElement.Escape(entityName) ?? entityName;
+                var safePrimaryIdAttr = System.Security.SecurityElement.Escape(primaryIdAttr) ?? primaryIdAttr;
+                var safePrimaryNameAttr = System.Security.SecurityElement.Escape(primaryNameAttr) ?? primaryNameAttr;
+
                 var fetchXml = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' top='30'>
-                  <entity name='{entityName}'>
-                    <attribute name='{primaryIdAttr}'/>
-                    <attribute name='{primaryNameAttr}'/>
-                    <order attribute='{primaryNameAttr}' descending='false'/>
+                  <entity name='{safeEntityName}'>
+                    <attribute name='{safePrimaryIdAttr}'/>
+                    <attribute name='{safePrimaryNameAttr}'/>
+                    <order attribute='{safePrimaryNameAttr}' descending='false'/>
                   </entity>
                 </fetch>";
 
