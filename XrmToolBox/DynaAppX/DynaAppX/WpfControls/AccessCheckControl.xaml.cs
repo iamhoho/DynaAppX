@@ -461,7 +461,7 @@ namespace DynaAppX.WpfControls
                 // Check cache first
                 if (_entityMetadataCache.TryGetValue(entityName, out var cachedMeta))
                 {
-                    var updatePriv = cachedMeta.Privileges?.FirstOrDefault(p => p.PrivilegeType == PrivilegeType.Update);
+                    var updatePriv = cachedMeta.Privileges?.FirstOrDefault(p => p.PrivilegeType == PrivilegeType.Write);
                     if (updatePriv == null) return false;
                     return updatePriv.CanBeBasic || updatePriv.CanBeDeep || updatePriv.CanBeGlobal;
                 }
@@ -477,7 +477,7 @@ namespace DynaAppX.WpfControls
                 if (resp.EntityMetadata != null)
                     _entityMetadataCache[entityName] = resp.EntityMetadata;
 
-                var updatePriv2 = resp.EntityMetadata.Privileges?.FirstOrDefault(p => p.PrivilegeType == PrivilegeType.Update);
+                var updatePriv2 = resp.EntityMetadata.Privileges?.FirstOrDefault(p => p.PrivilegeType == PrivilegeType.Write);
                 if (updatePriv2 == null) return false;
                 return updatePriv2.CanBeBasic || updatePriv2.CanBeDeep || updatePriv2.CanBeGlobal;
             }
