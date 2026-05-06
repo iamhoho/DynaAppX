@@ -1,3 +1,4 @@
+using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Query;
@@ -7,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Xml;
 using System.Xml.Linq;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
@@ -461,7 +463,7 @@ namespace DynaAppX.WpfControls
                 {
                     try
                     {
-                        using var jsonDoc = System.Text.Json.JsonDocument.Parse(requestBody);
+                        using (var jsonDoc = System.Text.Json.JsonDocument.Parse(requestBody))
                         foreach (var kvp in jsonDoc.RootElement.EnumerateObject())
                         {
                             var value = kvp.Value;
@@ -474,7 +476,7 @@ namespace DynaAppX.WpfControls
                                     var idStr = value.GetProperty("id").GetString();
                                     if (Guid.TryParse(idStr, out var guid))
                                     {
-                                        orgRequest.Parameters[kvp.Key] = new Microsoft.Xrm.Sdk.EntityReference(logicalName, guid);
+                                        orgRequest.Parameters[kvp.Name] = new Microsoft.Xrm.Sdk.EntityReference(logicalName, guid);
                                     }
                                 }
                                 else if (value.TryGetProperty("logicalname", out var lnEl))
@@ -484,32 +486,32 @@ namespace DynaAppX.WpfControls
                                     if (value.TryGetProperty("id", out var idEl) &&
                                         Guid.TryParse(idEl.GetString(), out var guid))
                                     {
-                                        orgRequest.Parameters[kvp.Key] = new Microsoft.Xrm.Sdk.EntityReference(logicalName, guid);
+                                        orgRequest.Parameters[kvp.Name] = new Microsoft.Xrm.Sdk.EntityReference(logicalName, guid);
                                     }
                                 }
                                 else
                                 {
-                                    orgRequest.Parameters[kvp.Key] = value.ToString();
+                                    orgRequest.Parameters[kvp.Name] = value.ToString();
                                 }
                             }
                             else if (value.ValueKind == System.Text.Json.JsonValueKind.String)
                             {
-                                orgRequest.Parameters[kvp.Key] = value.GetString();
+                                orgRequest.Parameters[kvp.Name] = value.GetString();
                             }
                             else if (value.ValueKind == System.Text.Json.JsonValueKind.Number)
                             {
                                 if (value.TryGetInt32(out var intVal))
-                                    orgRequest.Parameters[kvp.Key] = intVal;
+                                    orgRequest.Parameters[kvp.Name] = intVal;
                                 else
-                                    orgRequest.Parameters[kvp.Key] = value.GetDouble();
+                                    orgRequest.Parameters[kvp.Name] = value.GetDouble();
                             }
                             else if (value.ValueKind == System.Text.Json.JsonValueKind.True || value.ValueKind == System.Text.Json.JsonValueKind.False)
                             {
-                                orgRequest.Parameters[kvp.Key] = value.GetBoolean();
+                                orgRequest.Parameters[kvp.Name] = value.GetBoolean();
                             }
                             else if (value.ValueKind == System.Text.Json.JsonValueKind.Null)
                             {
-                                orgRequest.Parameters[kvp.Key] = null;
+                                orgRequest.Parameters[kvp.Name] = null;
                             }
                         }
                     }
