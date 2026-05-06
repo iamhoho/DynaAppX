@@ -7,6 +7,9 @@ using System.Windows.Forms.Integration;
 using XrmToolBox.Extensibility;
 using DynaAppX.WpfControls;
 using DynaAppX.Services;
+using WpfTabControl = System.Windows.Controls.TabControl;
+using WpfTabItem = System.Windows.Controls.TabItem;
+using WpfUserControl = System.Windows.Controls.UserControl;
 
 namespace DynaAppX
 {
@@ -14,10 +17,9 @@ namespace DynaAppX
     {
         private Settings mySettings;
         private IOrganizationService currentService;
-        private TabControl tabControl;
-        private TabItem welcomeTab;
-        private readonly Dictionary<Guid, TabItem> openTabs = new Dictionary<Guid, TabItem>();
-        private readonly Dictionary<Guid, UserControl> tabContents = new Dictionary<Guid, UserControl>();
+        private WpfTabItem welcomeTab;
+        private readonly Dictionary<Guid, WpfTabItem> openTabs = new Dictionary<Guid, WpfTabItem>();
+        private readonly Dictionary<Guid, WpfUserControl> tabContents = new Dictionary<Guid, WpfUserControl>();
         private string crmWebAppUrl;
 
         public MyPluginControl()
@@ -29,13 +31,8 @@ namespace DynaAppX
         {
             ShowInfoNotification("DynaAppX - XrmToolBox Plugin", new Uri("https://github.com/iamhoho/DynaAppX"));
 
-            // Initialize TabControl
             InitializeTabControl();
 
-            // Initialize SharedMetadataCache
-            SharedMetadataCache.Instance.Initialize(currentService);
-
-            // Loads or creates the settings for the plugin
             if (!SettingsManager.Instance.TryLoad(GetType(), out mySettings))
             {
                 mySettings = new Settings();
@@ -49,18 +46,16 @@ namespace DynaAppX
 
         private void InitializeTabControl()
         {
-            // Create WPF TabControl hosted in ElementHost
-            var wpfTabControl = new System.Windows.Controls.TabControl
+            var wpfTabControl = new WpfTabControl
             {
                 Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x1E, 0x1E, 0x1E)),
                 BorderThickness = new System.Windows.Thickness(0)
             };
 
-            // Create Welcome tab
             var welcomeControl = new WelcomePageControl();
             welcomeControl.OpenFeatureRequested += OnOpenFeatureRequested;
 
-            welcomeTab = new System.Windows.Controls.TabItem
+            welcomeTab = new WpfTabItem
             {
                 Header = "Welcome",
                 Content = welcomeControl
@@ -87,25 +82,34 @@ namespace DynaAppX
         {
             var tabId = Guid.NewGuid();
 
-            UserControl content = featureName switch
+            WpfUserControl content;
+            switch (featureName)
             {
-                "AccessCheck" => CreateAccessCheckControl(tabId),
-                "InvokeFlow" => CreateInvokeFlowControl(tabId),
-                "GodPage" => CreateGodPageControl(tabId),
-                "MetadataBrowser" => CreateMetadataBrowserControl(tabId),
-                _ => throw new ArgumentException($"Unknown feature: {featureName}")
-            };
+                case "AccessCheck":
+                    content = CreateAccessCheckControl(tabId);
+                    break;
+                case "InvokeFlow":
+                    content = CreateInvokeFlowControl(tabId);
+                    break;
+                case "GodPage":
+                    content = CreateGodPageControl(tabId);
+                    break;
+                case "MetadataBrowser":
+                    content = CreateMetadataBrowserControl(tabId);
+                    break;
+                default:
+                    throw new ArgumentException($"Unknown feature: {featureName}");
+            }
 
-            var tabItem = new System.Windows.Controls.TabItem
+            var tabItem = new WpfTabItem
             {
                 Header = CreateTabHeader(featureName, tabId),
                 Content = content,
                 Tag = tabId
             };
 
-            // Find the TabControl (it's inside the ElementHost)
             var elementHost = this.Controls[0] as ElementHost;
-            if (elementHost?.Child is System.Windows.Controls.TabControl tabControl)
+            if (elementHost?.Child is WpfTabControl tabControl)
             {
                 tabControl.Items.Add(tabItem);
                 tabControl.SelectedItem = tabItem;
@@ -162,15 +166,13 @@ namespace DynaAppX
 
             var tabItem = openTabs[tabId];
 
-            // Call OnTabClosing if the content supports it
             if (tabContents.TryGetValue(tabId, out var content) && content is ITabContent tabContent)
             {
                 tabContent.OnTabClosing();
             }
 
-            // Find the TabControl
             var elementHost = this.Controls[0] as ElementHost;
-            if (elementHost?.Child is System.Windows.Controls.TabControl wpfTabControl)
+            if (elementHost?.Child is WpfTabControl wpfTabControl)
             {
                 wpfTabControl.Items.Remove(tabItem);
             }
@@ -220,14 +222,12 @@ namespace DynaAppX
             }
             currentService = newService;
 
-            // Clear and reinitialize the cache
             SharedMetadataCache.Instance.Clear();
             if (newService != null)
             {
                 SharedMetadataCache.Instance.Initialize(newService);
             }
 
-            // Update all open tabs with new service
             foreach (var kvp in tabContents)
             {
                 if (kvp.Value is AccessCheckControl accessControl)
@@ -283,9 +283,8 @@ namespace DynaAppX
 
         private void tsbWelcome_Click(object sender, EventArgs e)
         {
-            // Switch to welcome tab or create if doesn't exist
             var elementHost = this.Controls[0] as ElementHost;
-            if (elementHost?.Child is System.Windows.Controls.TabControl tabControl)
+            if (elementHost?.Child is WpfTabControl tabControl)
             {
                 tabControl.SelectedItem = welcomeTab;
             }

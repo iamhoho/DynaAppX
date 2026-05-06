@@ -40,8 +40,7 @@
             <ComboBox x:Name="cboRecord" Width="250" IsEditable="True"
                       DisplayMemberPath="RecordName" SelectedValuePath="Id"
                       SelectionChanged="cboRecord_SelectionChanged"
-                      DropDownOpened="cboRecord_DropDownOpened"
-                      TextChanged="cboRecord_TextChanged"/>
+                      DropDownOpened="cboRecord_DropDownOpened"/>
         </StackPanel>
 
         <!-- User Info Section -->
