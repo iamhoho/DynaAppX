@@ -62,7 +62,7 @@ namespace DynaAppX
             var panel = new Panel { Dock = DockStyle.Fill };
 
             // Title
-            var lblTitle = new Label
+            var lblTitle = new System.Windows.Forms.Label
             {
                 Text = "DynaAppX - Dynamics CRM Assistant Tool",
                 Font = new System.Drawing.Font("Segoe UI", 18, System.Drawing.FontStyle.Bold),
@@ -73,7 +73,7 @@ namespace DynaAppX
                 Size = new System.Drawing.Size(800, 40)
             };
 
-            var lblSubtitle = new Label
+            var lblSubtitle = new System.Windows.Forms.Label
             {
                 Text = "Welcome!",
                 Font = new System.Drawing.Font("Segoe UI", 13),
@@ -85,7 +85,7 @@ namespace DynaAppX
             };
 
             // Instructions
-            var instructions = new Label
+            var instructions = new System.Windows.Forms.Label
             {
                 Text = @"Instructions:
 🔑 AccessCheck - Check user/team access rights to CRM records
@@ -99,7 +99,7 @@ namespace DynaAppX
                 Size = new System.Drawing.Size(450, 120)
             };
 
-            var howToUse = new Label
+            var howToUse = new System.Windows.Forms.Label
             {
                 Text = @"How to use:
 1. Connect to your CRM using File → Connections
