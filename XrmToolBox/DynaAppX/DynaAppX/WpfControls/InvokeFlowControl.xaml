@@ -29,7 +29,7 @@
             <ComboBox x:Name="cboRecord" Width="250" IsEditable="True"
                       DisplayMemberPath="RecordName" SelectedValuePath="Id"
                       SelectionChanged="cboRecord_SelectionChanged"
-                      DropDownOpened="cboRecord_DropDownOpened" TextChanged="cboRecord_TextChanged"/>
+                      DropDownOpened="cboRecord_DropDownOpened"/>
 
             <CheckBox x:Name="chkRawMode" Content="Raw Mode" Foreground="White"
                       VerticalAlignment="Center" Margin="20,0,0,0"

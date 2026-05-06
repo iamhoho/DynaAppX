@@ -27,7 +27,7 @@
             <ComboBox x:Name="cboRecord" Width="250" IsEditable="True"
                       DisplayMemberPath="RecordName" SelectedValuePath="Id"
                       SelectionChanged="cboRecord_SelectionChanged"
-                      DropDownOpened="cboRecord_DropDownOpened" TextChanged="cboRecord_TextChanged"/>
+                      DropDownOpened="cboRecord_DropDownOpened"/>
             <Button x:Name="btnSave" Content="Save" Padding="15,5" Margin="20,0,0,0"
                     Click="btnSave_Click" IsEnabled="False"/>
             <TextBlock x:Name="txtStatus" Text="" Foreground="#888888" VerticalAlignment="Center" Margin="20,0,0,0"/>
