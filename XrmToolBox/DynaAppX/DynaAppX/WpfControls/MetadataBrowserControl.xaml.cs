@@ -12,7 +12,7 @@ namespace DynaAppX.WpfControls
         private IOrganizationService _service;
         private string _crmUrl = "";
 
-        public event Action<string> CrmUrlRequest;
+        public event Action CrmUrlRequest;
 
         public MetadataBrowserControl()
         {
@@ -24,7 +24,7 @@ namespace DynaAppX.WpfControls
         {
             _service = service;
             // Request URL from parent
-            CrmUrlRequest?.Invoke(this);
+            CrmUrlRequest?.Invoke();
         }
 
         public void SetCrmUrl(string crmUrl)

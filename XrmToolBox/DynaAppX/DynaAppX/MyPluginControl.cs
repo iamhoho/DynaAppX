@@ -58,6 +58,10 @@ namespace DynaAppX
             // MetadataBrowser tab
             var tabMetadata = new TabPage("🌐 Metadata");
             metadataBrowserControl = new MetadataBrowserControl();
+            metadataBrowserControl.CrmUrlRequest += () =>
+            {
+                metadataBrowserControl.SetCrmUrl(mySettings?.LastUsedOrganizationWebappUrl ?? "");
+            };
             metadataBrowserControl.SetService(currentService);
             var elementHostMetadata = new ElementHost { Dock = DockStyle.Fill, Child = metadataBrowserControl };
             tabMetadata.Controls.Add(elementHostMetadata);
