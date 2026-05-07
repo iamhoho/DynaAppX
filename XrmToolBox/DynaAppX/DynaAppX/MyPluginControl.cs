@@ -302,13 +302,14 @@ namespace DynaAppX
         {
             try
             {
-                if (string.IsNullOrEmpty(mySettings?.LastUsedOrganizationWebappUrl))
+                var crmUrl = mySettings?.LastUsedOrganizationWebappUrl ?? crmWebAppUrl;
+                if (string.IsNullOrEmpty(crmUrl))
                 {
                     MessageBox.Show("CRM URL not available. Please connect to a CRM instance first.",
                         "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
-                var url = $"{mySettings.LastUsedOrganizationWebappUrl}/main.aspx?etn={entityName}&id={recordId}&pagetype=entityrecord";
+                var url = $"{crmUrl}/main.aspx?etn={entityName}&id={recordId}&pagetype=entityrecord";
                 System.Diagnostics.Process.Start(url);
             }
             catch (Exception ex)
