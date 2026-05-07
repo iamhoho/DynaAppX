@@ -266,13 +266,13 @@ namespace DynaAppX.WpfControls
             }
             if (type == AttributeTypeCode.Boolean)
             {
-                var boolValue = entity.GetAttributeValue<bool>(logicalName);
-                return boolValue.ToString();
+                var boolValue = entity.GetAttributeValue<bool?>(logicalName);
+                return boolValue.HasValue ? boolValue.Value.ToString() : "";
             }
             if (type == AttributeTypeCode.DateTime)
             {
-                var dateValue = entity.GetAttributeValue<DateTime>(logicalName);
-                return dateValue.ToString("yyyy-MM-dd HH:mm:ss");
+                var dateValue = entity.GetAttributeValue<DateTime?>(logicalName);
+                return dateValue.HasValue ? dateValue.Value.ToString("yyyy-MM-dd HH:mm:ss") : "";
             }
             return value.ToString();
         }
@@ -372,49 +372,49 @@ namespace DynaAppX.WpfControls
             {
                 int intVal;
                 if (int.TryParse(value, out intVal)) return intVal;
-                return value;
+                return null;
             }
             if (type == AttributeTypeCode.BigInt)
             {
                 long longVal;
                 if (long.TryParse(value, out longVal)) return longVal;
-                return value;
+                return null;
             }
             if (type == AttributeTypeCode.Decimal || type == AttributeTypeCode.Double)
             {
                 decimal decimalVal;
                 if (decimal.TryParse(value, out decimalVal)) return decimalVal;
-                return value;
+                return null;
             }
             if (type == AttributeTypeCode.Boolean)
             {
                 bool boolVal;
                 if (bool.TryParse(value, out boolVal)) return boolVal;
-                return value;
+                return null;
             }
             if (type == AttributeTypeCode.DateTime)
             {
                 DateTime dateVal;
                 if (DateTime.TryParse(value, out dateVal)) return dateVal;
-                return value;
+                return null;
             }
             if (type == AttributeTypeCode.Picklist || type == AttributeTypeCode.Status || type == AttributeTypeCode.State)
             {
                 int optVal;
                 if (int.TryParse(value, out optVal)) return new OptionSetValue(optVal);
-                return value;
+                return null;
             }
             if (type == AttributeTypeCode.Uniqueidentifier)
             {
                 Guid guidVal;
                 if (Guid.TryParse(value, out guidVal)) return guidVal;
-                return value;
+                return null;
             }
             if (type == AttributeTypeCode.Money)
             {
                 decimal moneyVal;
                 if (decimal.TryParse(value, out moneyVal)) return new Money(moneyVal);
-                return value;
+                return null;
             }
             return value;
         }

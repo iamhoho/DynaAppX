@@ -373,6 +373,8 @@ namespace DynaAppX.WpfControls
 
         private object ParseParameterValue(string value, string type)
         {
+            if (string.IsNullOrEmpty(value)) return null;
+
             if (type == "x:Int32" || type == "x:Double" || type == "x:Decimal")
             {
                 if (decimal.TryParse(value, out var num))
@@ -388,7 +390,7 @@ namespace DynaAppX.WpfControls
                 if (DateTime.TryParse(value, out var dt))
                     return dt;
             }
-            return value;
+            return null;
         }
 
         private string ExecuteAction(string path, string body)
