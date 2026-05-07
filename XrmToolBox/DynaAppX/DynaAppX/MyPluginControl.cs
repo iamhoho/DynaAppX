@@ -291,7 +291,7 @@ namespace DynaAppX
                 if (string.IsNullOrEmpty(mySettings?.LastUsedOrganizationWebappUrl))
                 {
                     MessageBox.Show("CRM URL not available. Please connect to a CRM instance first.",
-                        "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
                 var url = $"{mySettings.LastUsedOrganizationWebappUrl}/main.aspx?etn={entityName}&id={recordId}&pagetype=entityrecord";
