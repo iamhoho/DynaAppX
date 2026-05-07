@@ -91,6 +91,11 @@ namespace DynaAppX.Services
 
         public void RefreshEntities(IOrganizationService service)
         {
+            Task.Run(() => RefreshEntitiesInternal(service));
+        }
+
+        private void RefreshEntitiesInternal(IOrganizationService service)
+        {
             var cache = GetOrCreateCache(service);
 
             var request = new RetrieveAllEntitiesRequest
@@ -133,6 +138,11 @@ namespace DynaAppX.Services
                 cache.EntitiesByMetadataId = entitiesByMetadataId;
                 cache.LastRefresh = DateTime.Now;
             }
+        }
+
+        public async Task RefreshEntitiesAsync(IOrganizationService service)
+        {
+            await Task.Run(() => RefreshEntitiesInternal(service));
         }
 
         public async Task<List<UserWrapper>> SearchUsersAsync(IOrganizationService service, string searchText)
