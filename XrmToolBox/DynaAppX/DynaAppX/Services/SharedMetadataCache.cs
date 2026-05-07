@@ -155,13 +155,13 @@ namespace DynaAppX.Services
 
             var attributes = await Task.Run(() =>
             {
-                var request = new RetrieveAttributeRequest
+                var request = new RetrieveAllAttributesRequest
                 {
                     EntityLogicalName = entityLogicalName,
                     RetrieveAsIfPublished = true
                 };
 
-                var response = (RetrieveAttributeResponse)service.Execute(request);
+                var response = (RetrieveAllAttributesResponse)service.Execute(request);
                 return response.AttributeMetadata?.ToList() ?? new List<AttributeMetadata>();
             });
 
