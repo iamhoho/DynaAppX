@@ -393,13 +393,13 @@ namespace DynaAppX.WpfControls
 
             try
             {
-                var request = new CheckPrincipalAccessRequest
+                var request = new RetrievePrincipalAccessRequest
                 {
                     Principal = new EntityReference("systemuser", userId),
                     Target = new EntityReference(entityName, recordId)
                 };
 
-                var response = (CheckPrincipalAccessResponse)_service.Execute(request);
+                var response = (RetrievePrincipalAccessResponse)_service.Execute(request);
                 var rights = response.AccessRights;
 
                 return (rights & GetAccessRightMask(accessRight)) != 0;
