@@ -30,7 +30,7 @@
                       DisplayMemberPath="RecordName" SelectedValuePath="Id"
                       SelectionChanged="cboRecord_SelectionChanged"
                       DropDownOpened="cboRecord_DropDownOpened"
-                      TextChanged="cboRecord_TextChanged"/>
+                      KeyUp="cboRecord_KeyUp"/>
 
             <CheckBox x:Name="chkRawMode" Content="Raw Mode" Foreground="Black"
                       VerticalAlignment="Center" Margin="20,0,0,0"

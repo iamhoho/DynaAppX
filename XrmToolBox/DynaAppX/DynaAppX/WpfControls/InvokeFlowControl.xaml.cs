@@ -17,8 +17,8 @@ namespace DynaAppX.WpfControls
     public partial class InvokeFlowControl : UserControl
     {
         private IOrganizationService _service;
-        private List<FlowWrapper> _flows = new List<FlowWrapper>();
-        private FlowWrapper _selectedFlow;
+        private List<Services.FlowWrapper> _flows = new List<Services.FlowWrapper>();
+        private Services.FlowWrapper _selectedFlow;
         private List<RecordWrapper> _records = new List<RecordWrapper>();
         private ObservableCollection<InvokeHistoryItem> _history = new ObservableCollection<InvokeHistoryItem>();
         private List<ParameterItem> _parameters = new List<ParameterItem>();
@@ -110,7 +110,7 @@ namespace DynaAppX.WpfControls
                 </fetch>";
 
                 var results = _service.RetrieveMultiple(new FetchExpression(fetchXml));
-                _flows = results.Entities.Select(e => new FlowWrapper
+                _flows = results.Entities.Select(e => new Services.FlowWrapper
                 {
                     Id = e.Id,
                     Name = e.GetAttributeValue<string>("name"),
@@ -135,7 +135,7 @@ namespace DynaAppX.WpfControls
 
         private void cboFlow_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (cboFlow.SelectedItem is FlowWrapper flow)
+            if (cboFlow.SelectedItem is Services.FlowWrapper flow)
             {
                 _selectedFlow = flow;
                 txtFlowCategory.Text = flow.CategoryName;
@@ -148,7 +148,7 @@ namespace DynaAppX.WpfControls
             }
         }
 
-        private void ParseParameters(FlowWrapper flow)
+        private void ParseParameters(Services.FlowWrapper flow)
         {
             _parameters.Clear();
 
@@ -216,6 +216,17 @@ namespace DynaAppX.WpfControls
                 return;
 
             SearchRecords("");
+        }
+
+        private void cboRecord_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (_selectedFlow == null || string.IsNullOrEmpty(_selectedFlow.PrimaryEntity) || _selectedFlow.Category == 3)
+                return;
+
+            if (e.Key == System.Windows.Input.Key.Enter)
+            {
+                SearchRecords(cboRecord.Text ?? "");
+            }
         }
 
         private void cboRecord_TextChanged(object sender, TextChangedEventArgs e)
@@ -446,17 +457,6 @@ namespace DynaAppX.WpfControls
             // This is a placeholder that shows what would be executed.
             return $"{{\"info\": \"Would execute Web API call\", \"path\": \"{path}\", \"body\": \"{body}\"}}";
         }
-    }
-
-    public class FlowWrapper
-    {
-        public Guid Id { get; set; }
-        public string Name { get; set; }
-        public string UniqueName { get; set; }
-        public int Category { get; set; }
-        public string CategoryName { get; set; }
-        public string PrimaryEntity { get; set; }
-        public string Xaml { get; set; }
     }
 
     public class ParameterItem : System.ComponentModel.INotifyPropertyChanged
