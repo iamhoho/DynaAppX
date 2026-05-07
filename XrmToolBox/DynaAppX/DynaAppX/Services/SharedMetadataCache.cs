@@ -100,7 +100,7 @@ namespace DynaAppX.Services
 
             var request = new RetrieveAllEntitiesRequest
             {
-                EntityFilters = EntityFilters.Entity | EntityFilters.Attributes,
+                EntityFilters = EntityFilters.Entity,
                 RetrieveAsIfPublished = true
             };
 
@@ -122,7 +122,7 @@ namespace DynaAppX.Services
                     PrimaryIdAttribute = entity.PrimaryIdAttribute,
                     PrimaryNameAttribute = entity.PrimaryNameAttribute,
                     MetadataId = entity.MetadataId ?? Guid.Empty,
-                    Attributes = entity.Attributes?.ToList() ?? new List<AttributeMetadata>()
+                    Attributes = new List<AttributeMetadata>()
                 };
 
                 entities.Add(wrapper);
@@ -138,6 +138,40 @@ namespace DynaAppX.Services
                 cache.EntitiesByMetadataId = entitiesByMetadataId;
                 cache.LastRefresh = DateTime.Now;
             }
+        }
+
+        public async Task<List<AttributeMetadata>> GetEntityAttributesAsync(IOrganizationService service, string entityLogicalName)
+        {
+            var cache = GetOrCreateCache(service);
+
+            // Check cache first
+            lock (_lock)
+            {
+                if (cache.AttributesByEntity.TryGetValue(entityLogicalName, out var cachedAttrs))
+                {
+                    return cachedAttrs;
+                }
+            }
+
+            var attributes = await Task.Run(() =>
+            {
+                var request = new RetrieveAttributeRequest
+                {
+                    EntityLogicalName = entityLogicalName,
+                    RetrieveAsIfPublished = true
+                };
+
+                var response = (RetrieveAttributeResponse)service.Execute(request);
+                return response.AttributeMetadata?.ToList() ?? new List<AttributeMetadata>();
+            });
+
+            // Cache the result
+            lock (_lock)
+            {
+                cache.AttributesByEntity[entityLogicalName] = attributes;
+            }
+
+            return attributes;
         }
 
         public async Task RefreshEntitiesAsync(IOrganizationService service)
@@ -207,6 +241,7 @@ namespace DynaAppX.Services
             public Dictionary<Guid, EntityWrapper> EntitiesByMetadataId { get; set; }
             public List<UserWrapper> RecentUsers { get; set; }
             public List<FlowWrapper> Flows { get; set; }
+            public Dictionary<string, List<AttributeMetadata>> AttributesByEntity { get; set; } = new Dictionary<string, List<AttributeMetadata>>();
             public DateTime LastRefresh { get; set; }
         }
 
