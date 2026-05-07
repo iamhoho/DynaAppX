@@ -271,15 +271,19 @@ namespace DynaAppX
 
         private void OnOpenRecordRequested(string reference, Guid tabId)
         {
+            if (reference == null) return;
+
             if (reference.StartsWith("role:"))
             {
-                var roleId = reference.Substring(5);
-                OpenRecordInCRM("role", new Guid(roleId));
+                var roleIdStr = reference.Substring(5);
+                if (Guid.TryParse(roleIdStr, out var roleId))
+                    OpenRecordInCRM("role", roleId);
             }
             else if (reference.StartsWith("team:"))
             {
-                var teamId = reference.Substring(5);
-                OpenRecordInCRM("team", new Guid(teamId));
+                var teamIdStr = reference.Substring(5);
+                if (Guid.TryParse(teamIdStr, out var teamId))
+                    OpenRecordInCRM("team", teamId);
             }
         }
 
@@ -287,6 +291,12 @@ namespace DynaAppX
         {
             try
             {
+                if (string.IsNullOrEmpty(mySettings?.LastUsedOrganizationWebappUrl))
+                {
+                    MessageBox.Show("CRM URL not available. Please connect to a CRM instance first.",
+                        "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
                 var url = $"{mySettings.LastUsedOrganizationWebappUrl}/main.aspx?etn={entityName}&id={recordId}&pagetype=entityrecord";
                 System.Diagnostics.Process.Start(url);
             }
