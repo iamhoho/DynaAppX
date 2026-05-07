@@ -361,22 +361,20 @@ namespace DynaAppX.WpfControls
                 var entityName = entityWrapper.LogicalName;
                 var entitySetName = entityWrapper.EntitySetName;
 
+                // Get all access rights in one call
+                var allRights = GetAllAccessRights(userId, recordId, entityName);
+
                 var accessRights = new List<AccessRightInfo>
                 {
-                    new AccessRightInfo { RightName = "ReadAccess" },
-                    new AccessRightInfo { RightName = "WriteAccess" },
-                    new AccessRightInfo { RightName = "DeleteAccess" },
-                    new AccessRightInfo { RightName = "CreateAccess" },
-                    new AccessRightInfo { RightName = "ShareAccess" },
-                    new AccessRightInfo { RightName = "AssignAccess" },
-                    new AccessRightInfo { RightName = "AppendAccess" },
-                    new AccessRightInfo { RightName = "AppendToAccess" }
+                    new AccessRightInfo { RightName = "ReadAccess", HasAccess = (allRights & 1) != 0 },
+                    new AccessRightInfo { RightName = "WriteAccess", HasAccess = (allRights & 2) != 0 },
+                    new AccessRightInfo { RightName = "DeleteAccess", HasAccess = (allRights & 4) != 0 },
+                    new AccessRightInfo { RightName = "CreateAccess", HasAccess = (allRights & 1) != 0 },
+                    new AccessRightInfo { RightName = "ShareAccess", HasAccess = (allRights & 65536) != 0 },
+                    new AccessRightInfo { RightName = "AssignAccess", HasAccess = (allRights & 32768) != 0 },
+                    new AccessRightInfo { RightName = "AppendAccess", HasAccess = (allRights & 256) != 0 },
+                    new AccessRightInfo { RightName = "AppendToAccess", HasAccess = (allRights & 512) != 0 }
                 };
-
-                foreach (var right in accessRights)
-                {
-                    right.HasAccess = HasAccess(userId, recordId, entityName, entitySetName, right.RightName);
-                }
 
                 lstAccessRights.ItemsSource = accessRights;
                 txtStatus.Text = $"Access checked for {entitySetName}/{recordId}";
@@ -387,47 +385,24 @@ namespace DynaAppX.WpfControls
             }
         }
 
-        private bool HasAccess(Guid userId, Guid recordId, string entityName, string entitySetName, string accessRight)
+        private int GetAllAccessRights(Guid userId, Guid recordId, string entityName)
         {
-            if (_service == null) return false;
+            if (_service == null) return 0;
 
             try
             {
-                var request = new RetrievePrincipalAccessRequest
+                var request = new Microsoft.Crm.Sdk.Messages.RetrievePrincipalAccessRequest
                 {
                     Principal = new EntityReference("systemuser", userId),
                     Target = new EntityReference(entityName, recordId)
                 };
 
-                var response = (RetrievePrincipalAccessResponse)_service.Execute(request);
-                var rights = response.AccessRights;
-
-                return (rights & GetAccessRightMask(accessRight)) != 0;
+                var response = (Microsoft.Crm.Sdk.Messages.RetrievePrincipalAccessResponse)_service.Execute(request);
+                return (int)response.AccessRights;
             }
             catch
             {
-                return false;
-            }
-        }
-
-        private bool HasTeamAccess(Guid userId, Guid recordId, string entityName, string accessRight)
-        {
-            return false; // CheckPrincipalAccessRequest handles team access automatically
-        }
-
-        private int GetAccessRightMask(string accessRight)
-        {
-            switch (accessRight)
-            {
-                case "ReadAccess": return 1;
-                case "WriteAccess": return 2;
-                case "DeleteAccess": return 4;
-                case "CreateAccess": return 1;  // Fixed: was 16, CRM CreateAccess = 1
-                case "ShareAccess": return 65536;
-                case "AssignAccess": return 32768;
-                case "AppendAccess": return 256;
-                case "AppendToAccess": return 512;
-                default: return 0;
+                return 0;
             }
         }
 
