@@ -137,6 +137,7 @@ namespace DynaAppX.Services
 
         public async Task<List<UserWrapper>> SearchUsersAsync(IOrganizationService service, string searchText)
         {
+            var escapedSearch = EscapeXml(searchText ?? "");
             var fetchXml = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' top='30'>
                 <entity name='systemuser'>
                     <attribute name='systemuserid'/>
@@ -145,7 +146,7 @@ namespace DynaAppX.Services
                     <order attribute='fullname' descending='false'/>
                     <filter type='and'>
                         <condition attribute='isdisabled' operator='eq' value='0'/>
-                        {(!string.IsNullOrEmpty(searchText) ? $"<condition attribute='fullname' operator='like' value='%{searchText}%'/>" : "")}
+                        {(!string.IsNullOrEmpty(escapedSearch) ? $"<condition attribute='fullname' operator='like' value='%{escapedSearch}%'/>" : "")}
                     </filter>
                 </entity>
             </fetch>";
@@ -163,6 +164,12 @@ namespace DynaAppX.Services
             cache.RecentUsers = users;
 
             return users;
+        }
+
+        private string EscapeXml(string value)
+        {
+            if (string.IsNullOrEmpty(value)) return value;
+            return value.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("\"", "&quot;").Replace("'", "&apos;");
         }
 
         public List<EntityWrapper> FilterEntities(IOrganizationService service, string searchText)
