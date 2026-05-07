@@ -22,14 +22,16 @@
         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="10">
             <TextBlock Text="Flow:" VerticalAlignment="Center" Width="80" Foreground="White"/>
             <ComboBox x:Name="cboFlow" Width="300" DisplayMemberPath="Name"
-                      SelectionChanged="cboFlow_SelectionChanged" DropDownOpened="cboFlow_DropDownOpened"/>
+                      SelectionChanged="cboFlow_SelectionChanged" DropDownOpened="cboFlow_DropDownOpened"
+                      Background="#3E3E42" Foreground="White" BorderBrush="#555555"/>
             <TextBlock x:Name="txtFlowCategory" Text="" Foreground="#888888" VerticalAlignment="Center" Margin="10,0,0,0"/>
 
             <TextBlock x:Name="lblRecord" Text="Record:" VerticalAlignment="Center" Width="80" Margin="20,0,5,0" Foreground="White"/>
             <ComboBox x:Name="cboRecord" Width="250" IsEditable="True"
                       DisplayMemberPath="RecordName" SelectedValuePath="Id"
                       SelectionChanged="cboRecord_SelectionChanged"
-                      DropDownOpened="cboRecord_DropDownOpened"/>
+                      DropDownOpened="cboRecord_DropDownOpened"
+                      Background="#3E3E42" Foreground="White" BorderBrush="#555555"/>
 
             <CheckBox x:Name="chkRawMode" Content="Raw Mode" Foreground="White"
                       VerticalAlignment="Center" Margin="20,0,0,0"
@@ -51,7 +53,10 @@
                                 <TextBlock Text="{Binding Name}" Width="150" Foreground="White" VerticalAlignment="Center"/>
                                 <TextBox x:Name="txtValue" Width="200"
                                          Text="{Binding Value, Mode=TwoWay}"
-                                         IsEnabled="{Binding IsEnabled}"/>
+                                         IsEnabled="{Binding IsEnabled}"
+                                         Background="#3E3E42"
+                                         Foreground="White"
+                                         BorderBrush="#555555"/>
                                 <TextBlock Text="{Binding Type}" Foreground="#888888" Margin="10,0,0,0" VerticalAlignment="Center"/>
                             </StackPanel>
                         </DataTemplate>
@@ -60,7 +65,8 @@
                 <TextBlock x:Name="txtRawModeLabel" Text="Raw JSON:" Foreground="White" Margin="0,10,0,5" Visibility="Collapsed"/>
                 <TextBox x:Name="txtRawJson" Width="400" Height="80" AcceptsReturn="True"
                          TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
-                         FontFamily="Consolas" Visibility="Collapsed"/>
+                         FontFamily="Consolas" Visibility="Collapsed"
+                         Background="#3E3E42" Foreground="White" BorderBrush="#555555"/>
             </StackPanel>
         </Border>
 

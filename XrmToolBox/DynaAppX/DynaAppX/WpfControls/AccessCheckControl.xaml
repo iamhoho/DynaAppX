@@ -30,17 +30,20 @@
             <ComboBox x:Name="cboUser" Width="250" Margin="0,0,20,0" IsEditable="True"
                       DisplayMemberPath="DisplayName" SelectedValuePath="Id"
                       SelectionChanged="cboUser_SelectionChanged"
-                      DropDownOpened="cboUser_DropDownOpened"/>
+                      DropDownOpened="cboUser_DropDownOpened"
+                      Background="#3E3E42" Foreground="White" BorderBrush="#555555"/>
             <TextBlock Text="Entity:" VerticalAlignment="Center" Width="80" Margin="0,0,5,0" Foreground="White"/>
             <ComboBox x:Name="cboEntity" Width="200" Margin="0,0,20,0"
                       DisplayMemberPath="EntityDisplayName"
                       SelectionChanged="cboEntity_SelectionChanged"
-                      DropDownOpened="cboEntity_DropDownOpened"/>
+                      DropDownOpened="cboEntity_DropDownOpened"
+                      Background="#3E3E42" Foreground="White" BorderBrush="#555555"/>
             <TextBlock Text="Record:" VerticalAlignment="Center" Width="80" Margin="0,0,5,0" Foreground="White"/>
             <ComboBox x:Name="cboRecord" Width="250" IsEditable="True"
                       DisplayMemberPath="RecordName" SelectedValuePath="Id"
                       SelectionChanged="cboRecord_SelectionChanged"
-                      DropDownOpened="cboRecord_DropDownOpened"/>
+                      DropDownOpened="cboRecord_DropDownOpened"
+                      Background="#3E3E42" Foreground="White" BorderBrush="#555555"/>
         </StackPanel>
 
         <!-- User Info Section -->

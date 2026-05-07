@@ -22,12 +22,14 @@
             <TextBlock Text="Entity:" VerticalAlignment="Center" Width="80" Foreground="White"/>
             <ComboBox x:Name="cboEntity" Width="200" DisplayMemberPath="DisplayName"
                       SelectionChanged="cboEntity_SelectionChanged"
-                      DropDownOpened="cboEntity_DropDownOpened"/>
+                      DropDownOpened="cboEntity_DropDownOpened"
+                      Background="#3E3E42" Foreground="White" BorderBrush="#555555"/>
             <TextBlock Text="Record:" VerticalAlignment="Center" Width="80" Margin="20,0,5,0" Foreground="White"/>
             <ComboBox x:Name="cboRecord" Width="250" IsEditable="True"
                       DisplayMemberPath="RecordName" SelectedValuePath="Id"
                       SelectionChanged="cboRecord_SelectionChanged"
-                      DropDownOpened="cboRecord_DropDownOpened"/>
+                      DropDownOpened="cboRecord_DropDownOpened"
+                      Background="#3E3E42" Foreground="White" BorderBrush="#555555"/>
             <Button x:Name="btnSave" Content="Save" Padding="15,5" Margin="20,0,0,0"
                     Click="btnSave_Click" IsEnabled="False"/>
             <TextBlock x:Name="txtStatus" Text="" Foreground="#888888" VerticalAlignment="Center" Margin="20,0,0,0"/>
@@ -45,6 +47,9 @@
                                 <TextBox x:Name="txtValue" Width="300"
                                          Text="{Binding Value, Mode=TwoWay}"
                                          IsEnabled="{Binding IsEnabled}"
+                                         Background="#3E3E42"
+                                         Foreground="White"
+                                         BorderBrush="#555555"
                                          LostFocus="txtValue_LostFocus"/>
                                 <TextBlock Text="{Binding AttributeType}" Foreground="#666666"
                                            Margin="10,0,0,0" VerticalAlignment="Center" Width="100"/>
