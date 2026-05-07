@@ -366,14 +366,14 @@ namespace DynaAppX.WpfControls
 
                 var accessRights = new List<AccessRightInfo>
                 {
-                    new AccessRightInfo { RightName = "ReadAccess", HasAccess = (allRights & 1) != 0 },
-                    new AccessRightInfo { RightName = "WriteAccess", HasAccess = (allRights & 2) != 0 },
-                    new AccessRightInfo { RightName = "DeleteAccess", HasAccess = (allRights & 4) != 0 },
-                    new AccessRightInfo { RightName = "CreateAccess", HasAccess = (allRights & 1) != 0 },
-                    new AccessRightInfo { RightName = "ShareAccess", HasAccess = (allRights & 65536) != 0 },
-                    new AccessRightInfo { RightName = "AssignAccess", HasAccess = (allRights & 32768) != 0 },
-                    new AccessRightInfo { RightName = "AppendAccess", HasAccess = (allRights & 256) != 0 },
-                    new AccessRightInfo { RightName = "AppendToAccess", HasAccess = (allRights & 512) != 0 }
+                    new AccessRightInfo { RightName = "ReadAccess", HasAccess = allRights.HasFlag(Microsoft.Crm.Sdk.Messages.AccessRights.ReadAccess) },
+                    new AccessRightInfo { RightName = "WriteAccess", HasAccess = allRights.HasFlag(Microsoft.Crm.Sdk.Messages.AccessRights.WriteAccess) },
+                    new AccessRightInfo { RightName = "DeleteAccess", HasAccess = allRights.HasFlag(Microsoft.Crm.Sdk.Messages.AccessRights.DeleteAccess) },
+                    new AccessRightInfo { RightName = "CreateAccess", HasAccess = allRights.HasFlag(Microsoft.Crm.Sdk.Messages.AccessRights.CreateAccess) },
+                    new AccessRightInfo { RightName = "ShareAccess", HasAccess = allRights.HasFlag(Microsoft.Crm.Sdk.Messages.AccessRights.ShareAccess) },
+                    new AccessRightInfo { RightName = "AssignAccess", HasAccess = allRights.HasFlag(Microsoft.Crm.Sdk.Messages.AccessRights.AssignAccess) },
+                    new AccessRightInfo { RightName = "AppendAccess", HasAccess = allRights.HasFlag(Microsoft.Crm.Sdk.Messages.AccessRights.AppendAccess) },
+                    new AccessRightInfo { RightName = "AppendToAccess", HasAccess = allRights.HasFlag(Microsoft.Crm.Sdk.Messages.AccessRights.AppendToAccess) }
                 };
 
                 lstAccessRights.ItemsSource = accessRights;
@@ -385,7 +385,7 @@ namespace DynaAppX.WpfControls
             }
         }
 
-        private int GetAllAccessRights(Guid userId, Guid recordId, string entityName)
+        private Microsoft.Crm.Sdk.Messages.AccessRights GetAllAccessRights(Guid userId, Guid recordId, string entityName)
         {
             if (_service == null) return 0;
 
@@ -398,7 +398,7 @@ namespace DynaAppX.WpfControls
                 };
 
                 var response = (Microsoft.Crm.Sdk.Messages.RetrievePrincipalAccessResponse)_service.Execute(request);
-                return (int)response.AccessRights;
+                return response.AccessRights;
             }
             catch
             {
