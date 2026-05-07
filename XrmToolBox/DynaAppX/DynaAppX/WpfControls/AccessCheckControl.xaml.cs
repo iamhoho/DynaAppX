@@ -413,16 +413,8 @@ namespace DynaAppX.WpfControls
                 if (HasTeamAccess(userId, recordId, entityName, accessRight))
                     return true;
 
-                // Fallback: check if user owns the record
-                try
-                {
-                    _service.Retrieve(entityName, recordId, new ColumnSet("ownerid"));
-                    return true;
-                }
-                catch
-                {
-                    return false;
-                }
+                // No access found
+                return false;
             }
             catch
             {
