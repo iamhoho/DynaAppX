@@ -89,7 +89,7 @@ namespace DynaAppX.Services
             return cache.RecentUsers ?? new List<UserWrapper>();
         }
 
-        public async Task RefreshEntitiesAsync(IOrganizationService service)
+        public void RefreshEntities(IOrganizationService service)
         {
             var cache = GetOrCreateCache(service);
 
@@ -99,7 +99,7 @@ namespace DynaAppX.Services
                 RetrieveAsIfPublished = true
             };
 
-            var response = (RetrieveAllEntitiesResponse)await Task.Run(() => service.Execute(request));
+            var response = (RetrieveAllEntitiesResponse)service.Execute(request);
 
             var entities = new List<EntityWrapper>();
             var entitiesByMetadataId = new Dictionary<Guid, EntityWrapper>();

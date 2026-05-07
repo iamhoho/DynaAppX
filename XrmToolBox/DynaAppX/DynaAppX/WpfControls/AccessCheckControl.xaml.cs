@@ -40,7 +40,7 @@ namespace DynaAppX.WpfControls
             txtStatus.Text = "Waiting for CRM connection...";
         }
 
-        private async void btnLoadEntities_Click(object sender, RoutedEventArgs e)
+        private void btnLoadEntities_Click(object sender, RoutedEventArgs e)
         {
             if (_service == null)
             {
@@ -56,7 +56,7 @@ namespace DynaAppX.WpfControls
                 var loadingDialog = new LoadingDialog("Loading entities...");
                 loadingDialog.Show();
 
-                await SharedMetadataCache.Instance.RefreshEntitiesAsync(_service);
+                SharedMetadataCache.Instance.RefreshEntities(_service);
 
                 _allEntities = SharedMetadataCache.Instance.GetAllEntities(_service);
                 _entities = new List<EntityWrapper>(_allEntities);
