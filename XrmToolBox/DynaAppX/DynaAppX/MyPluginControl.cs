@@ -42,6 +42,12 @@ namespace DynaAppX
             {
                 LogInfo("Settings found and loaded");
             }
+
+            // Initialize crmWebAppUrl from settings (UpdateConnection may have been called before Load)
+            if (!string.IsNullOrEmpty(mySettings?.LastUsedOrganizationWebappUrl))
+            {
+                crmWebAppUrl = mySettings.LastUsedOrganizationWebappUrl;
+            }
         }
 
         private void InitializeTabControl()
@@ -231,17 +237,21 @@ namespace DynaAppX
         {
             base.UpdateConnection(newService, detail, actionName, parameter);
 
-            if (mySettings != null && detail != null)
+            crmWebAppUrl = detail?.WebApplicationUrl ?? crmWebAppUrl;
+
+            if (detail != null && !string.IsNullOrEmpty(detail.WebApplicationUrl))
             {
-                mySettings.LastUsedOrganizationWebappUrl = detail.WebApplicationUrl;
-                crmWebAppUrl = detail.WebApplicationUrl;
                 LogInfo("Connection has changed to: {0}", detail.WebApplicationUrl);
-            }
-            currentService = newService;
-            if (mySettings != null)
-            {
+
+                if (mySettings == null)
+                {
+                    mySettings = new Settings();
+                }
+                mySettings.LastUsedOrganizationWebappUrl = detail.WebApplicationUrl;
                 SettingsManager.Instance.Save(GetType(), mySettings);
             }
+
+            currentService = newService;
 
             SharedMetadataCache.Instance.Clear();
             if (newService != null)
