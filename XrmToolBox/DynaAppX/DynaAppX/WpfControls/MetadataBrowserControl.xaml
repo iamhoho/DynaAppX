@@ -5,27 +5,27 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800"
-             Background="#1E1E1E">
+             Background="White">
     <Grid>
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
             <TextBlock Text="Metadata Browser" FontSize="24" FontWeight="Bold"
-                       Foreground="White" HorizontalAlignment="Center" Margin="0,0,0,30"/>
+                       Foreground="Black" HorizontalAlignment="Center" Margin="0,0,0,30"/>
 
             <TextBlock Text="Open the CRM metadata browser to explore entity definitions, attributes, and relationships."
-                       FontSize="14" Foreground="#888888" TextWrapping="Wrap" Width="500"
+                       FontSize="14" Foreground="Gray" TextWrapping="Wrap" Width="500"
                        HorizontalAlignment="Center" Margin="0,0,0,30"/>
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                 <Button Content="Open Entity Metadata Browser" Padding="15,10" Margin="10"
                         Click="btnOpenEntityMetadata_Click"
-                        Background="#3E3E42" Foreground="White" BorderThickness="0"/>
+                        Background="#007ACC" Foreground="White" BorderThickness="0"/>
                 <Button Content="Open General Metadata Browser" Padding="15,10" Margin="10"
                         Click="btnOpenMetadata_Click"
-                        Background="#3E3E42" Foreground="White" BorderThickness="0"/>
+                        Background="#007ACC" Foreground="White" BorderThickness="0"/>
             </StackPanel>
 
             <TextBlock Text="Note: Requires web resources to be published in your CRM environment."
-                       FontSize="11" Foreground="#666666" HorizontalAlignment="Center" Margin="0,20,0,0"/>
+                       FontSize="11" Foreground="Gray" HorizontalAlignment="Center" Margin="0,20,0,0"/>
         </StackPanel>
     </Grid>
 </UserControl>

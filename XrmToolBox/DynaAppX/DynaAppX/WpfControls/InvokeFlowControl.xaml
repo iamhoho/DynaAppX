@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d"
              d:DesignHeight="600" d:DesignWidth="900"
-             Background="#1E1E1E">
+             Background="White">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -16,24 +16,22 @@
 
         <!-- Header -->
         <TextBlock Grid.Row="0" Text="Invoke Flow / Action" FontSize="20" FontWeight="Bold"
-                   Foreground="White" Margin="10"/>
+                   Foreground="Black" Margin="10"/>
 
         <!-- Flow Selection Row -->
         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="10">
-            <TextBlock Text="Flow:" VerticalAlignment="Center" Width="80" Foreground="White"/>
+            <TextBlock Text="Flow:" VerticalAlignment="Center" Width="80" Foreground="Black"/>
             <ComboBox x:Name="cboFlow" Width="300" DisplayMemberPath="Name"
-                      SelectionChanged="cboFlow_SelectionChanged" DropDownOpened="cboFlow_DropDownOpened"
-                      Background="#3E3E42" Foreground="White" BorderBrush="#555555"/>
-            <TextBlock x:Name="txtFlowCategory" Text="" Foreground="#888888" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                      SelectionChanged="cboFlow_SelectionChanged" DropDownOpened="cboFlow_DropDownOpened"/>
+            <TextBlock x:Name="txtFlowCategory" Text="" Foreground="Gray" VerticalAlignment="Center" Margin="10,0,0,0"/>
 
-            <TextBlock x:Name="lblRecord" Text="Record:" VerticalAlignment="Center" Width="80" Margin="20,0,5,0" Foreground="White"/>
+            <TextBlock x:Name="lblRecord" Text="Record:" VerticalAlignment="Center" Width="80" Margin="20,0,5,0" Foreground="Black"/>
             <ComboBox x:Name="cboRecord" Width="250" IsEditable="True"
                       DisplayMemberPath="RecordName" SelectedValuePath="Id"
                       SelectionChanged="cboRecord_SelectionChanged"
-                      DropDownOpened="cboRecord_DropDownOpened"
-                      Background="#3E3E42" Foreground="White" BorderBrush="#555555"/>
+                      DropDownOpened="cboRecord_DropDownOpened"/>
 
-            <CheckBox x:Name="chkRawMode" Content="Raw Mode" Foreground="White"
+            <CheckBox x:Name="chkRawMode" Content="Raw Mode" Foreground="Black"
                       VerticalAlignment="Center" Margin="20,0,0,0"
                       Checked="chkRawMode_Changed" Unchecked="chkRawMode_Changed"/>
             <Button x:Name="btnInvoke" Content="Invoke" Padding="15,5" Margin="20,0,0,0"
@@ -42,32 +40,28 @@
         </StackPanel>
 
         <!-- Parameters Panel -->
-        <Border Grid.Row="2" Background="#2D2D30" Margin="10" Padding="10" CornerRadius="4">
+        <Border Grid.Row="2" Background="#F0F0F0" Margin="10" Padding="10" CornerRadius="4">
             <StackPanel x:Name="pnlParameters">
-                <TextBlock Text="Parameters:" Foreground="White" FontWeight="Bold" Margin="0,0,0,10"/>
+                <TextBlock Text="Parameters:" Foreground="Black" FontWeight="Bold" Margin="0,0,0,10"/>
                 <TextBlock x:Name="txtNoParameters" Text="Select a flow to see parameters"
-                           Foreground="#888888"/>
+                           Foreground="Gray"/>
                 <ItemsControl x:Name="lstParameters">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal" Margin="0,5">
-                                <TextBlock Text="{Binding Name}" Width="150" Foreground="White" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Name}" Width="150" Foreground="Black" VerticalAlignment="Center"/>
                                 <TextBox x:Name="txtValue" Width="200"
                                          Text="{Binding Value, Mode=TwoWay}"
-                                         IsEnabled="{Binding IsEnabled}"
-                                         Background="#3E3E42"
-                                         Foreground="White"
-                                         BorderBrush="#555555"/>
-                                <TextBlock Text="{Binding Type}" Foreground="#888888" Margin="10,0,0,0" VerticalAlignment="Center"/>
+                                         IsEnabled="{Binding IsEnabled}"/>
+                                <TextBlock Text="{Binding Type}" Foreground="Gray" Margin="10,0,0,0" VerticalAlignment="Center"/>
                             </StackPanel>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
-                <TextBlock x:Name="txtRawModeLabel" Text="Raw JSON:" Foreground="White" Margin="0,10,0,5" Visibility="Collapsed"/>
+                <TextBlock x:Name="txtRawModeLabel" Text="Raw JSON:" Foreground="Black" Margin="0,10,0,5" Visibility="Collapsed"/>
                 <TextBox x:Name="txtRawJson" Width="400" Height="80" AcceptsReturn="True"
                          TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
-                         FontFamily="Consolas" Visibility="Collapsed"
-                         Background="#3E3E42" Foreground="White" BorderBrush="#555555"/>
+                         FontFamily="Consolas" Visibility="Collapsed"/>
             </StackPanel>
         </Border>
 
@@ -77,9 +71,9 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
-            <TextBlock Grid.Row="0" Text="Invoke History" Foreground="White" FontWeight="Bold" Margin="0,0,0,10"/>
+            <TextBlock Grid.Row="0" Text="Invoke History" Foreground="Black" FontWeight="Bold" Margin="0,0,0,10"/>
             <DataGrid Grid.Row="1" x:Name="dgHistory" AutoGenerateColumns="False"
-                      Background="#2D2D30" Foreground="White" BorderBrush="#3E3E42"
+                      Background="White" Foreground="Black" BorderBrush="#CCCCCC"
                       IsReadOnly="True" HeadersVisibility="Column">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Date" Binding="{Binding InvokeDate, StringFormat='{}{0:HH:mm:ss}'}" Width="80"/>

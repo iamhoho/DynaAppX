@@ -5,10 +5,10 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800"
-             Background="#1E1E1E">
+             Background="White">
     <UserControl.Resources>
         <Style x:Key="FeatureButton" TargetType="Button">
-            <Setter Property="Background" Value="#3E3E42"/>
+            <Setter Property="Background" Value="#007ACC"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="15,10"/>
@@ -27,7 +27,7 @@
             </Setter>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#007ACC"/>
+                    <Setter Property="Background" Value="#005A9E"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -38,19 +38,19 @@
             <TextBlock Text="Welcome to DynaAppX"
                        FontSize="32"
                        FontWeight="Bold"
-                       Foreground="White"
+                       Foreground="Black"
                        HorizontalAlignment="Center"
                        Margin="0,0,0,30"/>
 
             <TextBlock Text="XrmToolBox Plugin for Dynamics 365"
                        FontSize="16"
-                       Foreground="#888888"
+                       Foreground="Gray"
                        HorizontalAlignment="Center"
                        Margin="0,0,0,40"/>
 
-            <Border Background="#2D2D30" CornerRadius="8" Padding="30" Margin="0,0,0,30">
+            <Border Background="#F0F0F0" CornerRadius="8" Padding="30" Margin="0,0,0,30">
                 <StackPanel>
-                    <TextBlock Text="Features" FontSize="18" FontWeight="SemiBold" Foreground="White" Margin="0,0,0,15"/>
+                    <TextBlock Text="Features" FontSize="18" FontWeight="SemiBold" Foreground="Black" Margin="0,0,0,15"/>
 
                     <Button Content="AccessCheck - Check user permissions on records"
                             Style="{StaticResource FeatureButton}"
@@ -73,7 +73,7 @@
 
             <TextBlock Text="Click a feature above to get started, or use the toolbar menu."
                        FontSize="12"
-                       Foreground="#666666"
+                       Foreground="Gray"
                        HorizontalAlignment="Center"/>
         </StackPanel>
     </Grid>

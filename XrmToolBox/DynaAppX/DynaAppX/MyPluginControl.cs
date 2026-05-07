@@ -48,9 +48,8 @@ namespace DynaAppX
         {
             var wpfTabControl = new WpfTabControl
             {
-                Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x1E, 0x1E, 0x1E)),
-                BorderThickness = new System.Windows.Thickness(0),
-                Foreground = System.Windows.Media.Brushes.White
+                Background = System.Windows.Media.Brushes.White,
+                BorderThickness = new System.Windows.Thickness(0)
             };
 
             var welcomeControl = new WelcomePageControl();
@@ -64,16 +63,14 @@ namespace DynaAppX
             welcomeHeader.Children.Add(new System.Windows.Controls.TextBlock
             {
                 Text = "Welcome",
-                Foreground = System.Windows.Media.Brushes.White,
+                Foreground = System.Windows.Media.Brushes.Black,
                 VerticalAlignment = System.Windows.VerticalAlignment.Center
             });
 
             welcomeTab = new WpfTabItem
             {
                 Header = welcomeHeader,
-                Content = welcomeControl,
-                Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x1E, 0x1E, 0x1E)),
-                Foreground = System.Windows.Media.Brushes.White
+                Content = welcomeControl
             };
 
             wpfTabControl.Items.Add(welcomeTab);
@@ -149,7 +146,7 @@ namespace DynaAppX
                 Text = featureName,
                 Margin = new System.Windows.Thickness(0, 0, 10, 0),
                 VerticalAlignment = System.Windows.VerticalAlignment.Center,
-                Foreground = System.Windows.Media.Brushes.White
+                Foreground = System.Windows.Media.Brushes.Black
             };
 
             var closeButton = new System.Windows.Controls.Button
@@ -161,8 +158,8 @@ namespace DynaAppX
                 Padding = new System.Windows.Thickness(0),
                 Cursor = System.Windows.Input.Cursors.Hand,
                 Tag = tabId,
-                Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x3E, 0x3E, 0x42)),
-                Foreground = System.Windows.Media.Brushes.White
+                Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0xE0, 0xE0, 0xE0)),
+                Foreground = System.Windows.Media.Brushes.Black
             };
             closeButton.Click += BtnCloseTab_Click;
 

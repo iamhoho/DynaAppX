@@ -9,7 +9,7 @@
     <UserControl.Resources>
         <Converters:AccessColorConverter x:Key="AccessColorConverter"/>
     </UserControl.Resources>
-    <Grid Background="#1E1E1E">
+    <Grid Background="White">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -20,39 +20,36 @@
 
         <!-- Header -->
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10" HorizontalAlignment="Center">
-            <TextBlock Text="Access Check Tool" FontSize="20" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,20,0" Foreground="White"/>
+            <TextBlock Text="Access Check Tool" FontSize="20" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,20,0" Foreground="Black"/>
             <Button x:Name="btnLoadEntities" Content="Load Entities" Padding="10,5" Click="btnLoadEntities_Click"
                     Background="#007ACC" Foreground="White" BorderThickness="0"/>
         </StackPanel>
 
         <!-- Selection Row -->
         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="10" HorizontalAlignment="Center">
-            <TextBlock Text="User:" VerticalAlignment="Center" Width="80" Margin="0,0,5,0" Foreground="White"/>
+            <TextBlock Text="User:" VerticalAlignment="Center" Width="80" Margin="0,0,5,0" Foreground="Black"/>
             <ComboBox x:Name="cboUser" Width="250" Margin="0,0,20,0" IsEditable="True"
                       DisplayMemberPath="DisplayName" SelectedValuePath="Id"
                       SelectionChanged="cboUser_SelectionChanged"
-                      DropDownOpened="cboUser_DropDownOpened"
-                      Background="#3E3E42" Foreground="White" BorderBrush="#555555"/>
-            <TextBlock Text="Entity:" VerticalAlignment="Center" Width="80" Margin="0,0,5,0" Foreground="White"/>
+                      DropDownOpened="cboUser_DropDownOpened"/>
+            <TextBlock Text="Entity:" VerticalAlignment="Center" Width="80" Margin="0,0,5,0" Foreground="Black"/>
             <ComboBox x:Name="cboEntity" Width="200" Margin="0,0,20,0"
                       DisplayMemberPath="EntityDisplayName"
                       SelectionChanged="cboEntity_SelectionChanged"
-                      DropDownOpened="cboEntity_DropDownOpened"
-                      Background="#3E3E42" Foreground="White" BorderBrush="#555555"/>
-            <TextBlock Text="Record:" VerticalAlignment="Center" Width="80" Margin="0,0,5,0" Foreground="White"/>
+                      DropDownOpened="cboEntity_DropDownOpened"/>
+            <TextBlock Text="Record:" VerticalAlignment="Center" Width="80" Margin="0,0,5,0" Foreground="Black"/>
             <ComboBox x:Name="cboRecord" Width="250" IsEditable="True"
                       DisplayMemberPath="RecordName" SelectedValuePath="Id"
                       SelectionChanged="cboRecord_SelectionChanged"
-                      DropDownOpened="cboRecord_DropDownOpened"
-                      Background="#3E3E42" Foreground="White" BorderBrush="#555555"/>
+                      DropDownOpened="cboRecord_DropDownOpened"/>
         </StackPanel>
 
         <!-- User Info Section -->
-        <GroupBox Grid.Row="2" Header="User Info" Margin="10" Padding="10" Foreground="White" BorderBrush="#555555">
+        <GroupBox Grid.Row="2" Header="User Info" Margin="10" Padding="10" BorderBrush="#CCCCCC">
             <StackPanel>
-                <TextBlock x:Name="txtUserName" FontWeight="Bold" Margin="0,0,0,5" Foreground="White"/>
+                <TextBlock x:Name="txtUserName" FontWeight="Bold" Margin="0,0,0,5" Foreground="Black"/>
                 <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="Roles: " FontWeight="Bold" VerticalAlignment="Center" Foreground="White"/>
+                    <TextBlock Text="Roles: " FontWeight="Bold" VerticalAlignment="Center" Foreground="Black"/>
                     <ItemsControl x:Name="lstRoles">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
@@ -69,7 +66,7 @@
                     </ItemsControl>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
-                    <TextBlock Text="Teams: " FontWeight="Bold" VerticalAlignment="Center" Foreground="White"/>
+                    <TextBlock Text="Teams: " FontWeight="Bold" VerticalAlignment="Center" Foreground="Black"/>
                     <ItemsControl x:Name="lstTeams">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
@@ -89,7 +86,7 @@
         </GroupBox>
 
         <!-- Access Rights Section -->
-        <GroupBox Grid.Row="3" Header="Record Access Rights" Margin="10" Padding="10" Foreground="White" BorderBrush="#555555">
+        <GroupBox Grid.Row="3" Header="Record Access Rights" Margin="10" Padding="10" BorderBrush="#CCCCCC">
             <ItemsControl x:Name="lstAccessRights">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
@@ -108,6 +105,6 @@
         </GroupBox>
 
         <!-- Status -->
-        <TextBlock Grid.Row="4" x:Name="txtStatus" Margin="10" VerticalAlignment="Bottom" Foreground="White"/>
+        <TextBlock Grid.Row="4" x:Name="txtStatus" Margin="10" VerticalAlignment="Bottom" Foreground="Black"/>
     </Grid>
 </UserControl>
