@@ -153,11 +153,16 @@ namespace DynaAppX.Services
                 }
             }
 
+            // Get entity wrapper to find MetadataId
+            var entityWrapper = GetAllEntities(service).FirstOrDefault(e => e.LogicalName == entityLogicalName);
+            if (entityWrapper == null || entityWrapper.MetadataId == Guid.Empty)
+                return new List<AttributeMetadata>();
+
             var attributes = await Task.Run(() =>
             {
                 var request = new RetrieveEntityRequest
                 {
-                    EntityLogicalName = entityLogicalName,
+                    MetadataId = entityWrapper.MetadataId,
                     EntityFilters = EntityFilters.Attributes,
                     RetrieveAsIfPublished = true
                 };
