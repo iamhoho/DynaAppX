@@ -289,7 +289,15 @@ namespace DynaAppX.WpfControls
             _changes.Clear();
             foreach (var attr in _attributes)
             {
-                var attrType = (AttributeTypeCode)Enum.Parse(typeof(AttributeTypeCode), attr.AttributeType);
+                AttributeTypeCode attrType;
+                try
+                {
+                    attrType = (AttributeTypeCode)Enum.Parse(typeof(AttributeTypeCode), attr.AttributeType ?? "String", true);
+                }
+                catch
+                {
+                    attrType = AttributeTypeCode.String;
+                }
                 var originalValue = GetAttributeValue(_originalData, attr.LogicalName, attrType);
 
                 if (attr.Value != originalValue)

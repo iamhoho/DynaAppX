@@ -395,7 +395,10 @@ namespace DynaAppX.WpfControls
 
         private string ExecuteAction(string path, string body)
         {
-            return "{\"message\": \"Web API call would be executed here. Configure authentication context for Web API calls.\"}";
+            // Note: Full Web API execution requires OAuth token acquisition
+            // which is not directly available in XrmToolBox plugin context.
+            // This is a placeholder that shows what would be executed.
+            return $"{{\"info\": \"Would execute Web API call\", \"path\": \"{path}\", \"body\": \"{body}\"}}";
         }
     }
 
