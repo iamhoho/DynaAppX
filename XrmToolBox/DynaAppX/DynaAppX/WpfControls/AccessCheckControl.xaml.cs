@@ -344,7 +344,7 @@ namespace DynaAppX.WpfControls
         {
             if (_service == null) return;
 
-            if (cboUser.SelectedItem == null || cboRecord.SelectedItem == null || cboEntity.SelectedItem == null)
+            if (!(cboUser.SelectedItem is UserWrapper) || cboRecord.SelectedItem == null || cboEntity.SelectedItem == null)
             {
                 lstAccessRights.ItemsSource = null;
                 return;
