@@ -87,11 +87,17 @@ namespace DynaAppX.WpfControls
                 var fetchXml = BuildRecordSearchFetchXml(_selectedEntity, searchText);
                 var result = _service.RetrieveMultiple(new FetchExpression(fetchXml));
 
-                var records = result.Entities.Select(r => new RecordWrapper
+                var records = result.Entities.Select(r =>
                 {
-                    Id = r.Id,
-                    RecordName = r.GetAttributeValue<string>(_selectedEntity.PrimaryNameAttribute) ?? "(No name)",
-                    Entity = r
+                    var name = string.IsNullOrEmpty(_selectedEntity.PrimaryNameAttribute)
+                        ? null
+                        : r.GetAttributeValue<object>(_selectedEntity.PrimaryNameAttribute);
+                    return new RecordWrapper
+                    {
+                        Id = r.Id,
+                        RecordName = name?.ToString() ?? "(No name)",
+                        Entity = r
+                    };
                 }).ToList();
 
                 cboRecord.ItemsSource = null;

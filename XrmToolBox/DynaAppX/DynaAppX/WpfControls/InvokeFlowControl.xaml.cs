@@ -205,11 +205,13 @@ namespace DynaAppX.WpfControls
                 _records.Clear();
                 foreach (var record in result.Entities)
                 {
-                    var recordName = record.GetAttributeValue<string>(entityWrapper.PrimaryNameAttribute) ?? "(No name)";
+                    var name = string.IsNullOrEmpty(entityWrapper.PrimaryNameAttribute)
+                        ? null
+                        : record.GetAttributeValue<object>(entityWrapper.PrimaryNameAttribute);
                     _records.Add(new RecordWrapper
                     {
                         Id = record.Id,
-                        RecordName = recordName,
+                        RecordName = name?.ToString() ?? "(No name)",
                         Entity = record
                     });
                 }
