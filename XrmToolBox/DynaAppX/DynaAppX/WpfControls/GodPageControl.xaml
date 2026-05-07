@@ -68,7 +68,8 @@
                 <StackPanel>
                     <TextBlock Text="Changed Data" FontSize="18" FontWeight="Bold" Foreground="White" Margin="0,0,0,15"/>
                     <DataGrid x:Name="dgChanges" AutoGenerateColumns="False" MaxHeight="300"
-                              Background="#1E1E1E" Foreground="White" BorderBrush="#3E3E42">
+                              Background="#1E1E1E" Foreground="White" BorderBrush="#3E3E42"
+                              IsReadOnly="True">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Display Name" Binding="{Binding DisplayName}" Width="150"/>
                             <DataGridTextColumn Header="Attribute" Binding="{Binding AttributeName}" Width="150"/>
