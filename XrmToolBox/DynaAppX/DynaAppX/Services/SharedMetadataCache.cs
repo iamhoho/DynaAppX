@@ -196,7 +196,20 @@ namespace DynaAppX.Services
             public List<EntityWrapper> Entities { get; set; }
             public Dictionary<Guid, EntityWrapper> EntitiesByMetadataId { get; set; }
             public List<UserWrapper> RecentUsers { get; set; }
+            public List<FlowWrapper> Flows { get; set; }
             public DateTime LastRefresh { get; set; }
+        }
+
+        public List<FlowWrapper> GetFlows(IOrganizationService service)
+        {
+            var cache = GetOrCreateCache(service);
+            return cache.Flows ?? new List<FlowWrapper>();
+        }
+
+        public void SetFlows(IOrganizationService service, List<FlowWrapper> flows)
+        {
+            var cache = GetOrCreateCache(service);
+            cache.Flows = flows;
         }
     }
 
@@ -220,5 +233,16 @@ namespace DynaAppX.Services
         public string DomainName { get; set; }
         public string DisplayName => FullName;
         public Entity Entity { get; set; }
+    }
+
+    public class FlowWrapper
+    {
+        public Guid Id { get; set; }
+        public string Name { get; set; }
+        public string UniqueName { get; set; }
+        public int Category { get; set; }
+        public string CategoryName { get; set; }
+        public string PrimaryEntity { get; set; }
+        public string Xaml { get; set; }
     }
 }

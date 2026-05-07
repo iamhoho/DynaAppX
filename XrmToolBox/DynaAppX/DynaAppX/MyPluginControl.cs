@@ -238,6 +238,7 @@ namespace DynaAppX
                 LogInfo("Connection has changed to: {0}", detail.WebApplicationUrl);
             }
             currentService = newService;
+            SettingsManager.Instance.Save(GetType(), mySettings);
 
             SharedMetadataCache.Instance.Clear();
             if (newService != null)

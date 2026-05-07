@@ -45,12 +45,53 @@ namespace DynaAppX.WpfControls
             LoadFlows();
         }
 
+        private void cboFlow_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            FilterFlows(cboFlow.Text ?? "");
+        }
+
+        private void FilterFlows(string searchText)
+        {
+            var cachedFlows = SharedMetadataCache.Instance.GetFlows(_service);
+            if (cachedFlows.Count == 0)
+            {
+                LoadFlows();
+                cachedFlows = SharedMetadataCache.Instance.GetFlows(_service);
+            }
+
+            if (string.IsNullOrWhiteSpace(searchText))
+            {
+                _flows = cachedFlows;
+            }
+            else
+            {
+                var searchLower = searchText.ToLowerInvariant();
+                _flows = cachedFlows.Where(f =>
+                    (f.Name != null && f.Name.ToLowerInvariant().Contains(searchLower)) ||
+                    (f.UniqueName != null && f.UniqueName.ToLowerInvariant().Contains(searchLower))
+                ).ToList();
+            }
+
+            cboFlow.ItemsSource = null;
+            cboFlow.ItemsSource = _flows;
+        }
+
         private void LoadFlows()
         {
             if (_service == null) return;
 
             try
             {
+                // Check cache first
+                var cachedFlows = SharedMetadataCache.Instance.GetFlows(_service);
+                if (cachedFlows.Count > 0)
+                {
+                    _flows = cachedFlows;
+                    cboFlow.ItemsSource = null;
+                    cboFlow.ItemsSource = _flows;
+                    return;
+                }
+
                 var fetchXml = @"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false'>
                     <entity name='workflow'>
                         <order attribute='name' descending='false'/>
@@ -79,6 +120,9 @@ namespace DynaAppX.WpfControls
                     PrimaryEntity = e.GetAttributeValue<string>("primaryentity"),
                     Xaml = e.GetAttributeValue<string>("xaml")
                 }).ToList();
+
+                // Save to cache
+                SharedMetadataCache.Instance.SetFlows(_service, _flows);
 
                 cboFlow.ItemsSource = null;
                 cboFlow.ItemsSource = _flows;
