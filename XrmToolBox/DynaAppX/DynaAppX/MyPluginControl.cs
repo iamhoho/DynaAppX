@@ -56,9 +56,21 @@ namespace DynaAppX
             var welcomeControl = new WelcomePageControl();
             welcomeControl.OpenFeatureRequested += OnOpenFeatureRequested;
 
+            var welcomeHeader = new System.Windows.Controls.StackPanel
+            {
+                Orientation = System.Windows.Controls.Orientation.Horizontal,
+                Background = System.Windows.Media.Brushes.Transparent
+            };
+            welcomeHeader.Children.Add(new System.Windows.Controls.TextBlock
+            {
+                Text = "Welcome",
+                Foreground = System.Windows.Media.Brushes.White,
+                VerticalAlignment = System.Windows.VerticalAlignment.Center
+            });
+
             welcomeTab = new WpfTabItem
             {
-                Header = "Welcome",
+                Header = welcomeHeader,
                 Content = welcomeControl,
                 Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x1E, 0x1E, 0x1E)),
                 Foreground = System.Windows.Media.Brushes.White
