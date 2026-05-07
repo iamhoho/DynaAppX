@@ -393,30 +393,16 @@ namespace DynaAppX.WpfControls
 
             try
             {
-                // Check user's direct access
-                var query = new QueryExpression("principalobjectaccess")
+                var request = new CheckPrincipalAccessRequest
                 {
-                    ColumnSet = new ColumnSet("accessrights"),
-                    Criteria = new FilterExpression()
+                    Principal = new EntityReference("systemuser", userId),
+                    Target = new EntityReference(entityName, recordId)
                 };
-                query.Criteria.AddCondition("principalid", ConditionOperator.Equal, userId);
-                query.Criteria.AddCondition("objectid", ConditionOperator.Equal, recordId);
-                query.Criteria.AddCondition("objecttypecode", ConditionOperator.Equal, entityName);
 
-                var results = _service.RetrieveMultiple(query);
-                if (results.Entities.Count > 0)
-                {
-                    var rights = results.Entities[0].GetAttributeValue<OptionSetValue>("accessrights")?.Value ?? 0;
-                    if ((rights & GetAccessRightMask(accessRight)) != 0)
-                        return true;
-                }
+                var response = (CheckPrincipalAccessResponse)_service.Execute(request);
+                var rights = response.AccessRights;
 
-                // Check team-based access
-                if (HasTeamAccess(userId, recordId, entityName, accessRight))
-                    return true;
-
-                // No access found
-                return false;
+                return (rights & GetAccessRightMask(accessRight)) != 0;
             }
             catch
             {
@@ -426,48 +412,7 @@ namespace DynaAppX.WpfControls
 
         private bool HasTeamAccess(Guid userId, Guid recordId, string entityName, string accessRight)
         {
-            try
-            {
-                // Get user's teams
-                var teamQuery = $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='true'>
-                    <entity name='team'>
-                        <attribute name='teamid'/>
-                        <link-entity name='teammembership' from='teamid' to='teamid' visible='false' intersect='true'>
-                            <filter type='and'>
-                                <condition attribute='systemuserid' operator='eq' value='{userId}'/>
-                            </filter>
-                        </link-entity>
-                    </entity>
-                </fetch>";
-
-                var teamResults = _service.RetrieveMultiple(new FetchExpression(teamQuery));
-                foreach (var team in teamResults.Entities)
-                {
-                    var teamId = team.Id;
-
-                    var query = new QueryExpression("principalobjectaccess")
-                    {
-                        ColumnSet = new ColumnSet("accessrights"),
-                        Criteria = new FilterExpression()
-                    };
-                    query.Criteria.AddCondition("principalid", ConditionOperator.Equal, teamId);
-                    query.Criteria.AddCondition("objectid", ConditionOperator.Equal, recordId);
-                    query.Criteria.AddCondition("objecttypecode", ConditionOperator.Equal, entityName);
-
-                    var results = _service.RetrieveMultiple(query);
-                    if (results.Entities.Count > 0)
-                    {
-                        var rights = results.Entities[0].GetAttributeValue<OptionSetValue>("accessrights")?.Value ?? 0;
-                        if ((rights & GetAccessRightMask(accessRight)) != 0)
-                            return true;
-                    }
-                }
-            }
-            catch
-            {
-                // Ignore errors in team check
-            }
-            return false;
+            return false; // CheckPrincipalAccessRequest handles team access automatically
         }
 
         private int GetAccessRightMask(string accessRight)
