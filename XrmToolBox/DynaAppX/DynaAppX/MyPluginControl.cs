@@ -49,7 +49,8 @@ namespace DynaAppX
             var wpfTabControl = new WpfTabControl
             {
                 Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x1E, 0x1E, 0x1E)),
-                BorderThickness = new System.Windows.Thickness(0)
+                BorderThickness = new System.Windows.Thickness(0),
+                Foreground = System.Windows.Media.Brushes.White
             };
 
             var welcomeControl = new WelcomePageControl();
@@ -58,7 +59,9 @@ namespace DynaAppX
             welcomeTab = new WpfTabItem
             {
                 Header = "Welcome",
-                Content = welcomeControl
+                Content = welcomeControl,
+                Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x1E, 0x1E, 0x1E)),
+                Foreground = System.Windows.Media.Brushes.White
             };
 
             wpfTabControl.Items.Add(welcomeTab);
@@ -131,7 +134,8 @@ namespace DynaAppX
             {
                 Text = featureName,
                 Margin = new System.Windows.Thickness(0, 0, 10, 0),
-                VerticalAlignment = System.Windows.VerticalAlignment.Center
+                VerticalAlignment = System.Windows.VerticalAlignment.Center,
+                Foreground = System.Windows.Media.Brushes.White
             };
 
             var closeButton = new System.Windows.Controls.Button
@@ -142,7 +146,9 @@ namespace DynaAppX
                 FontSize = 10,
                 Padding = new System.Windows.Thickness(0),
                 Cursor = System.Windows.Input.Cursors.Hand,
-                Tag = tabId
+                Tag = tabId,
+                Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x3E, 0x3E, 0x42)),
+                Foreground = System.Windows.Media.Brushes.White
             };
             closeButton.Click += BtnCloseTab_Click;
 
