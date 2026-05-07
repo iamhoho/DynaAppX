@@ -2,6 +2,7 @@ using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -19,7 +20,7 @@ namespace DynaAppX.WpfControls
         private List<FlowWrapper> _flows = new List<FlowWrapper>();
         private FlowWrapper _selectedFlow;
         private List<RecordWrapper> _records = new List<RecordWrapper>();
-        private List<InvokeHistoryItem> _history = new List<InvokeHistoryItem>();
+        private ObservableCollection<InvokeHistoryItem> _history = new ObservableCollection<InvokeHistoryItem>();
         private List<ParameterItem> _parameters = new List<ParameterItem>();
 
         public InvokeFlowControl()
@@ -363,9 +364,6 @@ namespace DynaAppX.WpfControls
                     StatusCode = 200,
                     InvokeDate = DateTime.Now
                 });
-
-                dgHistory.ItemsSource = null;
-                dgHistory.ItemsSource = _history;
             }
             catch (Exception ex)
             {
