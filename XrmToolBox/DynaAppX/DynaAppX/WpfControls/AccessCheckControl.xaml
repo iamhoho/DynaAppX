@@ -21,7 +21,8 @@
         <!-- Header -->
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10" HorizontalAlignment="Center">
             <TextBlock Text="Access Check Tool" FontSize="20" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,20,0" Foreground="White"/>
-            <Button x:Name="btnLoadEntities" Content="Load Entities" Padding="10,5" Click="btnLoadEntities_Click"/>
+            <Button x:Name="btnLoadEntities" Content="Load Entities" Padding="10,5" Click="btnLoadEntities_Click"
+                    Background="#007ACC" Foreground="White" BorderThickness="0"/>
         </StackPanel>
 
         <!-- Selection Row -->

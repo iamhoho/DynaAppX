@@ -17,9 +17,11 @@
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                 <Button Content="Open Entity Metadata Browser" Padding="15,10" Margin="10"
-                        Click="btnOpenEntityMetadata_Click"/>
+                        Click="btnOpenEntityMetadata_Click"
+                        Background="#3E3E42" Foreground="White" BorderThickness="0"/>
                 <Button Content="Open General Metadata Browser" Padding="15,10" Margin="10"
-                        Click="btnOpenMetadata_Click"/>
+                        Click="btnOpenMetadata_Click"
+                        Background="#3E3E42" Foreground="White" BorderThickness="0"/>
             </StackPanel>
 
             <TextBlock Text="Note: Requires web resources to be published in your CRM environment."

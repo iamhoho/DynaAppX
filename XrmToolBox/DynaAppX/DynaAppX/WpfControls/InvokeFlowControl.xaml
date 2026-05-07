@@ -37,7 +37,8 @@
                       VerticalAlignment="Center" Margin="20,0,0,0"
                       Checked="chkRawMode_Changed" Unchecked="chkRawMode_Changed"/>
             <Button x:Name="btnInvoke" Content="Invoke" Padding="15,5" Margin="20,0,0,0"
-                    Click="btnInvoke_Click" IsEnabled="False"/>
+                    Click="btnInvoke_Click" IsEnabled="False"
+                    Background="#007ACC" Foreground="White" BorderThickness="0"/>
         </StackPanel>
 
         <!-- Parameters Panel -->

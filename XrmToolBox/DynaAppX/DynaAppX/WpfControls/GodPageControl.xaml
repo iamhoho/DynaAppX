@@ -31,7 +31,8 @@
                       DropDownOpened="cboRecord_DropDownOpened"
                       Background="#3E3E42" Foreground="White" BorderBrush="#555555"/>
             <Button x:Name="btnSave" Content="Save" Padding="15,5" Margin="20,0,0,0"
-                    Click="btnSave_Click" IsEnabled="False"/>
+                    Click="btnSave_Click" IsEnabled="False"
+                    Background="#007ACC" Foreground="White" BorderThickness="0"/>
             <TextBlock x:Name="txtStatus" Text="" Foreground="#888888" VerticalAlignment="Center" Margin="20,0,0,0"/>
         </StackPanel>
 
@@ -78,8 +79,9 @@
                         </DataGrid.Columns>
                     </DataGrid>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
-                        <Button Content="Cancel" Padding="15,5" Margin="0,0,10,0" Click="btnCancelSave_Click"/>
-                        <Button Content="Confirm" Padding="15,5" Background="#007ACC" Click="btnConfirmSave_Click"/>
+                        <Button Content="Cancel" Padding="15,5" Margin="0,0,10,0" Click="btnCancelSave_Click"
+                                Background="#3E3E42" Foreground="White" BorderThickness="0"/>
+                        <Button Content="Confirm" Padding="15,5" Background="#007ACC" Foreground="White" Click="btnConfirmSave_Click"/>
                     </StackPanel>
                 </StackPanel>
             </Border>
