@@ -65,6 +65,7 @@ namespace DynaAppX
             };
 
             wpfTabControl.Items.Add(welcomeTab);
+            wpfTabControl.SelectedItem = welcomeTab;
 
             var elementHost = new ElementHost
             {
@@ -127,7 +128,8 @@ namespace DynaAppX
             var headerPanel = new System.Windows.Controls.StackPanel
             {
                 Orientation = System.Windows.Controls.Orientation.Horizontal,
-                Tag = tabId
+                Tag = tabId,
+                Background = System.Windows.Media.Brushes.Transparent
             };
 
             var label = new System.Windows.Controls.TextBlock
