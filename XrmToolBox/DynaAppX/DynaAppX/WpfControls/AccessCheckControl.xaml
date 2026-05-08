@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:Converters="clr-namespace:DynaAppX.Converters"
+             xmlns:WpfControls="clr-namespace:DynaAppX.WpfControls"
              mc:Ignorable="d"
              d:DesignHeight="600" d:DesignWidth="900">
     <UserControl.Resources>
@@ -106,5 +107,8 @@
 
         <!-- Status -->
         <TextBlock Grid.Row="4" x:Name="txtStatus" Margin="10" VerticalAlignment="Bottom" Foreground="Black"/>
+
+        <!-- Loading Overlay -->
+        <WpfControls:LoadingOverlay x:Name="LoadingOverlay" Grid.RowSpan="99"/>
     </Grid>
 </UserControl>
