@@ -5,9 +5,72 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:DynaAppX.WpfControls"
              mc:Ignorable="d"
-             d:DesignHeight="600" d:DesignWidth="900"
-             Background="White">
-    <Grid>
+             d:DesignHeight="600" d:DesignWidth="900">
+
+    <UserControl.Resources>
+        <!-- Cyber button style -->
+        <Style x:Key="CyberButton" TargetType="Button">
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#00D4FF" Offset="0"/>
+                        <GradientStop Color="#00FF88" Offset="1"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Foreground" Value="#1A1A2E"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="20,10"/>
+            <Setter Property="FontFamily" Value="Cascadia Code, Segoe UI"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}"
+                                CornerRadius="4" Padding="{TemplateBinding Padding}">
+                            <Border.Effect>
+                                <DropShadowEffect Color="#00D4FF" BlurRadius="10" ShadowDepth="0" Opacity="0.4"/>
+                            </Border.Effect>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect Color="#00FF88" BlurRadius="20" ShadowDepth="0" Opacity="0.8"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="border" Property="Background" Value="#333344"/>
+                                <Setter TargetName="border" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect Color="#000000" BlurRadius="0" ShadowDepth="0" Opacity="0"/>
+                                    </Setter.Value>
+                                </Setter>
+                                <Setter Property="Foreground" Value="#666677"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Attribute row style -->
+        <Style x:Key="AttributeTextBox" TargetType="TextBox">
+            <Setter Property="Background" Value="#1A1A2E"/>
+            <Setter Property="Foreground" Value="#E0E0E0"/>
+            <Setter Property="BorderBrush" Value="#333344"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="FontFamily" Value="Cascadia Code"/>
+            <Setter Property="CaretBrush" Value="#00D4FF"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Background="#12121A">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -15,73 +78,258 @@
         </Grid.RowDefinitions>
 
         <!-- Header -->
-        <TextBlock Grid.Row="0" Text="GodPage - Entity Record Editor" FontSize="20" FontWeight="Bold"
-                   Foreground="Black" Margin="10"/>
+        <Border Grid.Row="0" Background="#1A1A2E" Padding="20,15">
+            <Border.BorderBrush>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                    <GradientStop Color="#00D4FF" Offset="0"/>
+                    <GradientStop Color="Transparent" Offset="0.5"/>
+                    <GradientStop Color="#FF6B6B" Offset="1"/>
+                </LinearGradientBrush>
+            </Border.BorderBrush>
+            <Border.BorderThickness>0,0,0,1</Border.BorderThickness>
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Orientation="Horizontal">
+                    <Border Width="8" Height="30" Margin="0,0,15,0" CornerRadius="2">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Color="#00D4FF" Offset="0"/>
+                                <GradientStop Color="#FF6B6B" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                    </Border>
+                    <TextBlock Text="GodPage Editor" FontSize="22" FontWeight="Bold"
+                               Foreground="#E0E0E0" FontFamily="Cascadia Code, Segoe UI"
+                               VerticalAlignment="Center">
+                        <TextBlock.Effect>
+                            <DropShadowEffect Color="#00D4FF" BlurRadius="10" ShadowDepth="0" Opacity="0.3"/>
+                        </TextBlock.Effect>
+                    </TextBlock>
+                </StackPanel>
+
+                <TextBlock x:Name="txtStatus" Text="" Grid.Column="1"
+                           Foreground="#666677" FontFamily="Cascadia Code"
+                           FontSize="11" VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
 
         <!-- Selection Row -->
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="10">
-            <TextBlock Text="Entity:" VerticalAlignment="Center" Width="80" Foreground="Black"/>
-            <ComboBox x:Name="cboEntity" Width="200" DisplayMemberPath="DisplayName"
-                      SelectionChanged="cboEntity_SelectionChanged"
-                      DropDownOpened="cboEntity_DropDownOpened"/>
-            <TextBlock Text="Record:" VerticalAlignment="Center" Width="80" Margin="20,0,5,0" Foreground="Black"/>
-            <ComboBox x:Name="cboRecord" Width="250" IsEditable="True"
-                      DisplayMemberPath="RecordName" SelectedValuePath="Id"
-                      SelectionChanged="cboRecord_SelectionChanged"
-                      DropDownOpened="cboRecord_DropDownOpened"/>
-            <Button x:Name="btnSave" Content="Save" Padding="15,5" Margin="20,0,0,0"
-                    Click="btnSave_Click" IsEnabled="False"
-                    Background="#007ACC" Foreground="White" BorderThickness="0"/>
-            <TextBlock x:Name="txtStatus" Text="" Foreground="Gray" VerticalAlignment="Center" Margin="20,0,0,0"/>
-        </StackPanel>
+        <Border Grid.Row="1" Background="#1E1E2E" Margin="15" Padding="15" CornerRadius="6">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="200"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="250"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Entity selector -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="0,0,15,0" VerticalAlignment="Bottom">
+                    <TextBlock Text="ENTITY" Foreground="#00D4FF" FontSize="10" FontWeight="Bold"
+                               FontFamily="Cascadia Code"  VerticalAlignment="Center" Margin="0,0,10,8"/>
+                </StackPanel>
+                <ComboBox x:Name="cboEntity" Grid.Column="1" Height="36" Margin="0,0,20,0"
+                          DisplayMemberPath="DisplayName"
+                          SelectionChanged="cboEntity_SelectionChanged"
+                          DropDownOpened="cboEntity_DropDownOpened"/>
+
+                <!-- Record selector -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="0,0,15,0" VerticalAlignment="Bottom">
+                    <TextBlock Text="RECORD" Foreground="#00FF88" FontSize="10" FontWeight="Bold"
+                               FontFamily="Cascadia Code"  VerticalAlignment="Center" Margin="0,0,10,8"/>
+                </StackPanel>
+                <ComboBox x:Name="cboRecord" Grid.Column="3" Height="36" Margin="0,0,20,0"
+                          IsEditable="True"
+                          DisplayMemberPath="RecordName" SelectedValuePath="Id"
+                          SelectionChanged="cboRecord_SelectionChanged"
+                          DropDownOpened="cboRecord_DropDownOpened"/>
+
+                <!-- Save button -->
+                <Button x:Name="btnSave" Grid.Column="5" Content="SAVE CHANGES"
+                        Style="{StaticResource CyberButton}"
+                        Click="btnSave_Click" IsEnabled="False" VerticalAlignment="Bottom"/>
+            </Grid>
+        </Border>
 
         <!-- Attributes Panel -->
-        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Margin="10">
-            <ItemsControl x:Name="lstAttributes">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Border Background="#F0F0F0" CornerRadius="4" Margin="0,5" Padding="10">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="{Binding DisplayName}" Width="150" Foreground="Black"
-                                           VerticalAlignment="Center" TextWrapping="Wrap"/>
-                                <TextBox x:Name="txtValue" Width="300"
-                                         Text="{Binding Value, Mode=TwoWay}"
-                                         IsEnabled="{Binding IsEnabled}"
-                                         LostFocus="txtValue_LostFocus"/>
-                                <TextBlock Text="{Binding AttributeType}" Foreground="Gray"
-                                           Margin="10,0,0,0" VerticalAlignment="Center" Width="100"/>
-                            </StackPanel>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ScrollViewer>
+        <Border Grid.Row="2" Background="#1E1E2E" Margin="15,0,15,15" CornerRadius="6"
+                BorderBrush="#333344" BorderThickness="1">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Panel header -->
+                <Border Grid.Row="0" Background="#1A1A2E" Padding="15,10"
+                        CornerRadius="6,6,0,0" BorderBrush="#333344" BorderThickness="0,0,0,1">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="ATTRIBUTES" Foreground="#FF6B6B" FontSize="11" FontWeight="Bold"
+                                   FontFamily="Cascadia Code"  VerticalAlignment="Center"/>
+                        <Border Width="1" Height="12" Background="#333344" Margin="12,0"/>
+                        <TextBlock x:Name="txtAttributeCount" Text="0 attributes loaded"
+                                   Foreground="#666677" FontFamily="Cascadia Code" FontSize="11"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Attributes list -->
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="10">
+                    <ItemsControl x:Name="lstAttributes">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="#252536" Margin="0,4" Padding="12,10" CornerRadius="4"
+                                        BorderBrush="#333344" BorderThickness="1">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="180"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="100"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Display name -->
+                                        <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                            <Border Width="3" Height="16" CornerRadius="1" Margin="0,0,10,0">
+                                                <Border.Background>
+                                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                                        <GradientStop Color="#00D4FF" Offset="0"/>
+                                                        <GradientStop Color="#00FF88" Offset="1"/>
+                                                    </LinearGradientBrush>
+                                                </Border.Background>
+                                            </Border>
+                                            <TextBlock Text="{Binding DisplayName}"
+                                                       Foreground="#E0E0E0" FontFamily="Segoe UI"
+                                                       FontWeight="SemiBold" VerticalAlignment="Center"
+                                                       TextTrimming="CharacterEllipsis"/>
+                                        </StackPanel>
+
+                                        <!-- Value input -->
+                                        <TextBox Grid.Column="1" Style="{StaticResource AttributeTextBox}"
+                                                 Text="{Binding Value, Mode=TwoWay}"
+                                                 IsEnabled="{Binding IsEnabled}"
+                                                 LostFocus="txtValue_LostFocus"
+                                                 Margin="0,0,15,0"/>
+
+                                        <!-- Type badge -->
+                                        <Border Grid.Column="2" Background="#1A1A2E" Padding="8,4"
+                                                CornerRadius="3" HorizontalAlignment="Left"
+                                                VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding AttributeType}" Foreground="#888899"
+                                                       FontFamily="Cascadia Code" FontSize="10"/>
+                                        </Border>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+        </Border>
 
         <!-- Save Confirmation Dialog -->
-        <Border x:Name="pnlSaveDialog" Grid.Row="0" Grid.RowSpan="3" Background="#80000000"
-                Visibility="Collapsed">
-            <Border Background="White" CornerRadius="8" Padding="20"
-                    HorizontalAlignment="Center" VerticalAlignment="Center" MinWidth="400">
+        <Border x:Name="pnlSaveDialog" Grid.Row="0" Grid.RowSpan="3" Visibility="Collapsed">
+            <Border.Background>
+                <SolidColorBrush Color="#0D0D15" Opacity="0.9"/>
+            </Border.Background>
+            <Border Background="#1E1E2E" CornerRadius="8" Padding="25"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    MinWidth="500" MaxWidth="600">
+                <Border.BorderBrush>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#00D4FF" Offset="0"/>
+                        <GradientStop Color="#00FF88" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.BorderBrush>
+                <Border.BorderThickness>1</Border.BorderThickness>
+                <Border.Effect>
+                    <DropShadowEffect Color="#00D4FF" BlurRadius="30" ShadowDepth="0" Opacity="0.4"/>
+                </Border.Effect>
+
                 <StackPanel>
-                    <TextBlock Text="Changed Data" FontSize="18" FontWeight="Bold" Foreground="Black" Margin="0,0,0,15"/>
-                    <DataGrid x:Name="dgChanges" AutoGenerateColumns="False" MaxHeight="300"
-                              Background="White" Foreground="Black" BorderBrush="#CCCCCC"
-                              IsReadOnly="True">
+                    <!-- Dialog header -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
+                        <Border Width="6" Height="24" CornerRadius="1" Margin="0,0,12,0">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                    <GradientStop Color="#FF6B6B" Offset="0"/>
+                                    <GradientStop Color="#FF9F43" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                        </Border>
+                        <TextBlock Text="CHANGES PENDING" FontSize="16" FontWeight="Bold"
+                                   Foreground="#E0E0E0" FontFamily="Cascadia Code"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Changes grid -->
+                    <DataGrid x:Name="dgChanges" AutoGenerateColumns="False"
+                              MaxHeight="300" Background="Transparent"
+                              Foreground="#E0E0E0" BorderThickness="0"
+                              GridLinesVisibility="None" HeadersVisibility="Column"
+                              RowBackground="#252536" AlternatingRowBackground="#1E1E2E"
+                              FontFamily="Cascadia Code" FontSize="11">
+                        <DataGrid.ColumnHeaderStyle>
+                            <Style TargetType="DataGridColumnHeader">
+                                <Setter Property="Background" Value="#1A1A2E"/>
+                                <Setter Property="Foreground" Value="#00D4FF"/>
+                                <Setter Property="Padding" Value="10,8"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                                <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                                <Setter Property="BorderBrush" Value="#333344"/>
+                            </Style>
+                        </DataGrid.ColumnHeaderStyle>
+                        <DataGrid.CellStyle>
+                            <Style TargetType="DataGridCell">
+                                <Setter Property="Padding" Value="10,6"/>
+                                <Setter Property="BorderThickness" Value="0"/>
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                <Style.Triggers>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter Property="Background" Value="#2A2A4E"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGrid.CellStyle>
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Display Name" Binding="{Binding DisplayName}" Width="150"/>
-                            <DataGridTextColumn Header="Attribute" Binding="{Binding AttributeName}" Width="150"/>
-                            <DataGridTextColumn Header="Old Value" Binding="{Binding OldValue}" Width="*"/>
-                            <DataGridTextColumn Header="New Value" Binding="{Binding NewValue}" Width="*"/>
+                            <DataGridTextColumn Header="FIELD" Binding="{Binding DisplayName}" Width="140"/>
+                            <DataGridTextColumn Header="ATTRIBUTE" Binding="{Binding AttributeName}" Width="140"/>
+                            <DataGridTextColumn Header="OLD VALUE" Binding="{Binding OldValue}" Width="*"/>
+                            <DataGridTextColumn Header="NEW VALUE" Binding="{Binding NewValue}" Width="*"/>
                         </DataGrid.Columns>
                     </DataGrid>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
-                        <Button Content="Cancel" Padding="15,5" Margin="0,0,10,0" Click="btnCancelSave_Click"
-                                Background="#E0E0E0" Foreground="Black" BorderThickness="0"/>
-                        <Button Content="Confirm" Padding="15,5" Background="#007ACC" Foreground="White" Click="btnConfirmSave_Click"/>
+
+                    <!-- Dialog buttons -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+                        <Button Content="CANCEL" Padding="16,8" Margin="0,0,10,0"
+                                Click="btnCancelSave_Click"
+                                Background="#333344" Foreground="#888899"
+                                BorderThickness="0" FontFamily="Cascadia Code"
+                                Cursor="Hand">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}"
+                                            CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
+                        <Button Content="CONFIRM SAVE" Padding="16,8"
+                                Style="{StaticResource CyberButton}"
+                                Click="btnConfirmSave_Click"/>
                     </StackPanel>
                 </StackPanel>
             </Border>
         </Border>
-    <local:LoadingOverlay x:Name="LoadingOverlay" Grid.RowSpan="99"/>
+
+        <!-- Loading Overlay -->
+        <local:LoadingOverlay x:Name="LoadingOverlay" Grid.RowSpan="99"/>
     </Grid>
 </UserControl>

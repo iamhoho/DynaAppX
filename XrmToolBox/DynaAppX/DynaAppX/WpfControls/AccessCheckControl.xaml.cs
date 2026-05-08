@@ -31,6 +31,8 @@ namespace DynaAppX.WpfControls
             InitializeComponent();
             this.Loaded += AccessCheckControl_Loaded;
             cboRecord.AddHandler(TextBox.TextChangedEvent, new TextChangedEventHandler(cboRecord_TextChanged), true);
+            cboUser.AddHandler(TextBox.TextChangedEvent, new TextChangedEventHandler(cboUser_TextChanged), true);
+            cboEntity.AddHandler(TextBox.TextChangedEvent, new TextChangedEventHandler(cboEntity_TextChanged), true);
             cboRecord.IsEnabled = false;
         }
 
@@ -105,6 +107,23 @@ namespace DynaAppX.WpfControls
             FilterEntities(searchText);
         }
 
+        private void cboEntity_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (!_entitiesLoaded) return;
+
+            var searchText = cboEntity.Text?.ToLower() ?? "";
+            if (string.IsNullOrWhiteSpace(searchText))
+            {
+                _entities.Clear();
+                _entities.AddRange(_allEntities);
+                cboEntity.ItemsSource = null;
+                cboEntity.ItemsSource = _entities;
+                return;
+            }
+
+            FilterEntities(searchText);
+        }
+
         private void FilterEntities(string searchText)
         {
             _entities.Clear();
@@ -128,12 +147,52 @@ namespace DynaAppX.WpfControls
             if (_service == null) return;
 
             var searchText = cboUser.Text ?? "";
+            if (string.IsNullOrWhiteSpace(searchText))
+            {
+                // Show recent users or all users when dropdown opens with no search
+                searchText = "";
+            }
             try
             {
                 _users = await SharedMetadataCache.Instance.SearchUsersAsync(_service, searchText);
                 cboUser.ItemsSource = null;
                 cboUser.ItemsSource = _users;
                 txtStatus.Text = $"Found {_users.Count} users";
+            }
+            catch (Exception ex)
+            {
+                txtStatus.Text = $"Error searching users: {ex.Message}";
+            }
+        }
+
+        private async void cboUser_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_service == null) return;
+
+            var searchText = cboUser.Text ?? "";
+            if (string.IsNullOrWhiteSpace(searchText))
+            {
+                cboUser.ItemsSource = null;
+                _users.Clear();
+                return;
+            }
+
+            if (searchText.Length < 2) return;
+
+            _searchCts?.Cancel();
+            _searchCts = new CancellationTokenSource();
+            var token = _searchCts.Token;
+
+            try
+            {
+                _users = await SharedMetadataCache.Instance.SearchUsersAsync(_service, searchText);
+                if (token.IsCancellationRequested) return;
+                cboUser.ItemsSource = null;
+                cboUser.ItemsSource = _users;
+                txtStatus.Text = $"Found {_users.Count} users";
+            }
+            catch (OperationCanceledException)
+            {
             }
             catch (Exception ex)
             {

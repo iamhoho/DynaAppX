@@ -7,50 +7,226 @@
              xmlns:WpfControls="clr-namespace:DynaAppX.WpfControls"
              mc:Ignorable="d"
              d:DesignHeight="600" d:DesignWidth="900">
+
     <UserControl.Resources>
         <Converters:AccessColorConverter x:Key="AccessColorConverter"/>
+
+        <!-- Cyber button style -->
+        <Style x:Key="CyberButton" TargetType="Button">
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#00D4FF" Offset="0"/>
+                        <GradientStop Color="#00FF88" Offset="1"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Foreground" Value="#1A1A2E"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="16,8"/>
+            <Setter Property="FontFamily" Value="Cascadia Code, Segoe UI"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}"
+                                CornerRadius="4" Padding="{TemplateBinding Padding}"
+                                BorderThickness="1"
+                                BorderBrush="#00D4FF">
+                            <Border.Effect>
+                                <DropShadowEffect Color="#00D4FF" BlurRadius="8" ShadowDepth="0" Opacity="0.3"/>
+                            </Border.Effect>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background">
+                                    <Setter.Value>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                            <GradientStop Color="#00FF88" Offset="0"/>
+                                            <GradientStop Color="#00D4FF" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Setter.Value>
+                                </Setter>
+                                <Setter TargetName="border" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect Color="#00FF88" BlurRadius="15" ShadowDepth="0" Opacity="0.6"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="border" Property="Background" Value="#333344"/>
+                                <Setter TargetName="border" Property="BorderBrush" Value="#555566"/>
+                                <Setter TargetName="border" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect Color="#000000" BlurRadius="0" ShadowDepth="0" Opacity="0"/>
+                                    </Setter.Value>
+                                </Setter>
+                                <Setter Property="Foreground" Value="#666677"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- ComboBox style -->
+        <Style TargetType="ComboBox">
+            <Setter Property="Background" Value="#252536"/>
+            <Setter Property="Foreground" Value="#E0E0E0"/>
+            <Setter Property="BorderBrush" Value="#00D4FF"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="IsEditable" Value="True"/>
+        </Style>
+
+        <!-- Tag button style for roles/teams -->
+        <Style x:Key="TagButton" TargetType="Button">
+            <Setter Property="Background" Value="#2D5A3D"/>
+            <Setter Property="Foreground" Value="#00FF88"/>
+            <Setter Property="BorderBrush" Value="#00FF88"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,4"/>
+            <Setter Property="Margin" Value="3"/>
+            <Setter Property="FontFamily" Value="Cascadia Code, Consolas"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}"
+                                BorderBrush="#00FF88"
+                                BorderThickness="1"
+                                CornerRadius="12" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#00FF88"/>
+                                <Setter Property="Foreground" Value="#1A1A2E"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </UserControl.Resources>
-    <Grid Background="White">
+
+    <!-- Dark background with subtle gradient -->
+    <Grid Background="#12121A">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Header -->
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10" HorizontalAlignment="Center">
-            <TextBlock Text="Access Check Tool" FontSize="20" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,20,0" Foreground="Black"/>
-            <Button x:Name="btnLoadEntities" Content="Load Entities" Padding="10,5" Click="btnLoadEntities_Click"
-                    Background="#007ACC" Foreground="White" BorderThickness="0"/>
-        </StackPanel>
+        <!-- Header with glow effect -->
+        <Border Grid.Row="0" Background="#1A1A2E" Padding="20,15" Margin="0">
+            <Border.BorderBrush>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                    <GradientStop Color="#00D4FF" Offset="0"/>
+                    <GradientStop Color="Transparent" Offset="0.5"/>
+                    <GradientStop Color="#00FF88" Offset="1"/>
+                </LinearGradientBrush>
+            </Border.BorderBrush>
+            <Border.BorderThickness>0,0,0,1</Border.BorderThickness>
 
-        <!-- Selection Row -->
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="10" HorizontalAlignment="Center">
-            <TextBlock Text="User:" VerticalAlignment="Center" Width="80" Margin="0,0,5,0" Foreground="Black"/>
-            <ComboBox x:Name="cboUser" Width="250" Margin="0,0,20,0" IsEditable="True"
-                      DisplayMemberPath="DisplayName" SelectedValuePath="Id"
-                      SelectionChanged="cboUser_SelectionChanged"
-                      DropDownOpened="cboUser_DropDownOpened"/>
-            <TextBlock Text="Entity:" VerticalAlignment="Center" Width="80" Margin="0,0,5,0" Foreground="Black"/>
-            <ComboBox x:Name="cboEntity" Width="200" Margin="0,0,20,0"
-                      DisplayMemberPath="EntityDisplayName"
-                      SelectionChanged="cboEntity_SelectionChanged"
-                      DropDownOpened="cboEntity_DropDownOpened"/>
-            <TextBlock Text="Record:" VerticalAlignment="Center" Width="80" Margin="0,0,5,0" Foreground="Black"/>
-            <ComboBox x:Name="cboRecord" Width="250" IsEditable="True"
-                      DisplayMemberPath="RecordName" SelectedValuePath="Id"
-                      SelectionChanged="cboRecord_SelectionChanged"
-                      DropDownOpened="cboRecord_DropDownOpened"/>
-        </StackPanel>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <!-- Icon-like geometric element -->
+                    <Border Width="8" Height="30" Margin="0,0,15,0" CornerRadius="2">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Color="#00D4FF" Offset="0"/>
+                                <GradientStop Color="#00FF88" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                    </Border>
+                    <TextBlock Text="Access Check" FontSize="22" FontWeight="Bold"
+                               Foreground="#E0E0E0" FontFamily="Cascadia Code, Segoe UI"
+                               VerticalAlignment="Center">
+                        <TextBlock.Effect>
+                            <DropShadowEffect Color="#00D4FF" BlurRadius="10" ShadowDepth="0" Opacity="0.3"/>
+                        </TextBlock.Effect>
+                    </TextBlock>
+                </StackPanel>
+
+                <Button x:Name="btnLoadEntities" Content="Load Entities"
+                        Style="{StaticResource CyberButton}"
+                        Click="btnLoadEntities_Click" Grid.Column="1"/>
+            </Grid>
+        </Border>
+
+        <!-- Selection Row - card style -->
+        <Border Grid.Row="1" Background="#1E1E2E" Margin="15,15,15,5" Padding="15"
+                CornerRadius="6">
+            <Border.BorderBrush>
+                <SolidColorBrush Color="#00D4FF" Opacity="0.2"/>
+            </Border.BorderBrush>
+            <Border.BorderThickness>1</Border.BorderThickness>
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- User selector -->
+                <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                    <TextBlock Text="USER" Foreground="#00D4FF" FontSize="10" FontWeight="Bold"
+                               FontFamily="Cascadia Code" Margin="0,0,0,6" />
+                    <ComboBox x:Name="cboUser" Height="36" IsEditable="True"
+                              DisplayMemberPath="DisplayName" SelectedValuePath="Id"
+                              SelectionChanged="cboUser_SelectionChanged"
+                              DropDownOpened="cboUser_DropDownOpened"/>
+                </StackPanel>
+
+                <!-- Entity selector -->
+                <StackPanel Grid.Column="1" Margin="5,0">
+                    <TextBlock Text="ENTITY" Foreground="#00FF88" FontSize="10" FontWeight="Bold"
+                               FontFamily="Cascadia Code" Margin="0,0,0,6" />
+                    <ComboBox x:Name="cboEntity" Height="36" IsEditable="True"
+                              DisplayMemberPath="EntityDisplayName"
+                              SelectionChanged="cboEntity_SelectionChanged"
+                              DropDownOpened="cboEntity_DropDownOpened"/>
+                </StackPanel>
+
+                <!-- Record selector -->
+                <StackPanel Grid.Column="2" Margin="10,0,0,0">
+                    <TextBlock Text="RECORD" Foreground="#FF6B6B" FontSize="10" FontWeight="Bold"
+                               FontFamily="Cascadia Code" Margin="0,0,0,6" />
+                    <ComboBox x:Name="cboRecord" Height="36" IsEditable="True"
+                              DisplayMemberPath="RecordName" SelectedValuePath="Id"
+                              SelectionChanged="cboRecord_SelectionChanged"
+                              DropDownOpened="cboRecord_DropDownOpened"/>
+                </StackPanel>
+            </Grid>
+        </Border>
 
         <!-- User Info Section -->
-        <GroupBox Grid.Row="2" Header="User Info" Margin="10" Padding="10" BorderBrush="#CCCCCC">
-            <StackPanel>
-                <TextBlock x:Name="txtUserName" FontWeight="Bold" Margin="0,0,0,5" Foreground="Black"/>
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Text="Roles: " FontWeight="Bold" VerticalAlignment="Center" Foreground="Black"/>
+        <Border Grid.Row="2" Background="#1E1E2E" Margin="15,5" Padding="15"
+                CornerRadius="6" BorderBrush="#333344" BorderThickness="1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Roles -->
+                <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                    <TextBlock Text="ROLES" Foreground="#00D4FF" FontSize="11" FontWeight="Bold"
+                               FontFamily="Cascadia Code" Margin="0,0,0,8" />
                     <ItemsControl x:Name="lstRoles">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
@@ -59,15 +235,17 @@
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Button Content="{Binding Name}" Margin="2" Padding="5,2"
-                                        Click="btnRole_Click" Tag="{Binding Id}"
-                                        Background="#5cb85c" Foreground="White"/>
+                                <Button Content="{Binding Name}" Style="{StaticResource TagButton}"
+                                        Click="btnRole_Click" Tag="{Binding Id}"/>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </StackPanel>
-                <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
-                    <TextBlock Text="Teams: " FontWeight="Bold" VerticalAlignment="Center" Foreground="Black"/>
+
+                <!-- Teams -->
+                <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                    <TextBlock Text="TEAMS" Foreground="#00FF88" FontSize="11" FontWeight="Bold"
+                               FontFamily="Cascadia Code" Margin="0,0,0,8" />
                     <ItemsControl x:Name="lstTeams">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
@@ -76,37 +254,60 @@
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Button Content="{Binding Name}" Margin="2" Padding="5,2"
-                                        Click="btnTeam_Click" Tag="{Binding Id}"
-                                        Background="#337ab7" Foreground="White"/>
+                                <Button Content="{Binding Name}" Style="{StaticResource TagButton}"
+                                        Click="btnTeam_Click" Tag="{Binding Id}"/>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </StackPanel>
-            </StackPanel>
-        </GroupBox>
+            </Grid>
+        </Border>
 
         <!-- Access Rights Section -->
-        <GroupBox Grid.Row="3" Header="Record Access Rights" Margin="10" Padding="10" BorderBrush="#CCCCCC">
-            <ItemsControl x:Name="lstAccessRights">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <WrapPanel/>
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Border Margin="3" Padding="10,5" CornerRadius="3"
-                                Background="{Binding HasAccess, Converter={StaticResource AccessColorConverter}}">
-                            <TextBlock Text="{Binding RightName}" FontWeight="Bold" Foreground="White"/>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </GroupBox>
+        <Border Grid.Row="3" Background="#1E1E2E" Margin="15,5" Padding="15"
+                CornerRadius="6" BorderBrush="#333344" BorderThickness="1">
+            <StackPanel>
+                <TextBlock Text="RECORD ACCESS RIGHTS" Foreground="#FF6B6B" FontSize="11" FontWeight="Bold"
+                           FontFamily="Cascadia Code" Margin="0,0,0,10" />
+                <ItemsControl x:Name="lstAccessRights">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Margin="4" Padding="12,6" CornerRadius="14">
+                                <Border.Background>
+                                    <SolidColorBrush Color="{Binding HasAccess, Converter={StaticResource AccessColorConverter}}"/>
+                                </Border.Background>
+                                <TextBlock Text="{Binding RightName}" FontWeight="SemiBold"
+                                           Foreground="#1A1A2E" FontFamily="Cascadia Code" FontSize="12"/>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </Border>
 
-        <!-- Status -->
-        <TextBlock Grid.Row="4" x:Name="txtStatus" Margin="10" VerticalAlignment="Bottom" Foreground="Black"/>
+        <!-- Status bar -->
+        <Border Grid.Row="5" Background="#0D0D15" Padding="15,8"
+                BorderBrush="#252536" BorderThickness="0,1,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Status indicator -->
+                <StackPanel Orientation="Horizontal">
+                    <Ellipse Width="8" Height="8" Fill="#00FF88" Margin="0,0,8,0"
+                             VerticalAlignment="Center"/>
+                    <TextBlock x:Name="txtStatus" Text="Ready" Foreground="#888899"
+                               FontFamily="Cascadia Code" FontSize="11" VerticalAlignment="Center"/>
+                </StackPanel>
+            </Grid>
+        </Border>
 
         <!-- Loading Overlay -->
         <WpfControls:LoadingOverlay x:Name="LoadingOverlay" Grid.RowSpan="99"/>

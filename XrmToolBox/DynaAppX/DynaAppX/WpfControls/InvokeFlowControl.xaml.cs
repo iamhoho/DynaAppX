@@ -148,8 +148,6 @@ namespace DynaAppX.WpfControls
             {
                 _selectedFlow = flow;
                 txtFlowCategory.Text = flow.CategoryName;
-                lblRecord.Visibility = (flow.Category == 0 || !string.IsNullOrEmpty(flow.PrimaryEntity))
-                    ? Visibility.Visible : Visibility.Collapsed;
                 cboRecord.IsEnabled = (flow.Category == 0 || !string.IsNullOrEmpty(flow.PrimaryEntity));
 
                 ParseParameters(flow);

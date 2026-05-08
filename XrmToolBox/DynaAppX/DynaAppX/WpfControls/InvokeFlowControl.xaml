@@ -5,9 +5,68 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:WpfControls="clr-namespace:DynaAppX.WpfControls"
              mc:Ignorable="d"
-             d:DesignHeight="600" d:DesignWidth="900"
-             Background="White">
-    <Grid>
+             d:DesignHeight="600" d:DesignWidth="900">
+
+    <UserControl.Resources>
+        <!-- Cyber button style -->
+        <Style x:Key="CyberButton" TargetType="Button">
+            <Setter Property="Background">
+                <Setter.Value>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#00D4FF" Offset="0"/>
+                        <GradientStop Color="#00FF88" Offset="1"/>
+                    </LinearGradientBrush>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Foreground" Value="#1A1A2E"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="20,10"/>
+            <Setter Property="FontFamily" Value="Cascadia Code, Segoe UI"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}"
+                                CornerRadius="4" Padding="{TemplateBinding Padding}">
+                            <Border.Effect>
+                                <DropShadowEffect Color="#00D4FF" BlurRadius="10" ShadowDepth="0" Opacity="0.4"/>
+                            </Border.Effect>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect Color="#00FF88" BlurRadius="20" ShadowDepth="0" Opacity="0.8"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="border" Property="Background" Value="#333344"/>
+                                <Setter TargetName="border" Property="Effect">
+                                    <Setter.Value>
+                                        <DropShadowEffect Color="#000000" BlurRadius="0" ShadowDepth="0" Opacity="0"/>
+                                    </Setter.Value>
+                                </Setter>
+                                <Setter Property="Foreground" Value="#666677"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Checkbox style -->
+        <Style TargetType="CheckBox">
+            <Setter Property="Foreground" Value="#E0E0E0"/>
+            <Setter Property="FontFamily" Value="Cascadia Code"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Background="#12121A">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -15,78 +74,207 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <WpfControls:LoadingOverlay x:Name="LoadingOverlay" Grid.RowSpan="99"/>
-
         <!-- Header -->
-        <TextBlock Grid.Row="0" Text="Invoke Flow / Action" FontSize="20" FontWeight="Bold"
-                   Foreground="Black" Margin="10"/>
+        <Border Grid.Row="0" Background="#1A1A2E" Padding="20,15">
+            <Border.BorderBrush>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                    <GradientStop Color="#00D4FF" Offset="0"/>
+                    <GradientStop Color="Transparent" Offset="0.5"/>
+                    <GradientStop Color="#00FF88" Offset="1"/>
+                </LinearGradientBrush>
+            </Border.BorderBrush>
+            <Border.BorderThickness>0,0,0,1</Border.BorderThickness>
+
+            <StackPanel Orientation="Horizontal">
+                <Border Width="8" Height="30" Margin="0,0,15,0" CornerRadius="2">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Color="#FF6B6B" Offset="0"/>
+                            <GradientStop Color="#FF9F43" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                </Border>
+                <TextBlock Text="Invoke Flow / Action" FontSize="22" FontWeight="Bold"
+                           Foreground="#E0E0E0" FontFamily="Cascadia Code, Segoe UI"
+                           VerticalAlignment="Center">
+                    <TextBlock.Effect>
+                        <DropShadowEffect Color="#FF6B6B" BlurRadius="10" ShadowDepth="0" Opacity="0.3"/>
+                    </TextBlock.Effect>
+                </TextBlock>
+            </StackPanel>
+        </Border>
 
         <!-- Flow Selection Row -->
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="10">
-            <TextBlock Text="Flow:" VerticalAlignment="Center" Width="80" Foreground="Black"/>
-            <ComboBox x:Name="cboFlow" Width="300" DisplayMemberPath="Name"
-                      SelectionChanged="cboFlow_SelectionChanged" DropDownOpened="cboFlow_DropDownOpened"/>
-            <TextBlock x:Name="txtFlowCategory" Text="" Foreground="Gray" VerticalAlignment="Center" Margin="10,0,0,0"/>
+        <Border Grid.Row="1" Background="#1E1E2E" Margin="15" Padding="15" CornerRadius="6">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-            <TextBlock x:Name="lblRecord" Text="Record:" VerticalAlignment="Center" Width="80" Margin="20,0,5,0" Foreground="Black"/>
-            <ComboBox x:Name="cboRecord" Width="250" IsEditable="True"
-                      DisplayMemberPath="RecordName" SelectedValuePath="Id"
-                      SelectionChanged="cboRecord_SelectionChanged"
-                      DropDownOpened="cboRecord_DropDownOpened"
-                      KeyUp="cboRecord_KeyUp"/>
+                <!-- Flow selector -->
+                <StackPanel Grid.Column="0" Margin="0,0,15,0">
+                    <TextBlock Text="FLOW" Foreground="#FF6B6B" FontSize="10" FontWeight="Bold"
+                               FontFamily="Cascadia Code" Margin="0,0,0,6" />
+                    <ComboBox x:Name="cboFlow" Height="36" IsEditable="True"
+                              DisplayMemberPath="Name"
+                              SelectionChanged="cboFlow_SelectionChanged"
+                              DropDownOpened="cboFlow_DropDownOpened"/>
+                </StackPanel>
 
-            <CheckBox x:Name="chkRawMode" Content="Raw Mode" Foreground="Black"
-                      VerticalAlignment="Center" Margin="20,0,0,0"
-                      Checked="chkRawMode_Changed" Unchecked="chkRawMode_Changed"/>
-            <Button x:Name="btnInvoke" Content="Invoke" Padding="15,5" Margin="20,0,0,0"
-                    Click="btnInvoke_Click" IsEnabled="False"
-                    Background="#007ACC" Foreground="White" BorderThickness="0"/>
-        </StackPanel>
+                <!-- Flow category badge -->
+                <StackPanel Grid.Column="1" VerticalAlignment="Bottom" Margin="0,0,15,8">
+                    <Border Background="#2A2A3E" Padding="10,4" CornerRadius="10"
+                            BorderBrush="#FF6B6B" BorderThickness="0,0,0,1">
+                        <TextBlock x:Name="txtFlowCategory" Text="" Foreground="#FF6B6B"
+                                   FontFamily="Cascadia Code" FontSize="11"/>
+                    </Border>
+                </StackPanel>
+
+                <!-- Record selector -->
+                <StackPanel Grid.Column="2" Margin="0,0,15,0">
+                    <TextBlock Text="TARGET RECORD" Foreground="#00D4FF" FontSize="10" FontWeight="Bold"
+                               FontFamily="Cascadia Code" Margin="0,0,0,6" />
+                    <ComboBox x:Name="cboRecord" Height="36" IsEditable="True"
+                              DisplayMemberPath="RecordName" SelectedValuePath="Id"
+                              SelectionChanged="cboRecord_SelectionChanged"
+                              DropDownOpened="cboRecord_DropDownOpened"
+                              KeyUp="cboRecord_KeyUp"/>
+                </StackPanel>
+
+                <!-- Raw mode checkbox -->
+                <CheckBox x:Name="chkRawMode" Grid.Column="3" Content="RAW MODE"
+                          Foreground="#888899" VerticalAlignment="Bottom" Margin="0,0,15,8"
+                          Checked="chkRawMode_Changed" Unchecked="chkRawMode_Changed"/>
+
+                <!-- Invoke button -->
+                <Button x:Name="btnInvoke" Grid.Column="4" Content="INVOKE"
+                        Style="{StaticResource CyberButton}"
+                        Click="btnInvoke_Click" IsEnabled="False" VerticalAlignment="Bottom"/>
+            </Grid>
+        </Border>
 
         <!-- Parameters Panel -->
-        <Border Grid.Row="2" Background="#F0F0F0" Margin="10" Padding="10" CornerRadius="4">
+        <Border Grid.Row="2" Background="#1E1E2E" Margin="15,0,15,15" Padding="15"
+                CornerRadius="6" BorderBrush="#333344" BorderThickness="1">
             <StackPanel x:Name="pnlParameters">
-                <TextBlock Text="Parameters:" Foreground="Black" FontWeight="Bold" Margin="0,0,0,10"/>
-                <TextBlock x:Name="txtNoParameters" Text="Select a flow to see parameters"
-                           Foreground="Gray"/>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                    <TextBlock Text="PARAMETERS" Foreground="#00FF88" FontSize="11" FontWeight="Bold"
+                               FontFamily="Cascadia Code"  VerticalAlignment="Center"/>
+                    <Border Width="1" Height="14" Background="#333344" Margin="12,0"/>
+                    <TextBlock x:Name="txtNoParameters" Text="Select a flow to view parameters"
+                               Foreground="#666677" FontFamily="Cascadia Code" FontSize="11"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- Parameter items -->
                 <ItemsControl x:Name="lstParameters">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <StackPanel Orientation="Horizontal" Margin="0,5">
-                                <TextBlock Text="{Binding Name}" Width="150" Foreground="Black" VerticalAlignment="Center"/>
-                                <TextBox x:Name="txtValue" Width="200"
-                                         Text="{Binding Value, Mode=TwoWay}"
-                                         IsEnabled="{Binding IsEnabled}"/>
-                                <TextBlock Text="{Binding Type}" Foreground="Gray" Margin="10,0,0,0" VerticalAlignment="Center"/>
-                            </StackPanel>
+                            <Border Background="#252536" Margin="0,4" Padding="12,8" CornerRadius="4">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="150"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock Grid.Column="0" Text="{Binding Name}"
+                                               Foreground="#00D4FF" FontFamily="Cascadia Code"
+                                               FontWeight="SemiBold" VerticalAlignment="Center"/>
+
+                                    <TextBox Grid.Column="1" Text="{Binding Value, Mode=TwoWay}"
+                                             IsEnabled="{Binding IsEnabled}"
+                                             Background="#1A1A2E" Foreground="#E0E0E0"
+                                             BorderBrush="#00D4FF" BorderThickness="0,0,0,1"
+                                             Padding="8,4" FontFamily="Cascadia Code"
+                                             VerticalAlignment="Center"/>
+
+                                    <Border Grid.Column="2" Background="#2A2A3E" Padding="8,4"
+                                            CornerRadius="3" Margin="10,0,0,0">
+                                        <TextBlock Text="{Binding Type}" Foreground="#888899"
+                                                   FontFamily="Cascadia Code" FontSize="10"
+                                                   VerticalAlignment="Center"/>
+                                    </Border>
+                                </Grid>
+                            </Border>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
-                <TextBlock x:Name="txtRawModeLabel" Text="Raw JSON:" Foreground="Black" Margin="0,10,0,5" Visibility="Collapsed"/>
-                <TextBox x:Name="txtRawJson" Width="400" Height="80" AcceptsReturn="True"
-                         TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
-                         FontFamily="Consolas" Visibility="Collapsed"/>
+
+                <!-- Raw JSON mode -->
+                <StackPanel x:Name="pnlRawMode" Visibility="Collapsed" Margin="0,10,0,0">
+                    <TextBlock x:Name="txtRawModeLabel" Text="RAW JSON INPUT"
+                               Foreground="#FF9F43" FontSize="10" FontWeight="Bold"
+                               FontFamily="Cascadia Code" Margin="0,0,0,6" />
+                    <TextBox x:Name="txtRawJson" Height="100"
+                             TextWrapping="Wrap" AcceptsReturn="True"
+                             VerticalScrollBarVisibility="Auto"
+                             Background="#1A1A2E" Foreground="#E0E0E0"
+                             BorderBrush="#FF9F43" BorderThickness="1"
+                             FontFamily="Cascadia Code" FontSize="12"
+                             Padding="10"/>
+                </StackPanel>
             </StackPanel>
         </Border>
 
         <!-- Invoke History -->
-        <Grid Grid.Row="3" Margin="10">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-            <TextBlock Grid.Row="0" Text="Invoke History" Foreground="Black" FontWeight="Bold" Margin="0,0,0,10"/>
-            <DataGrid Grid.Row="1" x:Name="dgHistory" AutoGenerateColumns="False"
-                      Background="White" Foreground="Black" BorderBrush="#CCCCCC"
-                      IsReadOnly="True" HeadersVisibility="Column">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="Date" Binding="{Binding InvokeDate, StringFormat='{}{0:HH:mm:ss}'}" Width="80"/>
-                    <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="150"/>
-                    <DataGridTextColumn Header="Status" Binding="{Binding StatusCode}" Width="60"/>
-                    <DataGridTextColumn Header="Request" Binding="{Binding RequestBody}" Width="*"/>
-                    <DataGridTextColumn Header="Response" Binding="{Binding Response}" Width="*"/>
-                </DataGrid.Columns>
-            </DataGrid>
-        </Grid>
+        <Border Grid.Row="3" Background="#1E1E2E" Margin="15,0,15,15" Padding="15"
+                CornerRadius="6" BorderBrush="#333344" BorderThickness="1">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Text="INVOKE HISTORY" Foreground="#00D4FF"
+                           FontSize="11" FontWeight="Bold" FontFamily="Cascadia Code"
+                           Margin="0,0,0,10" />
+
+                <DataGrid Grid.Row="1" x:Name="dgHistory" AutoGenerateColumns="False"
+                          Background="Transparent" Foreground="#E0E0E0"
+                          BorderThickness="0" GridLinesVisibility="None"
+                          HeadersVisibility="Column" RowBackground="#252536"
+                          AlternatingRowBackground="#1E1E2E"
+                          FontFamily="Cascadia Code" FontSize="11">
+                    <DataGrid.ColumnHeaderStyle>
+                        <Style TargetType="DataGridColumnHeader">
+                            <Setter Property="Background" Value="#1A1A2E"/>
+                            <Setter Property="Foreground" Value="#00D4FF"/>
+                            <Setter Property="Padding" Value="10,8"/>
+                            <Setter Property="FontWeight" Value="Bold"/>
+                            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                            <Setter Property="BorderBrush" Value="#333344"/>
+                        </Style>
+                    </DataGrid.ColumnHeaderStyle>
+                    <DataGrid.CellStyle>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="Padding" Value="10,6"/>
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                            <Style.Triggers>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter Property="Background" Value="#2A2A4E"/>
+                                    <Setter Property="Foreground" Value="#E0E0E0"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DataGrid.CellStyle>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="TIME" Binding="{Binding InvokeDate, StringFormat='{}{0:HH:mm:ss}'}" Width="70"/>
+                        <DataGridTextColumn Header="NAME" Binding="{Binding Name}" Width="150"/>
+                        <DataGridTextColumn Header="STATUS" Binding="{Binding StatusCode}" Width="60"/>
+                        <DataGridTextColumn Header="REQUEST" Binding="{Binding RequestBody}" Width="*"/>
+                        <DataGridTextColumn Header="RESPONSE" Binding="{Binding Response}" Width="*"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </Border>
+
+        <!-- Loading Overlay -->
+        <WpfControls:LoadingOverlay x:Name="LoadingOverlay" Grid.RowSpan="99"/>
     </Grid>
 </UserControl>

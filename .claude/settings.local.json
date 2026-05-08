@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(C:/Program Files/Microsoft Visual Studio/2022/Community/MSBuild/Current/Bin/MSBuild.exe *)",
+      "Bash(cd *)",
+      "Bash(git *)",
+      "Bash(dotnet *)",
+      "Bash(find *)",
+      "Read(//c/Users/dangy/Documents/GitHub/DynaAppX/**)",
+      "Write(//c/Users/dangy/Documents/GitHub/DynaAppX/**)",
+      "Edit(//c/Users/dangy/Documents/GitHub/DynaAppX/**)",
+      "Glob(//c/Users/dangy/Documents/GitHub/DynaAppX/**)",
+      "Grep(//c/Users/dangy/Documents/GitHub/DynaAppX/**)",
+      "Read(//c/Users/dangy/.claude/**)"
+    ]
+  }
+}
