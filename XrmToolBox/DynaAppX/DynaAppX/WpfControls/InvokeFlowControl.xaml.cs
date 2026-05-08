@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using DynaAppX.Services;
@@ -20,6 +22,7 @@ namespace DynaAppX.WpfControls
         private List<Services.FlowWrapper> _flows = new List<Services.FlowWrapper>();
         private Services.FlowWrapper _selectedFlow;
         private List<RecordWrapper> _records = new List<RecordWrapper>();
+        private CancellationTokenSource _searchCts;
         private ObservableCollection<InvokeHistoryItem> _history = new ObservableCollection<InvokeHistoryItem>();
         private List<ParameterItem> _parameters = new List<ParameterItem>();
 
@@ -80,6 +83,8 @@ namespace DynaAppX.WpfControls
         {
             if (_service == null) return;
 
+            LoadingOverlay.Show("Loading flows...");
+
             try
             {
                 // Check cache first
@@ -130,6 +135,10 @@ namespace DynaAppX.WpfControls
             catch (Exception ex)
             {
                 MessageBox.Show($"Error loading flows: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                LoadingOverlay.Hide();
             }
         }
 
@@ -215,35 +224,40 @@ namespace DynaAppX.WpfControls
             if (_selectedFlow == null || string.IsNullOrEmpty(_selectedFlow.PrimaryEntity) || _selectedFlow.Category == 3)
                 return;
 
-            SearchRecords("");
+            _ = SearchRecordsAsync("");
         }
 
-        private void cboRecord_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
+        private async void cboRecord_KeyUp(object sender, System.Windows.Input.KeyEventArgs e)
         {
             if (_selectedFlow == null || string.IsNullOrEmpty(_selectedFlow.PrimaryEntity) || _selectedFlow.Category == 3)
                 return;
 
             if (e.Key == System.Windows.Input.Key.Enter)
             {
-                SearchRecords(cboRecord.Text ?? "");
+                await SearchRecordsAsync(cboRecord.Text ?? "");
             }
         }
 
-        private void cboRecord_TextChanged(object sender, TextChangedEventArgs e)
+        private async void cboRecord_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (_selectedFlow == null || string.IsNullOrEmpty(_selectedFlow.PrimaryEntity) || _selectedFlow.Category == 3)
                 return;
 
-            SearchRecords(cboRecord.Text ?? "");
+            await SearchRecordsAsync(cboRecord.Text ?? "");
         }
 
-        private void SearchRecords(string searchText)
+        private async Task SearchRecordsAsync(string searchText)
         {
             if (_service == null || _selectedFlow == null || string.IsNullOrEmpty(_selectedFlow.PrimaryEntity))
                 return;
 
+            _searchCts?.Cancel();
+            _searchCts = new CancellationTokenSource();
+            var token = _searchCts.Token;
+
             try
             {
+                LoadingOverlay.Show("Searching records...");
                 var entityWrapper = SharedMetadataCache.Instance.GetAllEntities(_service)
                     .FirstOrDefault(e => e.LogicalName == _selectedFlow.PrimaryEntity);
 
@@ -254,8 +268,12 @@ namespace DynaAppX.WpfControls
                     return;
                 }
 
-                var fetchXml = BuildRecordSearchFetchXml(entityWrapper, searchText);
-                var result = _service.RetrieveMultiple(new FetchExpression(fetchXml));
+                await SharedMetadataCache.Instance.GetEntityAttributesAsync(_service, entityWrapper.LogicalName);
+                if (token.IsCancellationRequested) return;
+
+                var fetchXml = CrmHelper.BuildRecordSearchFetchXml(entityWrapper, searchText);
+                var result = await Task.Run(() => _service.RetrieveMultiple(new FetchExpression(fetchXml)), token);
+                if (token.IsCancellationRequested) return;
 
                 _records.Clear();
                 foreach (var record in result.Entities)
@@ -274,68 +292,18 @@ namespace DynaAppX.WpfControls
                 cboRecord.ItemsSource = null;
                 cboRecord.ItemsSource = _records;
             }
+            catch (OperationCanceledException)
+            {
+                // Expected when search is cancelled
+            }
             catch (Exception ex)
             {
                 MessageBox.Show($"Error searching records: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
-        }
-
-        private string BuildRecordSearchFetchXml(EntityWrapper entityWrapper, string searchText)
-        {
-            var conditions = new List<string>();
-
-            if (IsGuid(searchText))
+            finally
             {
-                conditions.Add($"<condition attribute='{entityWrapper.PrimaryIdAttribute}' operator='eq' value='{searchText}'/>");
+                LoadingOverlay.Hide();
             }
-            else if (!string.IsNullOrWhiteSpace(searchText))
-            {
-                if (entityWrapper.Attributes != null)
-                {
-                    var stringAttrs = entityWrapper.Attributes
-                        .Where(a => a.AttributeOf == null &&
-                                    a.AttributeType == Microsoft.Xrm.Sdk.Metadata.AttributeTypeCode.String &&
-                                    (a.LogicalName.ToLowerInvariant().Contains("code") ||
-                                     a.LogicalName.ToLowerInvariant().Contains("name") ||
-                                     a.LogicalName.ToLowerInvariant().Contains("number")))
-                        .ToList();
-
-                    foreach (var attr in stringAttrs)
-                    {
-                        conditions.Add($"<condition attribute='{attr.LogicalName}' operator='like' value='%{EscapeXml(searchText)}%'/>");
-                    }
-                }
-
-                if (!string.IsNullOrEmpty(entityWrapper.PrimaryNameAttribute))
-                {
-                    conditions.Add($"<condition attribute='{entityWrapper.PrimaryNameAttribute}' operator='like' value='%{EscapeXml(searchText)}%'/>");
-                }
-            }
-
-            var conditionXml = conditions.Count > 0
-                ? $"<filter type='or'>{string.Join("", conditions)}</filter>"
-                : "";
-
-            return $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' top='30'>
-                <entity name='{entityWrapper.LogicalName}'>
-                    <attribute name='{entityWrapper.PrimaryIdAttribute}'/>
-                    <attribute name='{entityWrapper.PrimaryNameAttribute}'/>
-                    <order attribute='modifiedon' descending='true'/>
-                    {conditionXml}
-                </entity>
-            </fetch>";
-        }
-
-        private bool IsGuid(string value)
-        {
-            if (string.IsNullOrWhiteSpace(value)) return false;
-            return Guid.TryParse(value.Replace("{", "").Replace("}", ""), out _);
-        }
-
-        private string EscapeXml(string value)
-        {
-            if (string.IsNullOrEmpty(value)) return value;
-            return value.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("\"", "&quot;").Replace("'", "&apos;");
         }
 
         private void cboRecord_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -359,6 +327,8 @@ namespace DynaAppX.WpfControls
                 MessageBox.Show("Please select a flow first.", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
+
+            LoadingOverlay.Show("Invoking flow/action...");
 
             try
             {
@@ -426,12 +396,20 @@ namespace DynaAppX.WpfControls
             {
                 MessageBox.Show($"Error invoking flow: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+            finally
+            {
+                LoadingOverlay.Hide();
+            }
         }
 
         private object ParseParameterValue(string value, string type)
         {
             if (string.IsNullOrEmpty(value)) return null;
 
+            if (type == "x:String")
+            {
+                return value;
+            }
             if (type == "x:Int32" || type == "x:Double" || type == "x:Decimal")
             {
                 if (decimal.TryParse(value, out var num))
@@ -452,10 +430,59 @@ namespace DynaAppX.WpfControls
 
         private string ExecuteAction(string path, string body)
         {
-            // Note: Full Web API execution requires OAuth token acquisition
-            // which is not directly available in XrmToolBox plugin context.
-            // This is a placeholder that shows what would be executed.
-            return $"{{\"info\": \"Would execute Web API call\", \"path\": \"{path}\", \"body\": \"{body}\"}}";
+            if (_service == null) return "{\"error\": \"Service not initialized\"}";
+
+            try
+            {
+                object response = null;
+
+                if (_selectedFlow.Category == 0)
+                {
+                    // Workflow - use ExecuteWorkflowRequest
+                    if (cboRecord.SelectedItem is RecordWrapper record)
+                    {
+                        var request = new Microsoft.Crm.Sdk.Messages.ExecuteWorkflowRequest
+                        {
+                            WorkflowId = _selectedFlow.Id,
+                            EntityId = record.Id
+                        };
+                        response = _service.Execute(request);
+                    }
+                }
+                else
+                {
+                    // Action - use OrganizationRequest
+                    var request = new OrganizationRequest(_selectedFlow.UniqueName);
+
+                    if (!string.IsNullOrEmpty(_selectedFlow.PrimaryEntity) && _selectedFlow.PrimaryEntity != "none")
+                    {
+                        if (cboRecord.SelectedItem is RecordWrapper record)
+                        {
+                            request.Parameters["Target"] = new EntityReference(_selectedFlow.PrimaryEntity, record.Id);
+                        }
+                    }
+
+                    if (!string.IsNullOrEmpty(body))
+                    {
+                        var paramDict = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, object>>(body);
+                        foreach (var kvp in paramDict)
+                        {
+                            if (kvp.Value != null)
+                            {
+                                request.Parameters[kvp.Key] = kvp.Value;
+                            }
+                        }
+                    }
+
+                    response = _service.Execute(request);
+                }
+
+                return $"{{\"success\": true, \"result\": {(response != null ? Newtonsoft.Json.JsonConvert.SerializeObject(response) : "null")}}}";
+            }
+            catch (Exception ex)
+            {
+                return $"{{\"error\": {Newtonsoft.Json.JsonConvert.ToString(ex.Message)}}}";
+            }
         }
     }
 
