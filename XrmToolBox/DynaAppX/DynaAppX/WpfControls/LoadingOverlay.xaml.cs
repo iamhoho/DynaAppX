@@ -40,6 +40,7 @@ namespace DynaAppX.WpfControls
         public void Show(string message = "Loading...")
         {
             Message = message;
+            txtMessage.Text = message;
             IsLoading = true;
         }
 
