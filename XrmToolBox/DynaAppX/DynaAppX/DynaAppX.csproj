@@ -261,13 +261,6 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Compile Include="WpfControls\WpfTestControl.xaml.cs">
-      <DependentUpon>WpfTestControl.xaml</DependentUpon>
-    </Compile>
-    <Page Include="WpfControls\WpfTestControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Compile Include="WpfControls\WelcomePageControl.xaml.cs">
       <DependentUpon>WelcomePageControl.xaml</DependentUpon>
     </Compile>
@@ -296,8 +289,15 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Compile Include="LoadingDialog.cs" />
+    <Compile Include="WpfControls\LoadingOverlay.xaml.cs">
+      <DependentUpon>LoadingOverlay.xaml</DependentUpon>
+    </Compile>
+    <Page Include="WpfControls\LoadingOverlay.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Compile Include="Services\SharedMetadataCache.cs" />
+    <Compile Include="Services\CrmHelper.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
