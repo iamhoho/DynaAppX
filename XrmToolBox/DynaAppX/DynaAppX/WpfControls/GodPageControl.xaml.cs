@@ -4,7 +4,10 @@ using Microsoft.Xrm.Sdk.Query;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Threading;
 using System.Windows.Controls;
 using DynaAppX.Services;
 
@@ -19,6 +22,8 @@ namespace DynaAppX.WpfControls
         private List<AttributeItem> _attributes = new List<AttributeItem>();
         private List<ChangeItem> _changes = new List<ChangeItem>();
         private bool _isLoading = false;
+        private readonly DispatcherTimer _detectChangesTimer;
+        private CancellationTokenSource _searchCts;
 
         private static readonly string[] HiddenAttributes = new[]
         {
@@ -36,6 +41,12 @@ namespace DynaAppX.WpfControls
         {
             InitializeComponent();
             this.Loaded += GodPageControl_Loaded;
+            _detectChangesTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(300) };
+            _detectChangesTimer.Tick += (s, e) =>
+            {
+                _detectChangesTimer.Stop();
+                DetectChanges();
+            };
         }
 
         public void SetService(IOrganizationService service)
@@ -69,23 +80,32 @@ namespace DynaAppX.WpfControls
         private void cboRecord_DropDownOpened(object sender, EventArgs e)
         {
             if (_selectedEntity == null) return;
-            SearchRecords("");
+            _ = SearchRecordsAsync("");
         }
 
-        private void cboRecord_TextChanged(object sender, TextChangedEventArgs e)
+        private async void cboRecord_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (_selectedEntity == null) return;
-            SearchRecords(cboRecord.Text ?? "");
+            await SearchRecordsAsync(cboRecord.Text ?? "");
         }
 
-        private void SearchRecords(string searchText)
+        private async Task SearchRecordsAsync(string searchText)
         {
             if (_service == null || _selectedEntity == null) return;
 
+            _searchCts?.Cancel();
+            _searchCts = new CancellationTokenSource();
+            var token = _searchCts.Token;
+
             try
             {
-                var fetchXml = BuildRecordSearchFetchXml(_selectedEntity, searchText);
-                var result = _service.RetrieveMultiple(new FetchExpression(fetchXml));
+                LoadingOverlay.Show("Searching records...");
+                await SharedMetadataCache.Instance.GetEntityAttributesAsync(_service, _selectedEntity.LogicalName);
+                if (token.IsCancellationRequested) return;
+
+                var fetchXml = CrmHelper.BuildRecordSearchFetchXml(_selectedEntity, searchText);
+                var result = await Task.Run(() => _service.RetrieveMultiple(new FetchExpression(fetchXml)), token);
+                if (token.IsCancellationRequested) return;
 
                 var records = result.Entities.Select(r =>
                 {
@@ -103,69 +123,20 @@ namespace DynaAppX.WpfControls
                 cboRecord.ItemsSource = null;
                 cboRecord.ItemsSource = records;
             }
+            catch (OperationCanceledException)
+            {
+                // Expected when search is cancelled
+            }
             catch (Exception ex)
             {
                 txtStatus.Text = $"Error: {ex.Message}";
             }
-        }
-
-        private string BuildRecordSearchFetchXml(EntityWrapper entityWrapper, string searchText)
-        {
-            var conditions = new List<string>();
-
-            if (IsGuid(searchText))
+            finally
             {
-                conditions.Add($"<condition attribute='{entityWrapper.PrimaryIdAttribute}' operator='eq' value='{searchText}'/>");
+                LoadingOverlay.Hide();
             }
-            else if (!string.IsNullOrWhiteSpace(searchText))
-            {
-                if (entityWrapper.Attributes != null)
-                {
-                    var stringAttrs = entityWrapper.Attributes
-                        .Where(a => a.AttributeOf == null &&
-                                    a.AttributeType == AttributeTypeCode.String &&
-                                    (a.LogicalName.ToLowerInvariant().Contains("code") ||
-                                     a.LogicalName.ToLowerInvariant().Contains("name") ||
-                                     a.LogicalName.ToLowerInvariant().Contains("number")))
-                        .ToList();
-
-                    foreach (var attr in stringAttrs)
-                    {
-                        conditions.Add($"<condition attribute='{attr.LogicalName}' operator='like' value='%{EscapeXml(searchText)}%'/>");
-                    }
-                }
-
-                if (!string.IsNullOrEmpty(entityWrapper.PrimaryNameAttribute))
-                {
-                    conditions.Add($"<condition attribute='{entityWrapper.PrimaryNameAttribute}' operator='like' value='%{EscapeXml(searchText)}%'/>");
-                }
-            }
-
-            var conditionXml = conditions.Count > 0
-                ? $"<filter type='or'>{string.Join("", conditions)}</filter>"
-                : "";
-
-            return $@"<fetch version='1.0' output-format='xml-platform' mapping='logical' distinct='false' top='30'>
-                <entity name='{entityWrapper.LogicalName}'>
-                    <attribute name='{entityWrapper.PrimaryIdAttribute}'/>
-                    <attribute name='{entityWrapper.PrimaryNameAttribute}'/>
-                    <order attribute='modifiedon' descending='true'/>
-                    {conditionXml}
-                </entity>
-            </fetch>";
         }
 
-        private bool IsGuid(string value)
-        {
-            if (string.IsNullOrWhiteSpace(value)) return false;
-            return Guid.TryParse(value.Replace("{", "").Replace("}", ""), out _);
-        }
-
-        private string EscapeXml(string value)
-        {
-            if (string.IsNullOrEmpty(value)) return value;
-            return value.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("\"", "&quot;").Replace("'", "&apos;");
-        }
 
         private void cboRecord_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -185,13 +156,35 @@ namespace DynaAppX.WpfControls
             }
         }
 
-        private void LoadRecordData()
+        private async void LoadRecordData()
         {
+            _detectChangesTimer.Stop();
             if (_service == null || _selectedEntity == null || _selectedRecord == null) return;
+
+            LoadingOverlay.Show("Loading record attributes...");
 
             try
             {
-                _originalData = _service.Retrieve(_selectedEntity.LogicalName, _selectedRecord.Id, new ColumnSet(true));
+                await SharedMetadataCache.Instance.GetEntityAttributesAsync(_service, _selectedEntity.LogicalName);
+
+                var editableAttrs = _selectedEntity.Attributes
+                    .Where(a => a.AttributeOf == null &&
+                               a.IsPrimaryId != true &&
+                               !IsInArray(HiddenAttributes, a.LogicalName) &&
+                               !IsInArray(DisabledAttributes, a.LogicalName))
+                    .ToList();
+
+                var disabledAttrs = _selectedEntity.Attributes
+                    .Where(a => a.AttributeOf == null &&
+                               a.IsPrimaryId != true &&
+                               !IsInArray(HiddenAttributes, a.LogicalName) &&
+                               IsInArray(DisabledAttributes, a.LogicalName))
+                    .ToList();
+
+                var allDisplayAttrs = editableAttrs.Concat(disabledAttrs).ToList();
+                var columnSet = new ColumnSet(allDisplayAttrs.Select(a => a.LogicalName).ToArray());
+
+                _originalData = await Task.Run(() => _service.Retrieve(_selectedEntity.LogicalName, _selectedRecord.Id, columnSet));
                 BuildAttributeItems();
                 btnSave.IsEnabled = false;
                 txtStatus.Text = $"Loaded record: {_selectedRecord.RecordName}";
@@ -199,6 +192,10 @@ namespace DynaAppX.WpfControls
             catch (Exception ex)
             {
                 txtStatus.Text = $"Error loading record: {ex.Message}";
+            }
+            finally
+            {
+                LoadingOverlay.Hide();
             }
         }
 
@@ -285,7 +282,8 @@ namespace DynaAppX.WpfControls
 
         private void txtValue_LostFocus(object sender, RoutedEventArgs e)
         {
-            DetectChanges();
+            _detectChangesTimer.Stop();
+            _detectChangesTimer.Start();
         }
 
         private void DetectChanges()
